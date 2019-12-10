@@ -42,7 +42,7 @@ void printItems (uint8_t* pItems, uint16_t n) {
 
 Machine machine = Machine();
 uint8_t mem[CHIKA_SIZE];
-uint8_t progSize;
+memolen progSize;
 uint8_t pNum = 0;
 
 uint8_t loadProg (const char* path) {

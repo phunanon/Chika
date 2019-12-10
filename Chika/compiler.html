@@ -22,7 +22,7 @@ const num = s => parseInt(s.match(/\d+/g).join(""));
 
 
 const FRM = 0x00, STR = 0x01, U08 = 0x10, U16 = 0x11, I32 = 0x12;
-const strFuncs = {"print": 0xEE, "+": 0x33, "str": 0x44};
+const strFuncs = {"+": 0x33, "str": 0x44, "vec": 0xBB, "nth": 0xCC, "print": 0xEE};
 
 
 const walkItems = (arr, pred, func) =>
@@ -36,24 +36,6 @@ function extractStrings (source) {
   let numStr = 0;
   source = source.replace(/"(.*?)"/g, m => { strings.push(m.slice(1,-1)); return "`"+(numStr++)+"`"; });
   return {source, strings};
-}
-
-function extractVectors (source) {
-  const vectors = [""];
-  const complete = [];
-  for (let s = 0, numVec = 0; s < source.length; ++s) {
-    if (source[s] == "[") {
-      vectors[vectors.length - 1] += `$${numVec++}`;
-      vectors.push("");
-    } else if (source[s] == "]"  || s == source.length - 1) {
-      complete.push(vectors.pop());
-      if (source[s] != "]")
-        complete[complete.length - 1] += source[s];
-    } else
-      vectors[vectors.length - 1] += source[s];
-  }
-  source = complete.pop();
-  return {source: source, vectors: complete.reverse()};
 }
 
 const formise = s =>
@@ -84,10 +66,8 @@ function compile (source) {
   const strings = extractedStrings.strings;
   source = extractedStrings.source;
   
-  //Extract all vectors, and replace them with "$n"
-  const extractedVectors = extractVectors(source);
-  const vectors = extractedVectors.vectors;
-  source = extractedVectors.source;
+  //Replace all vectors with (vec ...) form
+  source = source.replace(/\[/g, "(vec ").replace(/\]/g, ")");
 
   //Make forms into nested arrays
   const forms = formise(source);
@@ -152,6 +132,7 @@ function DOM_compile () {
   const imageHex = compiled.image.join("")
   e("#assembly").value = compiled.assembly;
   e("#image").value = imageHex + "\n\n\n0x" + imageHex.match(/.{2}/g).join(", 0x");
+  e("size").innerHTML = (imageHex.length / 2) + "B";
 }
     </script>
     <style>
@@ -189,6 +170,7 @@ textarea {
     <div>
       <button onclick="DOM_compile()">Compile</button>
     </div>
+    <size>0B<size>
     <pre>xxd -r -p chika.hex init.chi</pre>
   </body>
 </html>

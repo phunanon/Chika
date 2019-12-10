@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include <cstring>
+#include "string.h"
 
 #define min(a,b) (a<b?a:b)
 

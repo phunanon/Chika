@@ -1,17 +1,15 @@
 #pragma once
-#include <cstring>
+#include "string.h"
 #include "config.hpp"
 #include "utils.hpp"
 
-#define _ValsUntil 0x22 //(exclusive)
 
+//Constant:  bytes are program position as proglen
+//Reference: bytes are item position as itemnum
+//Value:     bytes are raw value
 enum IKind { Constant, Reference, Value };
 
-/*
-Item memory:
-- len: length of value, either const/referenced or in the items' byte stack
-*/
-class Item {
+class __attribute__((__packed__)) Item {
   uint8_t typeAndKind;
 public:
   itemlen len;
@@ -33,7 +31,6 @@ Prog memory:
 -- prog LIFO items
 - tail backward: N bytes: program item LIFO items
 */
-
 
 struct __attribute__((__packed__)) ProgInfo {
   proglen len;
@@ -64,28 +61,37 @@ class Machine {
   uint8_t* iBytes     (itemnum);   //Access item bytes directly
   uint8_t* iData      (itemnum);   //Access item bytes, traversing references
   Item*    iLast      ();         //Access last item
+
+  int32_t  iInt       (itemnum);  //Item-agnostic readNum
+
   uint8_t* stackItem  ();
   void     stackItem  (Item);
   uint8_t* returnItem (itemnum);
+  void     returnItem (itemnum, Item*);
   void     returnItem (itemnum, Item);
-  void     returnCollapseItem (itemnum, Item);     //Collapse the LIFO so the last stack item is moved to be the return item
+  void     returnCollapseItem (itemnum, Item*);    //
+  void     returnCollapseItem (itemnum, Item);     // Collapse the LIFO so the last stack item is moved to be the return item
   void     returnNil  (itemnum);
   void     iPop       (itemnum);                   //Pop items
 
   uint8_t* pFunc     (funcnum);
-  void     exeFunc   (funcnum, itemnum);  //
-  uint8_t* exeForm   (uint8_t*, itemnum); //
-  void     nativeOp  (IType, itemnum);    //
-  void     op_Add    (itemnum);           //
-  void     op_Str    (itemnum);           //
-  void     op_Print  (itemnum);           // All leave a V item on the stack
+
+  //All leave one V item on the stack
+  void     exeFunc   (funcnum, itemnum);
+  uint8_t* exeForm   (uint8_t*, itemnum);
+  void     nativeOp  (IType, itemnum);
+  void     op_Add    (itemnum);
+  void     op_Str    (itemnum);
+  void     op_Print  (itemnum);
+  void     op_Vec    (itemnum);
+  void     op_Nth    (itemnum);
 public:
   prognum pNum;
   Machine ();
   void heartbeat (prognum);
 
   uint8_t* mem;
-  uint16_t progSize;
+  memolen  progSize;
   //Program ROM
   void     romLen (proglen);            //Set length of program ROM
   void     p      (proglen, uint8_t);   //Write program byte
