@@ -12,7 +12,7 @@ enum IKind { Constant, Reference, Value };
 class __attribute__((__packed__)) Item {
   uint8_t typeAndKind;
 public:
-  itemlen len;
+  itemlen len; //Length of value or const/referenced value
   Item (itemlen, IType, IKind);
   IType type ();
   IKind kind ();
@@ -86,6 +86,7 @@ class Machine {
   void     op_Print  (itemnum);
   void     op_Vec    (itemnum);
   void     op_Nth    (itemnum);
+  void     op_Val    (itemnum);
 public:
   prognum pNum;
   Machine ();

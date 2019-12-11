@@ -45,7 +45,10 @@ Using pre-allocated memory to store and execute a variable number of programs at
 `+` 0 arg: returns `0`.  
 `+` N arg: returns sum of N integers.
 
-`nth N vec`: returns item `N` of vector `vec`.
+`vec` 0 arg: returns empty vector.  
+`vec` N arg: returns vector of N args.
+
+`nth vec N`: returns item `N` of vector `vec`.
 
 `str` 0 arg: returns `""`.  
 `str` N arg: returns concatenation of N args as a string.

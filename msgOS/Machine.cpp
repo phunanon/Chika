@@ -184,8 +184,27 @@ debugger("func len:", true, fLen);
     if (f != fEnd)
       iPop();
   }
+
+  //Inflate return arg/s going out of scope, on their own or within vecs/maps
+  //First, check if the return item is an arg type
+  Item* li = iLast();
+  if (li->kind() == Reference) {
+    itemnum lItem = numItem() - 1;
+    //Check if it's about to go out-of-scope
+    if (*(itemnum*)iBytes(lItem) >= firstParam) {
+      //Replace the reference with the referenced data bytes
+      memcpy(iBytes(lItem), iData(lItem), li->len);
+      //Replace the item descriptor
+      Item newItem = Item(li->len, li->type(), Value);
+      memcpy(iLast(), &newItem, sizeof(Item));
+    }
+    //If it's 'older' than our params it's up to the parent functions to catch it
+  } else
+  //If it's not a reference, check if its a vector/map, then whether it contains arguments to inflate
+  if (li->type() == Val_Vec || li->type() == Val_Map) {
+    //TODO
+  }
   //Move last item into return position
-  //TODO: inflate args going out of scope, inc. within vecs/maps
   if (firstParam != (itemnum)-1)
     returnCollapseLast(firstParam);
 }
@@ -244,6 +263,7 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Print: op_Print(firstParam); break;
     case Op_Vec:   op_Vec  (firstParam); break;
     case Op_Nth:   op_Nth  (firstParam); break;
+    case Op_Val:   op_Val  (firstParam); break;
     default: break;
   }
 }
@@ -303,11 +323,10 @@ debugger("\n   VECTORISING\n", false, 0);
 }
 
 void Machine::op_Nth (itemnum firstParam) {
-  int32_t nth = iInt(firstParam);
+  int32_t nth = iInt(firstParam + 1);
   //Collate vector info
-  itemnum iVec = firstParam + 1;
-  uint8_t* vBytes = iData(iVec);
-  uint8_t* vEnd = (vBytes + i(iVec)->len) - sizeof(vectlen);
+  uint8_t* vBytes = iData(firstParam);
+  uint8_t* vEnd = (vBytes + i(firstParam)->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
   Item* vItems = &((Item*)vEnd)[-vNumItem];
   //Find item descriptor at nth
@@ -319,4 +338,9 @@ void Machine::op_Nth (itemnum firstParam) {
   memcpy(stackItem(), itemBytes, itemBytesLen(nthItem));
   //Return nth item descriptor
   returnCollapseItem(firstParam, nthItem);
+}
+
+void Machine::op_Val (itemnum firstParam) {
+  //Truncate the stack to the first item
+  returnItem(firstParam, i(firstParam));
 }

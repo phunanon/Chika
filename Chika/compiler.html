@@ -24,7 +24,8 @@ const num = s => parseInt(s.match(/\d+/g).join(""));
 
 
 const FRM = 0x00, STR = 0x01, ARG = 0x06, U08 = 0x10, U16 = 0x11, I32 = 0x12, FNC = 0x22;
-const strFuncs = {"+": 0x33, "str": 0x44, "vec": 0xBB, "nth": 0xCC, "print": 0xEE};
+const strFuncs =
+  {"+": 0x33, "str": 0x44, "vec": 0xBB, "nth": 0xCC, "val": 0xCD, "print": 0xEE};
 
 
 const walkItems = (arr, pred, func) =>
@@ -67,6 +68,9 @@ function compile (source) {
   const extractedStrings = extractStrings(source);
   const strings = extractedStrings.strings;
   source = extractedStrings.source;
+  
+  //Remove all comments
+  source = source.replace(/;.+\n/g, "\n");
   
   //Replace all vectors with (vec ...) form
   source = source.replace(/\[/g, "(vec ").replace(/\]/g, ")");
@@ -144,7 +148,7 @@ function DOM_compile () {
     </script>
     <style>
 textarea {
-  width: 10rem;
+  width: 11rem;
   height: 20rem;
 }
 .wide {
