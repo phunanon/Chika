@@ -56,7 +56,12 @@ uint8_t Machine::p (proglen pByte) {
 }
 
 itemlen Machine::itemBytesLen (Item* it) {
-  return it->kind() == Value ? it->len : 2;
+  IKind kind = it->kind();
+  return kind == Value
+         ? it->len
+         : (kind == Constant
+            ? sizeof(proglen)
+            : sizeof(itemnum));
 }
 //`to` is exclusive
 itemlen Machine::itemsBytesLen (itemnum from, itemnum to) {
@@ -104,13 +109,25 @@ uint8_t* Machine::returnItem (itemnum replace) {
   return pBytes() + itemsBytesLen(0, replace);
 }
 void Machine::returnItem (itemnum replace, Item* desc) {
+  //Replace item currently in the return position
   memcpy(i(replace), desc, sizeof(Item));
+  //Update number of items and bytes
   numItem(replace + 1);
   numByte(itemsBytesLen(0, replace + 1));
+//Erase stack onward, for improved debug readability
 memset(stackItem(), 0, (uint8_t*)iLast() - stackItem());
 }
+void Machine::returnCollapseLast (itemnum replace) {
+  itemlen lLen = itemBytesLen(iLast());
+  //Move item bytes
+  memmove(returnItem(replace), stackItem() - lLen, lLen);
+  //Set old item in return position
+  returnItem(replace, iLast());
+}
 void Machine::returnCollapseItem (itemnum replace, Item* desc) {
+  //Move item bytes
   memmove(returnItem(replace), stackItem(), desc->len);
+  //Set new item in return position
   returnItem(replace, desc);
 }
 void Machine::returnItem (itemnum replace, Item desc) {
@@ -145,9 +162,10 @@ uint8_t* Machine::pFunc (funcnum fNum) {
   uint8_t* r = pROM();
   uint8_t* rEnd = pBytes();
   while (r != rEnd) {
-    if (*(proglen*)r == fNum)
+    if (*(funcnum*)r == fNum)
       return r;
-    r += *(proglen*)(r + 1);
+    r += sizeof(funcnum);
+    r += *(proglen*)r + sizeof(proglen);
   }
 debugger("func not found", false, 0);
 }
@@ -163,12 +181,13 @@ debugger("func len:", true, fLen);
   while (f != fEnd) {
     ++f; //Skip next form header
     f = exeForm(f, firstParam);
-debugger("f   :", true, (intptr_t)f);
-debugger("fEnd:", true, (intptr_t)fEnd);
-debugger("form done", false, 0);
     if (f != fEnd)
       iPop();
   }
+  //Move last item into return position
+  //TODO: inflate args going out of scope, inc. within vecs/maps
+  if (firstParam != (itemnum)-1)
+    returnCollapseLast(firstParam);
 }
 
 uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
@@ -184,8 +203,11 @@ debugger("Found form @", true, (intptr_t)f);
       f = exeForm(f, firstParam);
     } else
     if (*f == Mark_Arg) { //Arg (Reference)?
+debugger("Found arg @", true, (f+1) - pROM());
       itemnum iNum = firstParam + *(++f);
-      Item item = Item(sizeof(itemnum), i(iNum)->type(), Reference);
+debugger("   ref type:", true, i(iNum)->type());
+debugger("   ref len:", true, i(iNum)->len);
+      Item item = Item(i(iNum)->len, i(iNum)->type(), Reference);
       *(itemnum*)stackItem() = iNum;
       stackItem(item);
       f += sizeof(argnum);
@@ -194,11 +216,7 @@ debugger("Found form @", true, (intptr_t)f);
 debugger("Found const @", true, (f+1) - pROM());
 debugger("  type:", true, *f);
       Item item = Item(constByteLen(type, ++f), type, Constant);
-      //++f; //Skip type code
-      //*(proglen*)stackItem() = f - pROM();
-proglen constPos = f - pROM();
-uint8_t* s = stackItem();
-memcpy(stackItem(), &constPos, sizeof(proglen));
+      *(proglen*)stackItem() = f - pROM();
       stackItem(item);
 debugger("  len:", true, item.len);
 debugger("  byte:", true, *f);
@@ -207,7 +225,7 @@ debugger("  byte:", true, *f);
     if (*f == Op_Func) { //Func?
       funcnum fNum = *(funcnum*)(++f);
       exeFunc(fNum, firstArgItem);
-      ++f;
+      f += sizeof(funcnum);
       break;
     } else { //Native op?
 debugger("OP:", true, *f);
@@ -235,7 +253,6 @@ void Machine::op_Add (itemnum firstParam) {
   itemlen len = constByteLen(type);
   uint8_t* result = stackItem();
   int32_t sum = 0;
-debugger("ADDING type", true, type);
   for (itemnum it = firstParam, itEnd = numItem(); it < itEnd; ++it)
     sum += readNum(iData(it), min(len, constByteLen(i(it)->type())));
   writeNum(result, sum, len);
@@ -289,7 +306,7 @@ void Machine::op_Nth (itemnum firstParam) {
   int32_t nth = iInt(firstParam);
   //Collate vector info
   itemnum iVec = firstParam + 1;
-  uint8_t* vBytes = iBytes(iVec);
+  uint8_t* vBytes = iData(iVec);
   uint8_t* vEnd = (vBytes + i(iVec)->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
   Item* vItems = &((Item*)vEnd)[-vNumItem];

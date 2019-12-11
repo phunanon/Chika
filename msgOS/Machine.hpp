@@ -69,6 +69,7 @@ class Machine {
   uint8_t* returnItem (itemnum);
   void     returnItem (itemnum, Item*);
   void     returnItem (itemnum, Item);
+  void     returnCollapseLast (itemnum);           //
   void     returnCollapseItem (itemnum, Item*);    //
   void     returnCollapseItem (itemnum, Item);     // Collapse the LIFO so the last stack item is moved to be the return item
   void     returnNil  (itemnum);
