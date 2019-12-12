@@ -58,7 +58,7 @@ function funcise (forms) {
   //Give entry function a source head
   funcs[0] = ["fn", "entry", "params"].concat(funcs[0]);
   //Include function ID's
-  funcs.forEach((f, i) => f.unshift({n: i, b: 2}));
+  funcs.forEach((f, i) => f.unshift({n: i, b: 2, info: "func ID"}));
   return funcs;
 }
 
@@ -90,7 +90,7 @@ function compile (source) {
   funcs = walkArrays(funcs, a => isString(a[0]), a => a.slice(1).concat([a[0]]));
 
   //Prepend forms with FRM
-  funcs = funcs.map(f => walkArrays(f, a => a, a => [{n:FRM,b:1}].concat(a)));
+  funcs = funcs.map(f => walkArrays(f, a => a, a => [{n: FRM, b: 1, info: "form marker"}].concat(a)));
 
   //Serialise integers
   function serialiseNum (s) {
@@ -101,7 +101,8 @@ function compile (source) {
     const type = isWord ? U16 : (isByte ? U08 : I32);
     const len = isWord ? 2 : (isByte ? 1 : 4);
     return {hex: numToHex(type, 1)
-                 + numToLEHex(parseInt(s), len)};
+                 + numToLEHex(parseInt(s), len),
+            info: "int"};
   }
   funcs = walkItems(funcs, isChikaNum, serialiseNum);
 
@@ -111,25 +112,26 @@ function compile (source) {
             +Array.from(strings[num(s)])
                   .map(c => numToHex(c.charCodeAt(0), 1))
                   .join("")
-            +"00")});
+            +"00"),
+      info: "string"});
   funcs = walkItems(funcs, i => i[0] == "`", serialiseString);
 
   //Replace tail-positioned native and program functions
   const funcHex = sym =>
     strFuncs[sym] == undefined
-    ? {hex: numToHex(FNC, 1) + numToLEHex(funcRegister.findIndex(f => f.sym == sym), 2)}
-    : {n: strFuncs[sym], b: 1};
+    ? {hex: numToHex(FNC, 1) + numToLEHex(funcRegister.findIndex(f => f.sym == sym), 2), info: "prog func call"}
+    : {n: strFuncs[sym], b: 1, info: "op call"};
   funcs = walkArrays(funcs, a => isString(last(a)), a => a.slice(0, -1).concat(funcHex(last(a))));
 
   //Replace arguments
-  const argToHex = (arg, fi) => ({hex: bytesToHex([ARG, funcRegister[fi].paras.indexOf(arg)])});
+  const argToHex = (arg, fi) => ({hex: bytesToHex([ARG, funcRegister[fi].paras.indexOf(arg)]), info: "arg"});
   funcs = funcs.map((f, fi) => walkItems(f, isString, arg => argToHex(arg, fi)));
 
   //Prepend function length
   const itemsLen = items => items.reduce((acc, i) => acc + (i.hex ? i.hex.length / 2 : i.b), 0);
   funcs = funcs.map(f => {
     f = f.flat(Infinity);
-    return insert(f, 1, {n: itemsLen(f.slice(1)), b: 2});
+    return insert(f, 1, {n: itemsLen(f.slice(1)), b: 2, info: "func len"});
   });
 
   //assembly to image
