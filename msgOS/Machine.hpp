@@ -3,19 +3,14 @@
 #include "config.hpp"
 #include "utils.hpp"
 
-
-//Constant:  bytes are program position as proglen
-//Reference: bytes are item position as itemnum
-//Value:     bytes are raw value
-enum IKind { Constant, Reference, Value };
-
 class __attribute__((__packed__)) Item {
   uint8_t typeAndKind;
 public:
-  itemlen len; //Length of value or const/referenced value
-  Item (itemlen, IType, IKind);
+  itemlen len; //Length of value or const value
+  Item (itemlen, IType, bool);
+  Item (itemlen, IType);
   IType type ();
-  IKind kind ();
+  bool isConst ();
 };
 
 /*
@@ -65,6 +60,7 @@ class Machine {
   int32_t  iInt       (itemnum);  //Item-agnostic readNum
 
   uint8_t* stackItem  ();
+  void     stackItem  (Item*);
   void     stackItem  (Item);
   uint8_t* returnItem (itemnum);
   void     returnItem (itemnum, Item*);

@@ -1,14 +1,18 @@
 #include "Machine.hpp"
 
-Item::Item (itemlen _len, IType type, IKind kind) {
+Item::Item (itemlen _len, IType type, bool isConst) {
   len = _len;
-  typeAndKind = (uint8_t)(kind << 6) | (uint8_t)(type & 0x3F);
+  typeAndKind = (uint8_t)(isConst << 7) | (uint8_t)(type & 0x7F);
+}
+Item::Item (itemlen _len, IType type) {
+  len = _len;
+  typeAndKind = (uint8_t)(type & 0x7F);
 }
 IType Item::type () {
-  return (IType)(typeAndKind & 0x3F);
+  return (IType)(typeAndKind & 0x7F);
 }
-IKind Item::kind () {
-  return (IKind)(typeAndKind >> 6);
+bool Item::isConst () {
+  return (bool)(typeAndKind >> 7);
 }
 
 Machine::Machine () {}
@@ -56,12 +60,7 @@ uint8_t Machine::p (proglen pByte) {
 }
 
 itemlen Machine::itemBytesLen (Item* it) {
-  IKind kind = it->kind();
-  return kind == Value
-         ? it->len
-         : (kind == Constant
-            ? sizeof(proglen)
-            : sizeof(itemnum));
+  return it->isConst() ? sizeof(proglen) : it->len;
 }
 //`to` is exclusive
 itemlen Machine::itemsBytesLen (itemnum from, itemnum to) {
@@ -77,14 +76,10 @@ uint8_t* Machine::iBytes (itemnum iNum) {
   return pBytes() + itemsBytesLen(0, iNum);
 }
 uint8_t* Machine::iData (itemnum iNum) {
-  IKind kind = i(iNum)->kind();
   uint8_t* bPtr = iBytes(iNum);
-  if (kind == Constant) {
+  if (i(iNum)->isConst())
     return pROM() + (*(proglen*)bPtr);
-  }
-  if (kind == Reference)
-    return iData(*(itemnum*)bPtr);
-  if (kind == Value)
+  else
     return bPtr;
 }
 Item* Machine::iLast () {
@@ -100,10 +95,13 @@ int32_t Machine::iInt (itemnum iNum) {
 uint8_t* Machine::stackItem () {
   return pBytes() + numByte();
 }
-void Machine::stackItem (Item desc) {
+void Machine::stackItem (Item* desc) {
   numItem(numItem() + 1);
-  numByte(numByte() + itemBytesLen(&desc));
-  memcpy(iLast(), &desc, sizeof(Item));
+  numByte(numByte() + itemBytesLen(desc));
+  memcpy(iLast(), desc, sizeof(Item));
+}
+void Machine::stackItem (Item desc) {
+  stackItem(&desc);
 }
 uint8_t* Machine::returnItem (itemnum replace) {
   return pBytes() + itemsBytesLen(0, replace);
@@ -137,7 +135,7 @@ void Machine::returnCollapseItem (itemnum replace, Item desc) {
   returnCollapseItem(replace, &desc);
 }
 void Machine::returnNil (itemnum replace) {
-  returnItem(replace, Item(0, Val_Nil, Value));
+  returnItem(replace, Item(0, Val_Nil));
 }
 
 void Machine::iPop (itemnum n = 1) {
@@ -184,26 +182,6 @@ debugger("func len:", true, fLen);
     if (f != fEnd)
       iPop();
   }
-
-  //Inflate return arg/s going out of scope, on their own or within vecs/maps
-  //First, check if the return item is an arg type
-  Item* li = iLast();
-  if (li->kind() == Reference) {
-    itemnum lItem = numItem() - 1;
-    //Check if it's about to go out-of-scope
-    if (*(itemnum*)iBytes(lItem) >= firstParam) {
-      //Replace the reference with the referenced data bytes
-      memcpy(iBytes(lItem), iData(lItem), li->len);
-      //Replace the item descriptor
-      Item newItem = Item(li->len, li->type(), Value);
-      memcpy(iLast(), &newItem, sizeof(Item));
-    }
-    //If it's 'older' than our params it's up to the parent functions to catch it
-  } else
-  //If it's not a reference, check if its a vector/map, then whether it contains arguments to inflate
-  if (li->type() == Val_Vec || li->type() == Val_Map) {
-    //TODO
-  }
   //Move last item into return position
   if (firstParam != (itemnum)-1)
     returnCollapseLast(firstParam);
@@ -221,20 +199,22 @@ debugger("Found form @", true, (intptr_t)f);
       ++f; //Skip form header
       f = exeForm(f, firstParam);
     } else
-    if (*f == Mark_Arg) { //Arg (Reference)?
-debugger("Found arg @", true, (f+1) - pROM());
+    if (*f == Mark_Arg) { //Arg?
       itemnum iNum = firstParam + *(++f);
-debugger("   ref type:", true, i(iNum)->type());
-debugger("   ref len:", true, i(iNum)->len);
-      Item item = Item(i(iNum)->len, i(iNum)->type(), Reference);
-      *(itemnum*)stackItem() = iNum;
-      stackItem(item);
+      Item* iArg = i(iNum);
+debugger("Found arg @", true, f - pROM());
+debugger("  ref type:", true, iArg->type());
+debugger("  ref len:", true, iArg->len);
+      //Copy the referenced value to the stack top
+      memcpy(stackItem(), iData(iNum), iArg->len);
+      //Copy its item descriptor too
+      stackItem(Item(iArg->len, iArg->type()));
       f += sizeof(argnum);
     } else
     if (*f < _ValsUntil) { //Constant?
 debugger("Found const @", true, (f+1) - pROM());
 debugger("  type:", true, *f);
-      Item item = Item(constByteLen(type, ++f), type, Constant);
+      Item item = Item(constByteLen(type, ++f), type, true);
       *(proglen*)stackItem() = f - pROM();
       stackItem(item);
 debugger("  len:", true, item.len);
@@ -276,7 +256,7 @@ void Machine::op_Add (itemnum firstParam) {
   for (itemnum it = firstParam, itEnd = numItem(); it < itEnd; ++it)
     sum += readNum(iData(it), min(len, constByteLen(i(it)->type())));
   writeNum(result, sum, len);
-  returnCollapseItem(firstParam, Item(len, type, Value));
+  returnCollapseItem(firstParam, Item(len, type));
 }
 
 void Machine::op_Str (itemnum firstParam) {
@@ -299,7 +279,7 @@ void Machine::op_Str (itemnum firstParam) {
     }
   }
   result[len++] = 0;
-  returnCollapseItem(firstParam, Item(len, Val_Str, Value));
+  returnCollapseItem(firstParam, Item(len, Val_Str));
 }
 
 void Machine::op_Print (itemnum firstParam) {
@@ -319,7 +299,7 @@ debugger("\n   VECTORISING\n", false, 0);
   writeNum(descs + itemsLen, nItems, sizeof(vectlen));
   //Return umbrella item descriptor
   bytenum bytesLen = itemsBytesLen(firstParam, numItem()) + itemsLen + sizeof(vectlen);
-  returnItem(firstParam, Item(bytesLen, Val_Vec, Value));
+  returnItem(firstParam, Item(bytesLen, Val_Vec));
 }
 
 void Machine::op_Nth (itemnum firstParam) {

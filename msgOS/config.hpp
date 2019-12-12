@@ -41,6 +41,7 @@ enum IType {
   Val_Str   = 0x01,
   Mark_Arg  = 0x06,
   Val_Vec   = 0x0A,
+  Val_Map   = 0x0B,
   Val_Byte  = 0x10, // u08
   Val_Word  = 0x11, // u16
   Val_Int   = 0x12, // i32
@@ -54,6 +55,7 @@ enum IType {
   Op_Str    = 0x44,
   Op_Vec    = 0xBB,
   Op_Nth    = 0xCC,
+  Op_Val    = 0xCD,
   Op_Print  = 0xEE
 };
 
