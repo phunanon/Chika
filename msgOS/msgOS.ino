@@ -29,12 +29,12 @@ void printItems (uint8_t* pItems, uint16_t n) {
   Serial.print("Items: ");
   for (uint8_t it = 0; it < n; ++it) {
     Item* item = (Item*)(pItems - ((it+1) * sizeof(Item)));
-    Serial.print("len ");
+    Serial.print("l");
     Serial.print(item->len);
-    Serial.print(", type ");
+    Serial.print("t");
     Serial.print(item->type());
-    Serial.print(", kind ");
-    Serial.print(item->kind());
+    Serial.print(" ");
+    Serial.print(item->isConst() ? 'c' : ' ');
     Serial.print("; ");
   }
   printf("\n");
