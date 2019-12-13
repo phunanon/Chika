@@ -3,6 +3,7 @@ String.prototype.lp = function(pad, len) { while (pad.length < len) { pad += pad
 Array.prototype.remove = function (fn) { return this.filter(it => !fn(it)); }
 
 const insert = (arr, index, newItem) => [...arr.slice(0, index), newItem, ...arr.slice(index)];
+const flatten = (arr) => arr.reduce((flat, next) => flat.concat(Array.isArray(next) ? flatten(next) : next), []);
 const numToHex = (n, bytes) => n.toString(16).toUpperCase().lp("0", bytes*2);
 const numToLEHex = (n, bytes) => numToHex(n, bytes).match(/.{2}/g).reverse().join("");
 const bytesToHex = nums => nums.map(n => numToHex(n, 1)).join("");
@@ -120,14 +121,13 @@ function compile (source) {
   //Prepend function length
   const itemsLen = items => items.reduce((acc, i) => acc + (i.hex ? i.hex.length / 2 : i.b), 0);
   funcs = funcs.map(f => {
-    f = f.flat(Infinity);
+    f = flatten(f);
     return insert(f, 1, {n: itemsLen(f.slice(1)), b: 2, info: "func len"});
   });
 
   //assembly to image
   const image =
-    funcs
-      .flat(Infinity)
+    flatten(funcs)
       .filter(isObject)
       .map(n => n.hex == undefined ? numToLEHex(n.n, n.b) : n.hex)
       .join("");
