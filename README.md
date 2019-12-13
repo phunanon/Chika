@@ -13,6 +13,18 @@ Its spirit is: decouple everything through inter-task communication.
 - https://github.com/zooxo/aos
 - https://github.com/sau412/Arduino_Basic
 
+### Compiling and running msgOS
+
+#### Arduino
+
+To use msgOS on Arduino open `msgOS.ino` on Arduino IDE, upload to your Arduino.  
+Suitable devices:
+- MKRZero
+
+#### Linux
+
+To use msgOS on Linux run `sh compile.sh && ./mOS`.
+
 ### Rationale
 
 #### The vision...
@@ -49,6 +61,14 @@ Also, the vision does *not* call for real-time applications - just applications 
 ## Chika
 
 *Chika* is a unique LISP-inspired language natively executed by msgOS. It substitutes heap- for stack-style contiguous memory management.
+
+### Compiling and running
+
+#### Compilers
+
+Using `compile.html` in the browser, convert the hexadecimal output into a binary image. For Linux use `xxd -r -p chika.hex init.kua`.  
+Using NodeJS:  
+`nodejs compiler.js source.chi` => source.kua
 
 ### Rationale
 
@@ -92,7 +112,7 @@ Using pre-allocated memory to store and execute a variable number of programs at
 
 Names can include (almost) any characters excluding whitespace.
 
-`(func[ N args])`: a form, with a function in the head position, and N arguments separated by spaces. Arguments can be forms.
+`(func[ N args])`: a form, with a function in the head position, and 0-N arguments separated by spaces. Arguments can be forms.
 
 `(fn func-name[ N params] [1-N forms])`: a function definition, with 0-N parameter symbols separated by spaces, and 1-N forms.
 

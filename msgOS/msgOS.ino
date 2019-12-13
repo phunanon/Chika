@@ -53,8 +53,9 @@ return 0;
   }
   uint16_t pByte = 0;
   machine.pNum = pNum;
+  uint8_t* rom = machine.pROM();
   while (prog.available())
-    machine.p(pByte++, prog.read());
+    rom[pByte++] = prog.read();
   machine.romLen(pByte);
   prog.close();
   return pNum++;

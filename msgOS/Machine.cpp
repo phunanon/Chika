@@ -52,13 +52,6 @@ bytenum Machine::numByte () {
   return pInfo()->numByte;
 }
 
-void Machine::p (proglen pByte, uint8_t b) {
-  *(pROM() + pByte) = b;
-}
-uint8_t Machine::p (proglen pByte) {
-  return *(pROM() + pByte);
-}
-
 itemlen Machine::itemBytesLen (Item* it) {
   return it->isConst() ? sizeof(proglen) : it->len;
 }
@@ -292,7 +285,7 @@ void Machine::op_Vec (itemnum firstParam) {
 debugger("\n   VECTORISING\n", false, 0);
   //Copy item descriptors onto the end of the byte stack
   uint8_t* descs = stackItem();
-  vectlen nItems = (numItem() - firstParam);
+  vectlen nItems = numItem() - firstParam;
   bytenum itemsLen = sizeof(Item) * nItems;
   memcpy(descs, iLast(), itemsLen);
   //Append number of items
@@ -306,11 +299,17 @@ void Machine::op_Nth (itemnum firstParam) {
   int32_t nth = iInt(firstParam + 1);
   //Collate vector info
   uint8_t* vBytes = iData(firstParam);
+printMem(vBytes, 5);
   uint8_t* vEnd = (vBytes + i(firstParam)->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
+debugger("  num item", true, vNumItem);
   Item* vItems = &((Item*)vEnd)[-vNumItem];
   //Find item descriptor at nth
   Item* nthItem = &((Item*)vEnd)[-(nth + 1)];
+debugger("  nth item type:", true, nthItem->type());
+debugger("  nth item isConst:", true, nthItem->isConst());
+debugger("  nth item len:", true, nthItem->len);
+debugger("  nth item first byte:", true, *vBytes);
   //Copy bytes into return position
   uint8_t* itemBytes = vBytes;
   for (itemnum vi = 0; vi < nth; ++vi)

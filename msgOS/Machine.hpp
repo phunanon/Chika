@@ -39,7 +39,6 @@ struct __attribute__((__packed__)) ProgInfo {
 
 class Machine {
   uint8_t*  pHead    ();
-  uint8_t*  pROM     ();
   uint8_t*  pBytes   ();
   uint8_t*  pItems   ();
   ProgInfo* pInfo    ();
@@ -91,9 +90,8 @@ public:
   uint8_t* mem;
   memolen  progSize;
   //Program ROM
+  uint8_t* pROM   ();
   void     romLen (proglen);            //Set length of program ROM
-  void     p      (proglen, uint8_t);   //Write program byte
-  uint8_t  p      (proglen);            //Read program byte
 
   void    (*debugger)   (const char*, bool, uint32_t);
   void    (*printMem)   (uint8_t*, uint8_t);
