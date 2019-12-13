@@ -90,7 +90,7 @@ void setup() {
   machine.printMem = printMem;
   machine.printItems = printItems;
 
-  machine.loadProg("init.chi");
+  machine.loadProg("init.kua");
 }
 
 void loop () {

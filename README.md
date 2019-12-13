@@ -15,15 +15,20 @@ Its spirit is: decouple everything through inter-task communication.
 
 ### Compiling and running msgOS
 
+#### Online
+
+[![Run on Repl.it](https://repl.it/badge/github/phunanon/msgOS)](https://repl.it/github/phunanon/msgOS)
+
 #### Arduino
 
 To use msgOS on Arduino open `msgOS.ino` on Arduino IDE, upload to your Arduino.  
+Ensure there is an SD card inserted with the file `init.kua`.  
 Suitable devices:
 - MKRZero
 
 #### Linux
 
-To use msgOS on Linux run `sh compile.sh && ./mOS`.
+To use msgOS on Linux run `sh compile.sh && ./bin/mOS bin/init.kua`. This recompiles and runs `Chika/programs/init.chi`, a basic shell.
 
 ### Rationale
 
