@@ -8,4 +8,5 @@ funclen constByteLen (IType t, uint8_t* body) {
     case Val_Int:  return 4;
     case Val_Long: case Val_Deci: return 8;
   }
+  return 0;
 }

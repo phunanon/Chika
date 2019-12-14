@@ -2,16 +2,7 @@
 #include "string.h"
 #include "config.hpp"
 #include "utils.hpp"
-
-class __attribute__((__packed__)) Item {
-  uint8_t typeAndKind;
-public:
-  itemlen len; //Length of value or const value
-  Item (itemlen, IType, bool);
-  Item (itemlen, IType);
-  IType type ();
-  bool isConst ();
-};
+#include "Item.cpp"
 
 /*
 Prog memory:

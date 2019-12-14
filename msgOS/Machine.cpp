@@ -1,20 +1,5 @@
 #include "Machine.hpp"
 
-Item::Item (itemlen _len, IType type, bool isConst) {
-  len = _len;
-  typeAndKind = (uint8_t)(isConst << 7) | (uint8_t)(type & 0x7F);
-}
-Item::Item (itemlen _len, IType type) {
-  len = _len;
-  typeAndKind = (uint8_t)(type & 0x7F);
-}
-IType Item::type () {
-  return (IType)(typeAndKind & 0x7F);
-}
-bool Item::isConst () {
-  return (bool)(typeAndKind >> 7);
-}
-
 Machine::Machine () {}
 
 uint8_t* Machine::pHead () {
@@ -159,6 +144,7 @@ uint8_t* Machine::pFunc (funcnum fNum) {
     r += *(proglen*)r + sizeof(proglen);
   }
 debugger("func not found", false, 0);
+  return pROM();
 }
 
 void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
