@@ -10,7 +10,7 @@ const es = (el) => document.querySelectorAll(el);
 
 function DOM_compile () {
   const compiled = compile(e("textarea").value);
-  const imageHex = compiled.image.join("")
+  const imageHex = compiled.image;
   e("#assembly").value = compiled.assembly;
   e("#image").value = imageHex + "\n\n\n0x" + imageHex.match(/.{2}/g).join(", 0x");
   e("size").innerHTML = (imageHex.length / 2) + "B";

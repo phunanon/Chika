@@ -58,6 +58,7 @@ class Machine {
   void     returnCollapseLast (itemnum);           //
   void     returnCollapseItem (itemnum, Item*);    //
   void     returnCollapseItem (itemnum, Item);     // Collapse the LIFO so the last stack item is moved to be the return item
+  void     returnItemAt (itemnum, itemnum);
   void     returnNil  (itemnum);
   void     iPop       (itemnum);                   //Pop items
 
@@ -67,6 +68,7 @@ class Machine {
   void     exeFunc   (funcnum, itemnum);
   uint8_t* exeForm   (uint8_t*, itemnum);
   void     nativeOp  (IType, itemnum);
+  void     op_If     (itemnum);
   void     op_Add    (itemnum);
   void     op_Str    (itemnum);
   void     op_Print  (itemnum);

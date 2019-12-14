@@ -14,9 +14,13 @@ const isChikaNum = s => isString(s) && s.search(/\d+[W|B]*/) != -1 && s.match(/\
 const num = s => parseInt(s.match(/\d+/g).join(""));
 
 
-const FRM = 0x00, STR = 0x01, ARG = 0x06, U08 = 0x10, U16 = 0x11, I32 = 0x12, FNC = 0x22;
+const
+  FRM = 0x00, TRU = 0x02, FAL = 0x03, STR = 0x04, ARG = 0x06,
+  U08 = 0x10, U16 = 0x11, I32 = 0x12, NIL = 0x21, FNC = 0x22;
 const strFuncs =
-  {"+": 0x33, "str": 0x44, "vec": 0xBB, "nth": 0xCC, "val": 0xCD, "print": 0xEE};
+  {"if": 0x23, "+": 0x33, "str": 0x44, "vec": 0xBB, "nth": 0xCC, "val": 0xCD, "print": 0xEE};
+const literals =
+  {"nil": NIL, "true": TRU, "false": FAL};
 
 
 const walkItems = (arr, pred, func) =>
@@ -113,6 +117,12 @@ function compile (source) {
     ? {hex: numToHex(FNC, 1) + numToLEHex(funcRegister.findIndex(f => f.sym == sym), 2), info: "prog func call"}
     : {n: strFuncs[sym], b: 1, info: "op call"};
   funcs = walkArrays(funcs, a => isString(last(a)), a => a.slice(0, -1).concat(funcHex(last(a))));
+
+  //Replace symbol literals
+  function replaceLiteral (l) {
+    return {n: literals[l], b: 1, info: "literal: " + l};
+  }
+  funcs = walkItems(funcs, i => literals[i] != undefined, replaceLiteral);
 
   //Replace arguments
   const argToHex = (arg, fi) => ({hex: bytesToHex([ARG, funcRegister[fi].paras.indexOf(arg)]), info: "arg"});

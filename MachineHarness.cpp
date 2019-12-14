@@ -76,7 +76,11 @@ int main (int argc,  char* argv[]) {
   machine.printMem = printMem;
   machine.printItems = printItems;
 
-  machine.loadProg(argv[1]);
+  if (argc == 2) {
+    machine.loadProg(argv[1]);
+  } else {
+    machine.loadProg("init.kua");
+  }
 
   loop();
 }

@@ -112,6 +112,13 @@ void Machine::returnItem (itemnum replace, Item desc) {
 void Machine::returnCollapseItem (itemnum replace, Item desc) {
   returnCollapseItem(replace, &desc);
 }
+void Machine::returnItemAt (itemnum to, itemnum from) {
+  Item* iFrom = i(from);
+  //Copy bytes
+  memmove(iBytes(to), iBytes(from), itemBytesLen(iFrom));
+  //Copy descriptor
+  returnItem(to, iFrom);
+}
 void Machine::returnNil (itemnum replace) {
   returnItem(replace, Item(0, Val_Nil));
 }
@@ -173,12 +180,12 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
 printMem(f, 24);
 printItems(pItems(), numItem());
     IType type = (IType)*f;
-    if (type == Mark_Form) { //Form?
-debugger("Found form @", true, (intptr_t)f);
+    if (type == Eval_Form) { //Form for evaluation?
+debugger("Found form @", true, f - pROM());
       ++f; //Skip form header
       f = exeForm(f, firstParam);
     } else
-    if (*f == Mark_Arg) { //Arg?
+    if (*f == Eval_Arg) { //Arg?
       itemnum iNum = firstParam + *(++f);
       Item* iArg = i(iNum);
 debugger("Found arg @", true, f - pROM());
@@ -186,7 +193,7 @@ debugger("  ref type:", true, iArg->type());
 debugger("  ref len:", true, iArg->len);
       //Copy the referenced value to the stack top
       memcpy(stackItem(), iData(iNum), iArg->len);
-      //Copy its item descriptor too
+      //Copy its item descriptor too, as value
       stackItem(Item(iArg->len, iArg->type()));
       f += sizeof(argnum);
     } else
@@ -217,6 +224,7 @@ debugger("OP:", true, *f);
 
 void Machine::nativeOp (IType op, itemnum firstParam) {
   switch (op) {
+    case Op_If:    op_If   (firstParam); break;
     case Op_Add:   op_Add  (firstParam); break;
     case Op_Str:   op_Str  (firstParam); break;
     case Op_Print: op_Print(firstParam); break;
@@ -224,6 +232,40 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Nth:   op_Nth  (firstParam); break;
     case Op_Val:   op_Val  (firstParam); break;
     default: break;
+  }
+}
+
+
+void Machine::op_If (itemnum firstParam) {
+  //Return nil if too few args
+  if (numItem() - firstParam < 2) {
+    returnNil(firstParam);
+debugger("IF returned nil.", 0, 0);
+    return;
+  }
+
+  IType type = i(firstParam)->type();
+debugger("IF type:", true, type);
+  //Check it's not nil
+  bool result = type != Val_Nil;
+debugger("  isn't nil:", true, result);
+  //Check it's not a false bool
+  if (result && type == Val_False) {
+    result = false;
+debugger("  isn't false:", true, result); }
+  //Return appropriate item
+  if (result) {
+debugger("  it's true", 0, 0);
+    //In the case of (if true val)
+    returnItemAt(firstParam, firstParam + 1);
+  } else if (numItem() >= firstParam + 3) {
+debugger("  it's false", 0, 0);
+    //In the case of (if false val val)
+    returnItemAt(firstParam, firstParam + 2);
+  } else {
+debugger("  it's false - nil", 0, 0);
+    //In the case of (if false val)
+    returnNil(firstParam);
   }
 }
 
