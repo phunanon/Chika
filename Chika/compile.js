@@ -15,12 +15,15 @@ const num = s => parseInt(s.match(/\d+/g).join(""));
 
 
 const
-  FRM = 0x00, TRU = 0x02, FAL = 0x03, STR = 0x04, ARG = 0x06,
+  Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03,
+  Val_True = 0x04, Val_False = 0x05, STR = 0x06, ARG = 0x07,
   U08 = 0x10, U16 = 0x11, I32 = 0x12, NIL = 0x21, FNC = 0x22;
 const strFuncs =
   {"if": 0x23, "+": 0x33, "str": 0x44, "vec": 0xBB, "nth": 0xCC, "val": 0xCD, "print": 0xEE};
 const literals =
-  {"nil": NIL, "true": TRU, "false": FAL};
+  {"nil": NIL, "true": Val_True, "false": Val_False};
+const formCodes =
+  {"if": Form_If, "or": Form_Or, "and": Form_And};
 
 
 const walkItems = (arr, pred, func) =>
@@ -84,8 +87,14 @@ function compile (source) {
   //Operator to the tail position
   funcs = walkArrays(funcs, a => isString(a[0]), a => a.slice(1).concat([a[0]]));
 
-  //Prepend forms with FRM
-  funcs = funcs.map(f => walkArrays(f, a => a, a => [{n: FRM, b: 1, info: "form marker"}].concat(a)));
+  //Prepend forms with correct form code
+  function appendFormCode (form) {
+    const op = last(form);
+    const formCode = formCodes[op];
+    const fCode = formCode != undefined ? formCode : Form_Eval;
+    return [{n: fCode, b: 1, info: "form marker"}].concat(form);
+  }
+  funcs = funcs.map(f => walkArrays(f, a => a, appendFormCode));
 
   //Serialise integers
   function serialiseNum (s) {
@@ -115,7 +124,7 @@ function compile (source) {
   const funcHex = sym =>
     strFuncs[sym] == undefined
     ? {hex: numToHex(FNC, 1) + numToLEHex(funcRegister.findIndex(f => f.sym == sym), 2), info: "prog func call"}
-    : {n: strFuncs[sym], b: 1, info: "op call"};
+    : {n: strFuncs[sym], b: 1, info: "op: " + sym};
   funcs = walkArrays(funcs, a => isString(last(a)), a => a.slice(0, -1).concat(funcHex(last(a))));
 
   //Replace symbol literals

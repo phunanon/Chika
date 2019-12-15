@@ -34,24 +34,21 @@ typedef uint16_t strilen;
 typedef uint16_t vectlen;
 
 
-#define _ValsUntil 0x22 //(exclusive)
 //TODO: refactor ints to e.g. Val_U08
+//NOTE: when adding a new value type ensure its implementation in constByteLen
 enum IType {
-  Eval_Form = 0x00,
-  Lazy_Form = 0x01,
-  Val_True  = 0x02,
-  Val_False = 0x03,
-  Val_Str   = 0x04,
-  Eval_Arg  = 0x06,
-  Val_Vec   = 0x0A,
-  Val_Dict  = 0x0B,
+  Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03, FORMS_END = 0x03,
+  Val_True  = 0x04, Val_False = 0x05,
+  Val_Str   = 0x06,
+  Eval_Arg  = 0x07,
+  Val_Vec   = 0x0A, Val_Dict  = 0x0B,
   Val_Byte  = 0x10, // u08
   Val_Word  = 0x11, // u16
   Val_Int   = 0x12, // i32
-  Val_Long  = 0x13, // i64
-  Val_Deci  = 0x14, // i64 *_DeciPrecision
+  Val_Long  = 0x13, // i64 - currently unsupported
+  Val_Deci  = 0x14, // i64 *_DeciPrecision - currently unsupported
   Val_Nil   = 0x21,
-  ///
+  OPS_START = 0x22,
   Op_Func   = 0x22,
   Op_If     = 0x23,
   Op_Add    = 0x33,

@@ -81,6 +81,13 @@ void Machine::stackItem (Item* desc) {
 void Machine::stackItem (Item desc) {
   stackItem(&desc);
 }
+void Machine::setStackN (itemnum newN) {
+  numItem(newN);
+  numByte(itemsBytesLen(0, newN));
+//Erase stack onward, for improved debug readability
+if (newN)
+  memset(stackItem(), 0, (uint8_t*)iLast() - stackItem());
+}
 uint8_t* Machine::returnItem (itemnum replace) {
   return pBytes() + itemsBytesLen(0, replace);
 }
@@ -88,10 +95,7 @@ void Machine::returnItem (itemnum replace, Item* desc) {
   //Replace item currently in the return position
   memcpy(i(replace), desc, sizeof(Item));
   //Update number of items and bytes
-  numItem(replace + 1);
-  numByte(itemsBytesLen(0, replace + 1));
-//Erase stack onward, for improved debug readability
-memset(stackItem(), 0, (uint8_t*)iLast() - stackItem());
+  setStackN(replace + 1);
 }
 void Machine::returnCollapseLast (itemnum replace) {
   itemlen lLen = itemBytesLen(iLast());
@@ -112,7 +116,7 @@ void Machine::returnItem (itemnum replace, Item desc) {
 void Machine::returnCollapseItem (itemnum replace, Item desc) {
   returnCollapseItem(replace, &desc);
 }
-void Machine::returnItemAt (itemnum to, itemnum from) {
+void Machine::returnItemFrom (itemnum to, itemnum from) {
   Item* iFrom = i(from);
   //Copy bytes
   memmove(iBytes(to), iBytes(from), itemBytesLen(iFrom));
@@ -129,6 +133,32 @@ void Machine::iPop (itemnum n = 1) {
   numByte(numByte() - i(nItem - 1)->len);
 }
 
+
+
+bool isTypeTruthy (IType type) {
+  return type != Val_Nil && type != Val_False;
+}
+
+void skipFormOrVal (uint8_t** f) {
+  //Is a value?
+  if (**f > FORMS_END) {
+    IType type = (IType)**f;
+    *f += constByteLen(type, ++*f);
+    return;
+  }
+  //It's a form - skip f to the end of it
+  uint8_t nForm = 0;
+  do {
+    if (**f <= FORMS_END) ++nForm;
+    else if (**f < OPS_START) {
+      IType type = (IType)**f;
+      *f += constByteLen(type, ++*f);
+      continue;
+    }
+    else if (**f >= OPS_START) --nForm;
+    ++*f;
+  } while (nForm);
+}
 
 
 
@@ -163,7 +193,6 @@ debugger("exeFunc", true, fNum);
 debugger("func len:", true, fLen);
   uint8_t* fEnd = f + fLen;
   while (f != fEnd) {
-    ++f; //Skip next form header
     f = exeForm(f, firstParam);
     if (f != fEnd)
       iPop();
@@ -174,15 +203,57 @@ debugger("func len:", true, fLen);
 }
 
 uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
+  IType formCode = (IType)*f;
+  ++f; //Skip form code
   itemnum firstArgItem = numItem();
+  bool ifWasTrue = false;
   while (true) {
-//delay(1000);
 printMem(f, 24);
 printItems(pItems(), numItem());
+
+    //Special form logic
+    if (formCode) {
+      //Is if-form finished?
+      if (*f == Op_If) {
+        if (numItem() == firstArgItem)
+          returnNil(firstParam);
+        ++f; //Skip op code
+        break;
+      }
+    }
+    switch (formCode) {
+      case Form_If:
+        //(if cond if-true if-false)
+        //                ^
+        if (ifWasTrue)
+{
+debugger("IF: was true: skipping if-false", 0, 0);
+          //Was true: skip the if-false form or val (usually to the terminating if op)
+          skipFormOrVal(&f);
+}
+        else
+        //(if cond if-true if-false)
+        //        ^
+        if (firstArgItem + 1 == numItem()) {
+debugger("IF: checking condition", 0, 0);
+          if (!isTypeTruthy(iLast()->type()))
+{
+debugger("IF: skipping if-true", 0, 0);
+            //False: skip the if-true form or val
+            skipFormOrVal(&f);
+}
+          //Forget condition item
+          setStackN(firstArgItem);
+          ifWasTrue = true;
+        }
+        break;
+    }
+
+    //Evaluate next
     IType type = (IType)*f;
-    if (type == Eval_Form) { //Form for evaluation?
+    if (type <= FORMS_END) { //Form?
 debugger("Found form @", true, f - pROM());
-      ++f; //Skip form header
+debugger("  code:", true, *f);
       f = exeForm(f, firstParam);
     } else
     if (*f == Eval_Arg) { //Arg?
@@ -197,7 +268,7 @@ debugger("  ref len:", true, iArg->len);
       stackItem(Item(iArg->len, iArg->type()));
       f += sizeof(argnum);
     } else
-    if (*f < _ValsUntil) { //Constant?
+    if (*f < OPS_START) { //Constant?
 debugger("Found const @", true, (f+1) - pROM());
 debugger("  type:", true, *f);
       Item item = Item(constByteLen(type, ++f), type, true);
@@ -224,7 +295,6 @@ debugger("OP:", true, *f);
 
 void Machine::nativeOp (IType op, itemnum firstParam) {
   switch (op) {
-    case Op_If:    op_If   (firstParam); break;
     case Op_Add:   op_Add  (firstParam); break;
     case Op_Str:   op_Str  (firstParam); break;
     case Op_Print: op_Print(firstParam); break;
@@ -235,39 +305,6 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
   }
 }
 
-
-void Machine::op_If (itemnum firstParam) {
-  //Return nil if too few args
-  if (numItem() - firstParam < 2) {
-    returnNil(firstParam);
-debugger("IF returned nil.", 0, 0);
-    return;
-  }
-
-  IType type = i(firstParam)->type();
-debugger("IF type:", true, type);
-  //Check it's not nil
-  bool result = type != Val_Nil;
-debugger("  isn't nil:", true, result);
-  //Check it's not a false bool
-  if (result && type == Val_False) {
-    result = false;
-debugger("  isn't false:", true, result); }
-  //Return appropriate item
-  if (result) {
-debugger("  it's true", 0, 0);
-    //In the case of (if true val)
-    returnItemAt(firstParam, firstParam + 1);
-  } else if (numItem() >= firstParam + 3) {
-debugger("  it's false", 0, 0);
-    //In the case of (if false val val)
-    returnItemAt(firstParam, firstParam + 2);
-  } else {
-debugger("  it's false - nil", 0, 0);
-    //In the case of (if false val)
-    returnNil(firstParam);
-  }
-}
 
 void Machine::op_Add (itemnum firstParam) {
   IType type = i(firstParam)->type();
@@ -296,6 +333,11 @@ void Machine::op_Str (itemnum firstParam) {
       case Val_Word:
       case Val_Int:
         len += int2chars(readNum(iData(it), constByteLen(type)), target);
+        break;
+      case Val_Nil:
+        const char* sNil = "nil";
+        memcpy(target, sNil, 4);
+        len += 4;
         break;
     }
   }
