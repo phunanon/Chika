@@ -42,11 +42,9 @@ enum IType {
   Val_Str   = 0x06,
   Eval_Arg  = 0x07,
   Val_Vec   = 0x0A, Val_Dict  = 0x0B,
-  Val_Byte  = 0x10, // u08
-  Val_Word  = 0x11, // u16
-  Val_Int   = 0x12, // i32
-  Val_Long  = 0x13, // i64 - currently unsupported
-  Val_Deci  = 0x14, // i64 *_DeciPrecision - currently unsupported
+  Val_U08   = 0x10,
+  Val_U16   = 0x11,
+  Val_I32   = 0x12,
   Val_Nil   = 0x21,
   OPS_START = 0x22,
   Op_Func   = 0x22,

@@ -377,9 +377,9 @@ void Machine::op_Str (itemnum firstParam) {
         memcpy(target, iData(it), item->len - 1);
         len += item->len - 1;
         break;
-      case Val_Byte:
-      case Val_Word:
-      case Val_Int:
+      case Val_U08:
+      case Val_U16:
+      case Val_I32:
         len += int2chars(readNum(iData(it), constByteLen(type)), target);
         break;
       case Val_Nil:

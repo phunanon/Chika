@@ -10,14 +10,14 @@ const bytesToHex = nums => nums.map(n => numToHex(n, 1)).join("");
 const last = arr => arr[arr.length - 1];
 const isObject = o => o === Object(o);
 const isString = s => typeof s === "string";
-const isChikaNum = s => isString(s) && s.search(/\d+[W|B]*/) != -1 && s.match(/\d+[W|B]*/g).join("") == s;
+const isChikaNum = s => isString(s) && s.search(/\d+[W|I]*/) != -1 && s.match(/\d+[W|I]*/g).join("") == s;
 const num = s => parseInt(s.match(/\d+/g).join(""));
 
 
 const
   Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03,
   Val_True = 0x04, Val_False = 0x05, STR = 0x06, ARG = 0x07,
-  U08 = 0x10, U16 = 0x11, I32 = 0x12, NIL = 0x21, FNC = 0x22;
+  Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, NIL = 0x21, FNC = 0x22;
 const strFuncs =
   {"if": 0x23, "or": 0x24, "and": 0x25, "+": 0x33, "str": 0x44, "vec": 0xBB,
    "nth": 0xCC, "val": 0xCD, "print": 0xEE};
@@ -99,15 +99,15 @@ function compile (source) {
 
   //Serialise integers
   function serialiseNum (s) {
-    const isWord = s.endsWith("W");
-    const isByte = s.endsWith("B");
-    if (isWord || isByte)
+    const isU16 = s.endsWith("W");
+    const isI32 = s.endsWith("I");
+    if (isU16 || isI32)
       s = s.slice(0, -1);
-    const type = isWord ? U16 : (isByte ? U08 : I32);
-    const len = isWord ? 2 : (isByte ? 1 : 4);
+    const type = isI32 ? Val_I32 : (isU16 ? Val_U16 : Val_U08);
+    const len = isI32 ? 4 : (isU16 ? 2 : 1);
     return {hex: numToHex(type, 1)
                  + numToLEHex(parseInt(s), len),
-            info: "int"};
+            info: "int: " + s};
   }
   funcs = walkItems(funcs, isChikaNum, serialiseNum);
 

@@ -127,11 +127,11 @@ Names can include (almost) any characters excluding whitespace.
 
 `".."`: string, whereby `..` are 0 to 2^16 ASCII characters, or `""` for empty.
 
-`0`: 32-bit signed integer.
+`0`: 8-bit unsigned integer.
 
 `0W`: 16-bit unsigned integer.
 
-`0B`: 8-bit unsigned integer.
+`0I`: 32-bit signed integer.
 
 `[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty.
 
