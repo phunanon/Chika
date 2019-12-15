@@ -212,17 +212,14 @@ printMem(f, 24);
 printItems(pItems(), numItem());
 
     //Special form logic
-    if (formCode) {
-      //Is if-form finished?
-      if (*f == Op_If) {
-        if (numItem() == firstArgItem)
-          returnNil(firstParam);
-        ++f; //Skip op code
-        break;
-      }
-    }
     switch (formCode) {
       case Form_If:
+        //Is if-form finished?
+        if (*f == Op_If) {
+          if (numItem() == firstArgItem)
+            returnNil(firstArgItem);
+          return ++f;
+        }
         //(if cond if-true if-false)
         //                ^
         if (ifWasTrue)
@@ -242,9 +239,30 @@ debugger("IF: skipping if-true", 0, 0);
             //False: skip the if-true form or val
             skipFormOrVal(&f);
 }
-          //Forget condition item
-          setStackN(firstArgItem);
+          setStackN(firstArgItem); //Forget condition item
           ifWasTrue = true;
+        }
+        break;
+      case Form_Or:
+debugger("OR", 0, 0);
+        //Did or-form end without truthy value?
+        if (*f == Op_Or) {
+          returnNil(firstArgItem);
+          return ++f;
+        }
+        //If nothing has been evaluted yet
+        if (firstArgItem == numItem()) break;
+        //If previous eval was false
+debugger("  prev type:", true, iLast()->type());
+        if (!isTypeTruthy(iLast()->type()))
+          setStackN(firstArgItem); //Forget condition item
+        //Previous eval was true
+        else {
+debugger("  it's true!", true, *f);
+          //Skip all forms until Op_Or
+          while (*f != Op_Or)
+            skipFormOrVal(&f);
+          return ++f;
         }
         break;
     }
@@ -325,6 +343,10 @@ void Machine::op_Str (itemnum firstParam) {
     uint8_t* target = result + len;
     IType type = item->type();
     switch (type) {
+      case Val_True: case Val_False:
+        *target = type == Val_True ? 'T' : 'F';
+        ++len;
+        break;
       case Val_Str:
         memcpy(target, iData(it), item->len - 1);
         len += item->len - 1;
@@ -336,8 +358,8 @@ void Machine::op_Str (itemnum firstParam) {
         break;
       case Val_Nil:
         const char* sNil = "nil";
-        memcpy(target, sNil, 4);
-        len += 4;
+        memcpy(target, sNil, 3);
+        len += 3;
         break;
     }
   }

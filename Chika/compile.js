@@ -19,7 +19,8 @@ const
   Val_True = 0x04, Val_False = 0x05, STR = 0x06, ARG = 0x07,
   U08 = 0x10, U16 = 0x11, I32 = 0x12, NIL = 0x21, FNC = 0x22;
 const strFuncs =
-  {"if": 0x23, "+": 0x33, "str": 0x44, "vec": 0xBB, "nth": 0xCC, "val": 0xCD, "print": 0xEE};
+  {"if": 0x23, "or": 0x24, "+": 0x33, "str": 0x44, "vec": 0xBB, "nth": 0xCC,
+   "val": 0xCD, "print": 0xEE};
 const literals =
   {"nil": NIL, "true": Val_True, "false": Val_False};
 const formCodes =
@@ -92,7 +93,7 @@ function compile (source) {
     const op = last(form);
     const formCode = formCodes[op];
     const fCode = formCode != undefined ? formCode : Form_Eval;
-    return [{n: fCode, b: 1, info: "form marker"}].concat(form);
+    return [{n: fCode, b: 1, info: "form marker: " + op}].concat(form);
   }
   funcs = funcs.map(f => walkArrays(f, a => a, appendFormCode));
 

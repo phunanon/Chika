@@ -51,6 +51,7 @@ enum IType {
   OPS_START = 0x22,
   Op_Func   = 0x22,
   Op_If     = 0x23,
+  Op_Or     = 0x24,
   Op_Add    = 0x33,
   Op_Str    = 0x44,
   Op_Vec    = 0xBB,
