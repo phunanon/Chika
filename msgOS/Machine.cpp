@@ -211,60 +211,86 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
 printMem(f, 24);
 printItems(pItems(), numItem());
 
-    //Special form logic
-    switch (formCode) {
-      case Form_If:
-        //Is if-form finished?
-        if (*f == Op_If) {
-          if (numItem() == firstArgItem)
+    //If we're in a special form
+    if (formCode != Form_Eval) {
+      //Special form logic
+      switch (formCode) {
+        case Form_If:
+          //Is if-form finished?
+          if (*f == Op_If) {
             returnNil(firstArgItem);
-          return ++f;
-        }
-        //(if cond if-true if-false)
-        //                ^
-        if (ifWasTrue)
+            return ++f;
+          }
+          if (firstArgItem == numItem()) break; //Nothing evaluted yet
+          //(if cond if-true if-false)
+          //                ^
+          if (ifWasTrue)
 {
 debugger("IF: was true: skipping if-false", 0, 0);
-          //Was true: skip the if-false form or val (usually to the terminating if op)
-          skipFormOrVal(&f);
+            //Was true: skip the if-false form or val (usually to the terminating if op)
+            skipFormOrVal(&f);
 }
-        else
-        //(if cond if-true if-false)
-        //        ^
-        if (firstArgItem + 1 == numItem()) {
+          else
+          //(if cond if-true if-false)
+          //        ^
+          if (firstArgItem + 1 == numItem()) {
 debugger("IF: checking condition", 0, 0);
-          if (!isTypeTruthy(iLast()->type()))
+            if (!isTypeTruthy(iLast()->type()))
 {
 debugger("IF: skipping if-true", 0, 0);
-            //False: skip the if-true form or val
-            skipFormOrVal(&f);
+              //False: skip the if-true form or val
+              skipFormOrVal(&f);
 }
-          setStackN(firstArgItem); //Forget condition item
-          ifWasTrue = true;
-        }
-        break;
-      case Form_Or:
+            setStackN(firstArgItem); //Forget condition item
+            ifWasTrue = true;
+          }
+          break;
+
+        case Form_Or:
 debugger("OR", 0, 0);
-        //Did or-form end without truthy value?
-        if (*f == Op_Or) {
-          returnNil(firstArgItem);
-          return ++f;
-        }
-        //If nothing has been evaluted yet
-        if (firstArgItem == numItem()) break;
-        //If previous eval was false
+          //Did or-form end without truthy value?
+          if (*f == Op_Or) {
+            returnNil(firstArgItem);
+            return ++f;
+          }
+          if (firstArgItem == numItem()) break; //Nothing evaluted yet
+          //If previous eval was false
 debugger("  prev type:", true, iLast()->type());
-        if (!isTypeTruthy(iLast()->type()))
-          setStackN(firstArgItem); //Forget condition item
-        //Previous eval was true
-        else {
+          if (!isTypeTruthy(iLast()->type()))
+            setStackN(firstArgItem); //Forget condition item
+          //Previous eval was true
+          else {
 debugger("  it's true!", true, *f);
-          //Skip all forms until Op_Or
-          while (*f != Op_Or)
-            skipFormOrVal(&f);
-          return ++f;
-        }
-        break;
+            //Skip all forms until Op_Or
+            while (*f != Op_Or)
+              skipFormOrVal(&f);
+            return ++f;
+          }
+          break;
+
+        case Form_And:
+debugger("AND", 0, 0);
+          bool evaled = firstArgItem != numItem();
+          if (evaled) {
+            //Test previous eval
+            bool isTruthy = isTypeTruthy(iLast()->type());
+            setStackN(firstArgItem); //Forget condition item
+            //If falsey
+            if (!isTruthy) {
+              //Skip all forms until Op_And
+              while (*f != Op_And)
+                skipFormOrVal(&f);
+              returnItem(firstArgItem, Item(0, Val_False));
+              return ++f;
+            }
+          }
+          //Did and-form end without a falsey value?
+          if (*f == Op_And) {
+            returnItem(firstArgItem, Item(0, evaled ? Val_True : Val_False));
+            return ++f;
+          }
+          break;
+      }
     }
 
     //Evaluate next

@@ -142,6 +142,13 @@ Names can include (almost) any characters excluding whitespace.
 `+` 0 arg: returns `0`.  
 `+` N arg: returns sum of N integers.
 
+`if` 2 arg: returns second arg if first arg is truthy, else nil.  
+`if` 3 arg: returns second arg if first arg is truthy, else third arg.
+
+`or` N arg: returns first truthy arg.
+
+`and` N arg: returns true if all args truthy.
+
 `vec` 0 arg: returns empty vector.  
 `vec` N arg: returns vector of N args.
 
