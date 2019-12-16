@@ -46,18 +46,26 @@ It's cheap and cool! I have no experience coding anything else, and it's a very 
 
 #### Why are speed and memory not a priority?
 
+I prefer to work toward its stability, agility, and ecosystem before giving any further serious consideration on its data-handling. At the moment I'm not being bashful using frequent abstractions to manage memory.  
+I *think* I'm doing okay in managing stack memory... I can't visualise a cleaner solution to duplicating items on the stack for processing.
 
 #### Why a native programming language? Why not real-time scheduling?
 
-I'll answer these two at once: real-time scheduling has been [done to death](https://github.com/search?q=Arduino+RTOS&type=Repositories), and they supply *compile-time* kernels.  
+Real-time scheduling has been [done to death](https://github.com/search?q=Arduino+RTOS&type=Repositories), and they supply *compile-time* kernels.  
 The vision calls for the ability to write, compile, and execute programs without the need of a second device. A simple, run-time-managed native language achieves this.  
 Also, the vision does *not* call for real-time applications - just applications that eventually do magic.
 
 #### Why use MQTT-style messaging?
 
+MQTT messages are predominant in the IoT world for connecting and monitoring devices, and I find programs on a computer to be no less important.  
+I want to bring that abstraction at an OS-level, facilitating drop-in, many-to-many relationships of logic and data. It is easy to monitor, secure, and compose.
 
 #### Why no REPL, drivers, compiler, &c?
 
+I've chosen to have the REPL, any peripheral drivers, and a compiler into Chika-space. That is, they will have to be written in Chika, and will not come with the system as standard.  
+Composition of programs at runtime is its strength, and I much prefer it to messy, baked-in drivers (e.g. "this OS works with X screen and pretty much only that!").  
+A really nice example is [SSD1306 support in uLisp](http://library.ulisp.com/show?2TMA).  
+Essentially, other than the SD card, serial, and I/O pins, I want no other msgOS-level abstractions.
 
 ### msgOS Operating Middleware (msgOM)
 
@@ -96,7 +104,7 @@ Chika doesn't include homoiconicity, a built-in compiler, macros, &c., but it su
 
 #### Why dynamic variables?
 
-Well, it's a LISP, and I also want to keep the compilation stage simple. It's not too much overhead (3 bytes per item), and most functions expect only certain types.
+Well, it's a LISP, and I also want to keep the compilation stage simple so it can eventually self-host. It's not too much overhead (3 bytes per item), and most functions expect only certain types.
 
 ### Machine
 
@@ -143,6 +151,8 @@ Parameters override variables.
 
 #### Native functions
 
+Note: mathematical functions will cast all arguments as the type of the first argument.
+
 `val` 1-N arg: returns its first argument.
 
 `do` 1-N arg: returns its final argument.
@@ -171,13 +181,7 @@ Parameters override variables.
 
 ### Compilation
 
-#### Using the reference compiler
-
-TODO - currently compiler.html
-
-#### Binary format
-
-##### Structure
+#### Structure
 
 A compiled Chika binary is composed solely of **functions**. Functions contain **forms**. Forms contain **args** (which can also be forms) and end with an **operation**. The hexadecimal byte formats are:
 
@@ -190,26 +194,41 @@ A compiled Chika binary is composed solely of **functions**. Functions contain *
 `00`, form marker; `[args]`, 0-N args; `OO` an operation.
 
 **arg**  
-a form, or `AA..`  
+or `AA..`, a form  
 `AA`, uint8_t arg-code; `..` variable-sized bespoke argument body.
 
 **operation**  
 `OO`  
 `OO`, uint8_t op-code.
 
-##### Arg- and Op-codes
+#### Arg- and Op-codes
 
 00 frm form  
-01 str string  
 TODO
 
-##### Argument formats
+#### Argument formats
 
 TODO
 
 ### Examples
 
-	(fn f a b (+ a b))
-	(print "Hello, world!")
-	(print (f 1 2))
+    ;Function `add` adds its two parameters
+	  (fn add a b
+	    (+ a b))
+	  (print "Hello, world!")
+	  (print (add 1 2))
 
+    ;Prints `15`
+    (print
+      (do a= 10 b= 5
+        (+ a b)))
+
+    ;Prints `Hello!`
+    (fn my-print
+      (print str))
+    (do str= "Hello!"
+      (my-print))
+
+    ;Returns absolute of a number
+    (fn abs n
+      (if (< n 0) (* n -1) n))
