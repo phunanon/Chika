@@ -16,11 +16,12 @@ const num = s => parseInt(s.match(/\d+/g).join(""));
 
 const
   Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03,
-  Val_True = 0x04, Val_False = 0x05, STR = 0x06, ARG = 0x07,
+  Val_True = 0x04, Val_False = 0x05, STR = 0x06, Eval_Arg = 0x07,
+  Bind_Var = 0x08, Eval_Var = 0x09,
   Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, NIL = 0x21, FNC = 0x22;
 const strFuncs =
-  {"if": 0x23, "or": 0x24, "and": 0x25, "+": 0x33, "str": 0x44, "vec": 0xBB,
-   "nth": 0xCC, "val": 0xCD, "print": 0xEE};
+  {"if": 0x23, "or": 0x24, "and": 0x25, "+": 0x33, "str": 0x44,
+   "vec": 0xBB, "nth": 0xCC, "val": 0xCD, "do": 0xCE, "print": 0xEE};
 const literals =
   {"nil": NIL, "true": Val_True, "false": Val_False};
 const formCodes =
@@ -57,7 +58,7 @@ function funcise (forms) {
   //Give entry function a source head
   funcs[0] = ["fn", "entry", "params"].concat(funcs[0]);
   //Include function ID's
-  funcs.forEach((f, i) => f.unshift({n: i, b: 2, info: "func ID"}));
+  funcs.forEach((f, i) => f.unshift({n: i, b: 2, info: `func ID: ${f[1]}`}));
   return funcs;
 }
 
@@ -68,8 +69,8 @@ function compile (source) {
   const strings = extractedStrings.strings;
   source = extractedStrings.source;
   
-  //Remove all comments
-  source = source.replace(/;.+\n/g, "\n");
+  //Remove all comments and commas
+  source = source.replace(/;.+\n/g, "\n").replace(/,/g, "");
   
   //Replace all vectors with (vec ...) form
   source = source.replace(/\[/g, "(vec ").replace(/\]/g, ")");
@@ -93,7 +94,7 @@ function compile (source) {
     const op = last(form);
     const formCode = formCodes[op];
     const fCode = formCode != undefined ? formCode : Form_Eval;
-    return [{n: fCode, b: 1, info: "form marker: " + op}].concat(form);
+    return [{n: fCode, b: 1, info: `form: ${op}`}].concat(form);
   }
   funcs = funcs.map(f => walkArrays(f, a => a, appendFormCode));
 
@@ -107,7 +108,7 @@ function compile (source) {
     const len = isI32 ? 4 : (isU16 ? 2 : 1);
     return {hex: numToHex(type, 1)
                  + numToLEHex(parseInt(s), len),
-            info: "int: " + s};
+            info: `int: ${s}`};
   }
   funcs = walkItems(funcs, isChikaNum, serialiseNum);
 
@@ -124,19 +125,35 @@ function compile (source) {
   //Replace tail-positioned native and program functions
   const funcHex = sym =>
     strFuncs[sym] == undefined
-    ? {hex: numToHex(FNC, 1) + numToLEHex(funcRegister.findIndex(f => f.sym == sym), 2), info: "prog func: " + sym}
-    : {n: strFuncs[sym], b: 1, info: "op: " + sym};
+    ? {hex: numToHex(FNC, 1)
+            + numToLEHex(funcRegister.findIndex(f => f.sym == sym), 2),
+       info: `prog fn: ${sym}`}
+    : {n: strFuncs[sym], b: 1, info: `op: ${sym}`};
   funcs = walkArrays(funcs, a => isString(last(a)), a => a.slice(0, -1).concat(funcHex(last(a))));
 
   //Replace symbol literals
   function replaceLiteral (l) {
-    return {n: literals[l], b: 1, info: "literal: " + l};
+    return {n: literals[l], b: 1, info: `literal: ${l}`};
   }
   funcs = walkItems(funcs, i => literals[i] != undefined, replaceLiteral);
 
-  //Replace arguments
-  const argToHex = (arg, fi) => ({hex: bytesToHex([ARG, funcRegister[fi].paras.indexOf(arg)]), info: "arg"});
-  funcs = funcs.map((f, fi) => walkItems(f, isString, arg => argToHex(arg, fi)));
+  //Replace arguments, variables, and binds
+  const variables = [];
+  function argOrVarToHex (sym, fi) {
+    const param = funcRegister[fi].paras.indexOf(sym);
+    if (param != -1)
+      return {hex: bytesToHex([Eval_Arg, param]), info: `arg: ${sym}`};
+    //Check if variable or bind
+    let bind = sym.endsWith("=");
+    if (bind) sym = sym.slice(0, -1);
+    let vari = variables.indexOf(sym);
+    if (vari == -1)
+      variables.push(sym);
+    const variHex = numToHex(bind ? Bind_Var : Eval_Var, 1)
+                    + numToLEHex(variables.indexOf(sym), 2);
+    return {hex: variHex, info: `${bind ? "bind" : "var"}: ${sym}`};
+  }
+  funcs = funcs.map((f, fi) => walkItems(f, isString, arg => argOrVarToHex(arg, fi)));
 
   //Prepend function length
   const itemsLen = items => items.reduce((acc, i) => acc + (i.hex ? i.hex.length / 2 : i.b), 0);

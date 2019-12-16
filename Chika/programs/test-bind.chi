@@ -1,0 +1,10 @@
+;Prints `15`
+(print
+  (do a= 10 b= 5
+    (+ a b)))
+
+;Prints `Hello!`
+(fn my-print
+  (print str))
+(do str= "Hello!"
+  (my-print))

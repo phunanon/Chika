@@ -312,6 +312,31 @@ debugger("  ref len:", true, iArg->len);
       stackItem(Item(iArg->len, iArg->type()));
       f += sizeof(argnum);
     } else
+    if (*f == Eval_Var) { //Variable evaluation?
+      varnum vNum = *(varnum*)(++f);
+debugger("VARIABLE", true, vNum);
+      f += sizeof(varnum);
+      itemnum it;
+      bool found = false;
+      for (it = numItem() - 1; ; --it) {
+        if (i(it)->type() != Bind_Var) continue;
+debugger("  test:", true, *(varnum*)iData(it));
+        if (*(varnum*)iData(it) == vNum) {
+          found = true;
+          break;
+        }
+        if (!it) break;
+      }
+      if (found) {
+        Item* vItem = i(++it); //Pick the item after the bind
+debugger("  found @", true, it);
+        //Copy the bytes to the stack top
+        memcpy(stackItem(), iBytes(it), vItem->len);
+        //Copy its item descriptor too
+        stackItem(vItem);
+      } else
+        stackItem(Item(0, Val_Nil)); //No binding found - return nil
+    } else
     if (*f < OPS_START) { //Constant?
 debugger("Found const @", true, (f+1) - pROM());
 debugger("  type:", true, *f);
@@ -345,6 +370,7 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Vec:   op_Vec  (firstParam); break;
     case Op_Nth:   op_Nth  (firstParam); break;
     case Op_Val:   op_Val  (firstParam); break;
+    case Op_Do:    op_Do   (firstParam); break;
     default: break;
   }
 }
@@ -439,5 +465,10 @@ debugger("  nth item first byte:", true, *vBytes);
 
 void Machine::op_Val (itemnum firstParam) {
   //Truncate the stack to the first item
-  returnItem(firstParam, i(firstParam));
+  setStackN(firstParam + 1);
+}
+
+void Machine::op_Do (itemnum firstParam) {
+  //Collapse the stack to the last item
+  returnCollapseLast(firstParam);
 }

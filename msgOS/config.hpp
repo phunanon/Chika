@@ -30,6 +30,7 @@ typedef uint32_t bytenum;
 typedef uint16_t funcnum;
 typedef uint16_t funclen;
 typedef uint8_t  argnum;
+typedef uint16_t varnum;
 typedef uint16_t strilen;
 typedef uint16_t vectlen;
 
@@ -41,6 +42,8 @@ enum IType {
   Val_True  = 0x04, Val_False = 0x05,
   Val_Str   = 0x06,
   Eval_Arg  = 0x07,
+  Bind_Var  = 0x08,
+  Eval_Var  = 0x09,
   Val_Vec   = 0x0A, Val_Dict  = 0x0B,
   Val_U08   = 0x10,
   Val_U16   = 0x11,
@@ -56,6 +59,7 @@ enum IType {
   Op_Vec    = 0xBB,
   Op_Nth    = 0xCC,
   Op_Val    = 0xCD,
+  Op_Do     = 0xCE,
   Op_Print  = 0xEE
 };
 

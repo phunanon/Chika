@@ -123,6 +123,12 @@ Names can include (almost) any characters excluding whitespace.
 
 `;...`: a comment, which can be suitated on a new line or at the end of one.
 
+`,`: a comma, treated as whitespace.
+
+`..=`: binding, whereby `..` is a symbol name.
+
+Parameters override variables.
+
 #### Data types
 
 `".."`: string, whereby `..` are 0 to 2^16 ASCII characters, or `""` for empty.
@@ -138,6 +144,8 @@ Names can include (almost) any characters excluding whitespace.
 #### Native functions
 
 `val` 1-N arg: returns its first argument.
+
+`do` 1-N arg: returns its final argument.
 
 `+` 0 arg: returns `0`.  
 `+` N arg: returns sum of N integers.
