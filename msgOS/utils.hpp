@@ -1,6 +1,10 @@
 #pragma once
 #include <stdint.h>
 #include "string.h"
+#include "config.hpp"
+
+bool isTypeTruthy (IType type);
+void skipArg (uint8_t** f);
 
 #define min(a,b) (a<b?a:b)
 

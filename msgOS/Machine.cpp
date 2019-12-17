@@ -135,33 +135,6 @@ void Machine::iPop (itemnum n = 1) {
 
 
 
-bool isTypeTruthy (IType type) {
-  return type != Val_Nil && type != Val_False;
-}
-
-void skipFormOrVal (uint8_t** f) {
-  //Is a value?
-  if (**f > FORMS_END) {
-    IType type = (IType)**f;
-    *f += constByteLen(type, ++*f);
-    return;
-  }
-  //It's a form - skip f to the end of it
-  uint8_t nForm = 0;
-  do {
-    if (**f <= FORMS_END) ++nForm;
-    else if (**f < OPS_START) {
-      IType type = (IType)**f;
-      *f += constByteLen(type, ++*f);
-      continue;
-    }
-    else if (**f >= OPS_START) --nForm;
-    ++*f;
-  } while (nForm);
-}
-
-
-
 void Machine::heartbeat (prognum _pNum) {
   pNum = _pNum;
   exeFunc(0x0000, -1);
@@ -218,8 +191,8 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
           //(if true if-true[ if-false])
           //                ^
           if (ifResult == WasTrue) {
-            //Was true: skip the if-false form or val, unless no if-false
-            if (*f != Op_If) skipFormOrVal(&f);
+            //Was true: skip the if-false arg if present
+            if (*f != Op_If) skipArg(&f);
             return ++f; //Skip if op
           } else
           //(if false if-true if-false)
@@ -231,8 +204,8 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
           //        ^
           if (firstArgItem + 1 == numItem()) {
             if (!isTypeTruthy(iLast()->type())) {
-              //False: skip the if-true form or val
-              skipFormOrVal(&f);
+              //False: skip the if-true arg
+              skipArg(&f);
               //If there's no if-false, return nil
               if (*f == Op_If) {
                 returnNil(firstArgItem);
@@ -256,9 +229,9 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
             setStackN(firstArgItem); //Forget condition item
           //Previous eval was true
           else {
-            //Skip all forms until Op_Or
+            //Skip all args until Op_Or
             while (*f != Op_Or)
-              skipFormOrVal(&f);
+              skipArg(&f);
             return ++f;
           }
           break;
@@ -271,9 +244,9 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
             setStackN(firstArgItem); //Forget condition item
             //If falsey
             if (!isTruthy) {
-              //Skip all forms until Op_And
+              //Skip all args until Op_And
               while (*f != Op_And)
-                skipFormOrVal(&f);
+                skipArg(&f);
               returnItem(firstArgItem, Item(0, Val_False));
               return ++f;
             }
@@ -293,7 +266,7 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
       f = exeForm(f, firstParam);
     } else
     if (*f == Eval_Arg) { //Arg?
-      itemnum iNum = firstParam + *(++f);
+      itemnum iNum = firstParam + *(argnum*)(++f);
       Item* iArg = i(iNum);
       //Copy the referenced value to the stack top
       memcpy(stackItem(), iData(iNum), iArg->len);

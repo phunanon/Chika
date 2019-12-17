@@ -1,5 +1,30 @@
 #include "utils.hpp"
 
+bool isTypeTruthy (IType type) {
+  return type != Val_Nil && type != Val_False;
+}
+
+void skipArg (uint8_t** f) {
+  //Is a value?
+  if (**f > FORMS_END) {
+    IType type = (IType)**f;
+    *f += constByteLen(type, ++*f);
+    return;
+  }
+  //It's a form - skip f to the end of it
+  uint8_t nForm = 0;
+  do {
+    if (**f <= FORMS_END) ++nForm;
+    else if (**f < OPS_START) {
+      IType type = (IType)**f;
+      *f += constByteLen(type, ++*f);
+      continue;
+    }
+    else if (**f >= OPS_START) --nForm;
+    ++*f;
+  } while (nForm);
+}
+
 uint8_t _log10 (uint32_t v) {
   return (v >= 1000000000) ? 9 : (v >= 100000000) ? 8 : 
          (v >= 10000000) ? 7   : (v >= 1000000) ? 6 : 
