@@ -1,0 +1,5 @@
+(print "is " (if true  "true" "false"))
+(print "is " (if false "true" "false"))
+(print "is " (if true  "true"))
+(print "is " (if false "true"))
+(print (or true nil false) " " (or false nil false))

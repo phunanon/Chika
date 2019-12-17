@@ -198,11 +198,13 @@ void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
     returnCollapseLast(firstParam);
 }
 
+enum IfResult { UnEvaled, WasTrue, WasFalse };
+
 uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
   IType formCode = (IType)*f;
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
-  bool ifWasTrue = false;
+  IfResult ifResult = UnEvaled;
   while (true) {
 
     //If we're in a special form
@@ -210,26 +212,35 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
       //Special form logic
       switch (formCode) {
         case Form_If:
-          //Is if-form finished?
-          if (*f == Op_If) {
-            returnNil(firstArgItem);
-            return ++f;
-          }
+          //(if cond ...)
+          //   ^
           if (firstArgItem == numItem()) break; //Nothing evaluted yet
-          //(if cond if-true if-false)
+          //(if true if-true[ if-false])
           //                ^
-          if (ifWasTrue)
-            //Was true: skip the if-false form or val (usually to the terminating if op)
-            skipFormOrVal(&f);
-          else
-          //(if cond if-true if-false)
+          if (ifResult == WasTrue) {
+            //Was true: skip the if-false form or val, unless no if-false
+            if (*f != Op_If) skipFormOrVal(&f);
+            return ++f; //Skip if op
+          } else
+          //(if false if-true if-false)
+          //                          ^
+          if (ifResult == WasFalse) {
+            return ++f; //Skip if op
+          } else
+          //(if cond if-true[ if-false])
           //        ^
           if (firstArgItem + 1 == numItem()) {
-            if (!isTypeTruthy(iLast()->type()))
+            if (!isTypeTruthy(iLast()->type())) {
               //False: skip the if-true form or val
               skipFormOrVal(&f);
+              //If there's no if-false, return nil
+              if (*f == Op_If) {
+                returnNil(firstArgItem);
+                return ++f;
+              }
+              ifResult = WasFalse;
+            } else ifResult = WasTrue;
             setStackN(firstArgItem); //Forget condition item
-            ifWasTrue = true;
           }
           break;
 

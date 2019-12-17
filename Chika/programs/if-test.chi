@@ -1,3 +1,0 @@
-;Should print "is true\nis false"
-(print (if true  (print "is true") (print "is false")))
-(print (if false (print "is true") (print "is false")))
