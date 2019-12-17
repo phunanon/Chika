@@ -8,20 +8,15 @@ uint8_t _log10 (uint32_t v) {
          (v >= 10) ? 1         : 0; 
 }
 
-int32_t readI32 (uint8_t* b) {
-  int32_t n = 0;
-  memcpy(&n, b, sizeof(int32_t));
-  return n;
-}
 int32_t readNum (uint8_t* b, uint8_t len) {
-  return readI32(b) & ((uint32_t)-1 >> ((4 - len) * 8));
+  return *(int32_t*)b & ((uint32_t)-1 >> ((4 - len) * 8));
 }
 void writeNum (uint8_t* b, int32_t i, uint8_t len) {
   memcpy(b, &i, len);
 }
 
 //Provide at least 11 bytes; returns length
-uint8_t int2chars (int32_t n, uint8_t* str) {
+uint8_t int2chars (uint8_t* str, int32_t n) {
   if (n == 0) {
     str[0] = '0';
     return 1;

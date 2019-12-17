@@ -167,7 +167,6 @@ void Machine::heartbeat (prognum _pNum) {
   exeFunc(0x0000, -1);
   //Discard heartbeat function result
   iPop();
-debugger("badum", false, 0);
 while (true);
 }
 
@@ -180,17 +179,14 @@ uint8_t* Machine::pFunc (funcnum fNum) {
     r += sizeof(funcnum);
     r += *(proglen*)r + sizeof(proglen);
   }
-debugger("func not found", false, 0);
   return pROM();
 }
 
 void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
-debugger("exeFunc", true, fNum);
   uint8_t* f = pFunc(fNum);
   f += sizeof(funcnum);
   funclen fLen = *(funclen*)f;
   f += sizeof(funclen);
-debugger("func len:", true, fLen);
   uint8_t* fEnd = f + fLen;
   while (f != fEnd) {
     f = exeForm(f, firstParam);
@@ -208,8 +204,6 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
   itemnum firstArgItem = numItem();
   bool ifWasTrue = false;
   while (true) {
-printMem(f, 24);
-printItems(pItems(), numItem());
 
     //If we're in a special form
     if (formCode != Form_Eval) {
@@ -225,29 +219,21 @@ printItems(pItems(), numItem());
           //(if cond if-true if-false)
           //                ^
           if (ifWasTrue)
-{
-debugger("IF: was true: skipping if-false", 0, 0);
             //Was true: skip the if-false form or val (usually to the terminating if op)
             skipFormOrVal(&f);
-}
           else
           //(if cond if-true if-false)
           //        ^
           if (firstArgItem + 1 == numItem()) {
-debugger("IF: checking condition", 0, 0);
             if (!isTypeTruthy(iLast()->type()))
-{
-debugger("IF: skipping if-true", 0, 0);
               //False: skip the if-true form or val
               skipFormOrVal(&f);
-}
             setStackN(firstArgItem); //Forget condition item
             ifWasTrue = true;
           }
           break;
 
         case Form_Or:
-debugger("OR", 0, 0);
           //Did or-form end without truthy value?
           if (*f == Op_Or) {
             returnNil(firstArgItem);
@@ -255,12 +241,10 @@ debugger("OR", 0, 0);
           }
           if (firstArgItem == numItem()) break; //Nothing evaluted yet
           //If previous eval was false
-debugger("  prev type:", true, iLast()->type());
           if (!isTypeTruthy(iLast()->type()))
             setStackN(firstArgItem); //Forget condition item
           //Previous eval was true
           else {
-debugger("  it's true!", true, *f);
             //Skip all forms until Op_Or
             while (*f != Op_Or)
               skipFormOrVal(&f);
@@ -269,7 +253,6 @@ debugger("  it's true!", true, *f);
           break;
 
         case Form_And:
-debugger("AND", 0, 0);
           bool evaled = firstArgItem != numItem();
           if (evaled) {
             //Test previous eval
@@ -296,16 +279,11 @@ debugger("AND", 0, 0);
     //Evaluate next
     IType type = (IType)*f;
     if (type <= FORMS_END) { //Form?
-debugger("Found form @", true, f - pROM());
-debugger("  code:", true, *f);
       f = exeForm(f, firstParam);
     } else
     if (*f == Eval_Arg) { //Arg?
       itemnum iNum = firstParam + *(++f);
       Item* iArg = i(iNum);
-debugger("Found arg @", true, f - pROM());
-debugger("  ref type:", true, iArg->type());
-debugger("  ref len:", true, iArg->len);
       //Copy the referenced value to the stack top
       memcpy(stackItem(), iData(iNum), iArg->len);
       //Copy its item descriptor too, as value
@@ -314,13 +292,11 @@ debugger("  ref len:", true, iArg->len);
     } else
     if (*f == Eval_Var) { //Variable evaluation?
       varnum vNum = *(varnum*)(++f);
-debugger("VARIABLE", true, vNum);
       f += sizeof(varnum);
       itemnum it;
       bool found = false;
       for (it = numItem() - 1; ; --it) {
         if (i(it)->type() != Bind_Var) continue;
-debugger("  test:", true, *(varnum*)iData(it));
         if (*(varnum*)iData(it) == vNum) {
           found = true;
           break;
@@ -329,7 +305,6 @@ debugger("  test:", true, *(varnum*)iData(it));
       }
       if (found) {
         Item* vItem = i(++it); //Pick the item after the bind
-debugger("  found @", true, it);
         //Copy the bytes to the stack top
         memcpy(stackItem(), iBytes(it), vItem->len);
         //Copy its item descriptor too
@@ -338,13 +313,9 @@ debugger("  found @", true, it);
         stackItem(Item(0, Val_Nil)); //No binding found - return nil
     } else
     if (*f < OPS_START) { //Constant?
-debugger("Found const @", true, (f+1) - pROM());
-debugger("  type:", true, *f);
       Item item = Item(constByteLen(type, ++f), type, true);
       *(proglen*)stackItem() = f - pROM();
       stackItem(item);
-debugger("  len:", true, item.len);
-debugger("  byte:", true, *f);
       f += constByteLen(type, f);
     } else
     if (*f == Op_Func) { //Func?
@@ -353,7 +324,6 @@ debugger("  byte:", true, *f);
       f += sizeof(funcnum);
       break;
     } else { //Native op?
-debugger("OP:", true, *f);
       nativeOp((IType)*f, firstArgItem);
       ++f; //Skip op code
       break;
@@ -398,11 +368,10 @@ void Machine::op_Equal (itemnum firstParam, bool equality) {
 void Machine::op_Add (itemnum firstParam) {
   IType type = i(firstParam)->type();
   itemlen len = constByteLen(type);
-  uint8_t* result = stackItem();
   int32_t sum = 0;
   for (itemnum it = firstParam, itEnd = numItem(); it < itEnd; ++it)
     sum += readNum(iData(it), min(len, constByteLen(i(it)->type())));
-  writeNum(result, sum, len);
+  writeNum(stackItem(), sum, len);
   returnCollapseItem(firstParam, Item(len, type));
 }
 
@@ -425,7 +394,7 @@ void Machine::op_Str (itemnum firstParam) {
       case Val_U08:
       case Val_U16:
       case Val_I32:
-        len += int2chars(readNum(iData(it), constByteLen(type)), target);
+        len += int2chars(target, readNum(iData(it), constByteLen(type)));
         break;
       case Val_Nil:
         const char* sNil = "nil";
@@ -445,7 +414,6 @@ void Machine::op_Print (itemnum firstParam) {
 }
 
 void Machine::op_Vec (itemnum firstParam) {
-debugger("\n   VECTORISING\n", false, 0);
   //Copy item descriptors onto the end of the byte stack
   uint8_t* descs = stackItem();
   vectlen nItems = numItem() - firstParam;
@@ -462,17 +430,11 @@ void Machine::op_Nth (itemnum firstParam) {
   int32_t nth = iInt(firstParam + 1);
   //Collate vector info
   uint8_t* vBytes = iData(firstParam);
-printMem(vBytes, 5);
   uint8_t* vEnd = (vBytes + i(firstParam)->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
-debugger("  num item", true, vNumItem);
   Item* vItems = &((Item*)vEnd)[-vNumItem];
   //Find item descriptor at nth
   Item* nthItem = &((Item*)vEnd)[-(nth + 1)];
-debugger("  nth item type:", true, nthItem->type());
-debugger("  nth item isConst:", true, nthItem->isConst());
-debugger("  nth item len:", true, nthItem->len);
-debugger("  nth item first byte:", true, *vBytes);
   //Copy bytes into return position
   uint8_t* itemBytes = vBytes;
   for (itemnum vi = 0; vi < nth; ++vi)
