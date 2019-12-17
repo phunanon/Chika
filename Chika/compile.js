@@ -2,16 +2,20 @@ String.prototype.rp = function(pad, len) { while (pad.length < len) { pad += pad
 String.prototype.lp = function(pad, len) { while (pad.length < len) { pad += pad; } return pad.substr(0, len-this.length) + this; }
 Array.prototype.remove = function (fn) { return this.filter(it => !fn(it)); }
 
+//https://stackoverflow.com/a/24947000
+function int2buf(a){return arr=new ArrayBuffer(4),view=new DataView(arr),view.setUint32(0,a,!1),arr}
+//https://stackoverflow.com/a/40031979
+function buf2hex(a){return Array.prototype.map.call(new Uint8Array(a),a=>("00"+a.toString(16)).slice(-2)).join("")}
 const insert = (arr, index, newItem) => [...arr.slice(0, index), newItem, ...arr.slice(index)];
 const flatten = (arr) => arr.reduce((flat, next) => flat.concat(Array.isArray(next) ? flatten(next) : next), []);
-const numToHex = (n, bytes) => n.toString(16).toUpperCase().lp("0", bytes*2);
+const numToHex = (n, bytes) => buf2hex(int2buf(n)).toUpperCase().slice(8 - bytes*2);
 const numToLEHex = (n, bytes) => numToHex(n, bytes).match(/.{2}/g).reverse().join("");
 const bytesToHex = nums => nums.map(n => numToHex(n, 1)).join("");
 const last = arr => arr[arr.length - 1];
 const isObject = o => o === Object(o);
 const isString = s => typeof s === "string";
-const isChikaNum = s => isString(s) && s.search(/\d+[W|I]*/) != -1 && s.match(/\d+[W|I]*/g).join("") == s;
-const num = s => parseInt(s.match(/\d+/g).join(""));
+const isChikaNum = s => isString(s) && s.search(/^-?\d+[W|I]*$/) != -1 && s.match(/-?\d+[W|I]*/g).join("") == s;
+const num = s => parseInt(s.match(/-?\d+/g).join(""));
 
 
 const
