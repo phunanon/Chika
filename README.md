@@ -171,6 +171,8 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `==` N arg: equity, returns true if N items are of byte equality.
 
+`<` / `<=` / `>` / `>=` N arg: returns true if N items are in monotonically increasing / non-decreasing / decreasing / non-increasing order.
+
 `vec` 0 arg: returns empty vector.  
 `vec` N arg: returns vector of N args.
 

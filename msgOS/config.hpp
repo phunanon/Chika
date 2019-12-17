@@ -54,14 +54,14 @@ enum IType {
   Op_If     = 0x23,
   Op_Or     = 0x24,
   Op_And    = 0x25,
-  Op_Equal  = 0x31,
-  Op_Equit  = 0x32,
-  Op_Add    = 0x33,
+  Op_Equal  = 0x30, Op_Equit  = 0x31,
+  Op_LT     = 0x32, Op_LTE    = 0x33,
+  Op_GT     = 0x34, Op_GTE    = 0x35,
+  Op_Add    = 0x36,
   Op_Str    = 0x44,
   Op_Vec    = 0xBB,
   Op_Nth    = 0xCC,
-  Op_Val    = 0xCD,
-  Op_Do     = 0xCE,
+  Op_Val    = 0xCD, Op_Do     = 0xCE,
   Op_Print  = 0xEE
 };
 
