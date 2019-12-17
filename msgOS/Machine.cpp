@@ -364,6 +364,8 @@ debugger("OP:", true, *f);
 
 void Machine::nativeOp (IType op, itemnum firstParam) {
   switch (op) {
+    case Op_Equal: op_Equal(firstParam, true);  break;
+    case Op_Equit: op_Equal(firstParam, false); break;
     case Op_Add:   op_Add  (firstParam); break;
     case Op_Str:   op_Str  (firstParam); break;
     case Op_Print: op_Print(firstParam); break;
@@ -375,6 +377,23 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
   }
 }
 
+
+void Machine::op_Equal (itemnum firstParam, bool equality) {
+  //Find equity through byte comparison, and equality through item comparison
+  itemnum it = firstParam + 1,
+          itEnd = numItem();
+  for (; it < itEnd; ++it) {
+    Item* a = i(firstParam);
+    Item* b = i(it);
+    //Equity through byte comparison
+    itemlen len = a->len;
+    if (len != b->len) break;
+    if (memcmp(iData(firstParam), iData(it), len)) break;
+    //Further equality through item comparison
+    if (equality && a->type() != b->type()) break;
+  }
+  returnItem(firstParam, Item(0, it == itEnd ? Val_True : Val_False));
+}
 
 void Machine::op_Add (itemnum firstParam) {
   IType type = i(firstParam)->type();

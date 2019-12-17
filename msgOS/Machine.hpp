@@ -69,6 +69,7 @@ class Machine {
   void     exeFunc   (funcnum, itemnum);
   uint8_t* exeForm   (uint8_t*, itemnum);
   void     nativeOp  (IType, itemnum);
+  void     op_Equal  (itemnum, bool);
   void     op_Add    (itemnum);
   void     op_Str    (itemnum);
   void     op_Print  (itemnum);
