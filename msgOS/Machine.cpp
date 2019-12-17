@@ -338,7 +338,8 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Equit: op_Equal(firstParam, false); break;
     case Op_GT: case Op_GTE: case Op_LT: case Op_LTE:
       op_Diff(firstParam, op); break;
-    case Op_Add:   op_Add  (firstParam); break;
+    case Op_Add: case Op_Sub: case Op_Mult: case Op_Div:
+      op_Arith(firstParam, op); break;
     case Op_Str:   op_Str  (firstParam); break;
     case Op_Print: op_Print(firstParam); break;
     case Op_Vec:   op_Vec  (firstParam); break;
@@ -381,13 +382,24 @@ void Machine::op_Diff (itemnum firstParam, IType op) {
   returnItem(firstParam, Item(0, it == itEnd ? Val_True : Val_False));
 }
 
-void Machine::op_Add (itemnum firstParam) {
+void Machine::op_Arith (itemnum firstParam, IType op) {
+  if (firstParam == numItem()) {
+    returnNil(firstParam);
+    return;
+  }
   IType type = i(firstParam)->type();
   itemlen len = constByteLen(type);
-  int32_t sum = 0;
-  for (itemnum it = firstParam, itEnd = numItem(); it < itEnd; ++it)
-    sum += readNum(iData(it), min(len, constByteLen(i(it)->type())));
-  writeNum(stackItem(), sum, len);
+  int32_t result = readNum(iData(firstParam), len);
+  for (itemnum it = firstParam + 1, itEnd = numItem(); it < itEnd; ++it) {
+    int32_t num = readNum(iData(it), min(len, constByteLen(i(it)->type())));
+    switch (op) {
+      case Op_Add:  result += num; break;
+      case Op_Sub:  result -= num; break;
+      case Op_Mult: result *= num; break;
+      case Op_Div:  result /= num; break;
+    }
+  }
+  writeNum(stackItem(), result, len);
   returnCollapseItem(firstParam, Item(len, type));
 }
 

@@ -71,7 +71,7 @@ class Machine {
   void     nativeOp  (IType, itemnum);
   void     op_Equal  (itemnum, bool);
   void     op_Diff   (itemnum, IType);
-  void     op_Add    (itemnum);
+  void     op_Arith  (itemnum, IType);
   void     op_Str    (itemnum);
   void     op_Print  (itemnum);
   void     op_Vec    (itemnum);

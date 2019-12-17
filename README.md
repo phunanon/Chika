@@ -137,6 +137,8 @@ Names can include (almost) any characters excluding whitespace.
 
 Parameters override variables.
 
+Unmodified parameters must be returned through `val`.
+
 #### Data types
 
 `".."`: string, whereby `..` are 0 to 2^16 ASCII characters, or `""` for empty.
@@ -157,8 +159,8 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `do` 1-N arg: returns its final argument.
 
-`+` 0 arg: returns `0`.  
-`+` N arg: returns sum of N integers.
+`+` / `-` / `*` / `/` 0 arg: returns `nil`.  
+`+` / `-` / `*` / `/` N arg: returns sum / subtraction / multiplication / division of N integers.
 
 `if` 2 arg: returns second arg if first arg is truthy, else nil.  
 `if` 3 arg: returns second arg if first arg is truthy, else third arg.
