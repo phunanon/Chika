@@ -239,4 +239,4 @@ TODO
 
     ;Returns absolute of a number
     (fn abs n
-      (if (< n 0) (* n -1) n))
+      (if (< n 0) (* n -1I) n))

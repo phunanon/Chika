@@ -18,7 +18,7 @@ function DOM_compile () {
     </script>
     <style>
 textarea {
-  width: 11rem;
+  width: 14rem;
   height: 20rem;
 }
 .wide {
@@ -28,32 +28,17 @@ textarea {
   </head>
   <body>
     <div>
-      <textarea class="wide">(let morse {0x01 \\a 0x1000 \\b})
-(var presses [] start 0 timer nil)
+      <textarea class="wide">(fn abs n
+  (if (< n 0) (* n -1I) n))
 
-(fn ms->morse arr-ms
-  (let arr-ms (map @(<= 320) arr-ms))
-  (reduce | (map << arr-ms (range))))
-
-(fn send-char
-  (reset presses)
-  (msg! "firm/keyboard/char"
-    (morse (ms->morse presses))))
-
-(fn hard-in topic payload
-  (stop-timer! timer)
-  (let diff-ms (- (time/now) start))
-  (when (= 0 payload)
-    (set presses (add presses diff-ms))
-    (set timer (timeout! send-char 320))))
-
-(hook! hard-in "hard/keyboard/+")</textarea>
+(print "(abs -123I) = " (abs -123I)
+       ", (abs 123I)  = " (abs 123I))</textarea>
       <textarea id="assembly"></textarea>
       <textarea id="image"></textarea>
     </div>
     <div>
       <button onclick="DOM_compile()">Compile</button>
+      <size>0B<size></size>
     </div>
-    <size>0B<size>
   </body>
 </html>

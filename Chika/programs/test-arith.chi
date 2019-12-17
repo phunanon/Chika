@@ -1,7 +1,7 @@
 (print (+ 1I -2I) " " (* 2 2) " " (- 10 5) " " (/ 10 2))
 
 (fn abs n
-  (if (< n 0) (* n -1I) (val n)))
+  (if (< n 0) (* n -1I) n))
 
 (print "(abs -123I) = " (abs -123I)
      ", (abs 123I)  = " (abs 123I))
