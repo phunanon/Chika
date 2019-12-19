@@ -180,6 +180,8 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `nth vec N`: returns item `N` of vector `vec`.
 
+`len` 1 arg: returns either vector, string, or internal item length.
+
 `str` 0 arg: returns `""`.  
 `str` N arg: returns concatenation of N args as a string.
 

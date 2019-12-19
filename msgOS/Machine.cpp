@@ -328,6 +328,7 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Print: op_Print(firstParam); break;
     case Op_Vec:   op_Vec  (firstParam); break;
     case Op_Nth:   op_Nth  (firstParam); break;
+    case Op_Len:   op_Len  (firstParam); break;
     case Op_Val:   op_Val  (firstParam); break;
     case Op_Do:    op_Do   (firstParam); break;
     default: break;
@@ -454,6 +455,20 @@ void Machine::op_Nth (itemnum firstParam) {
   memcpy(stackItem(), itemBytes, itemBytesLen(nthItem));
   //Return nth item descriptor
   returnCollapseItem(firstParam, nthItem);
+}
+
+void Machine::op_Len (itemnum firstParam) {
+  Item* item = i(firstParam);
+  uint8_t* itData = iData(firstParam);
+  uint32_t len = item->len;
+  switch (item->type()) {
+    case Val_Vec:
+      len = readNum((itData + len) - sizeof(vectlen), sizeof(vectlen));
+      break;
+    case Val_Str: --len; break;
+  }
+  *(uint32_t*)iBytes(firstParam) = len;
+  returnItem(firstParam, Item(sizeof(uint32_t), Val_I32));
 }
 
 void Machine::op_Val (itemnum firstParam) {

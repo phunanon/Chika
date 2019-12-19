@@ -62,8 +62,10 @@ enum IType {
   Op_Mult   = 0x38,
   Op_Div    = 0x39,
   Op_Str    = 0x44,
-  Op_Vec    = 0xBB,
-  Op_Nth    = 0xCC,
+  Op_Vec    = 0xB0,
+  Op_Nth    = 0xB1,
+  Op_Len    = 0xB2,
+  Op_Apply  = 0xBA,
   Op_Val    = 0xCD, Op_Do     = 0xCE,
   Op_Print  = 0xEE
 };

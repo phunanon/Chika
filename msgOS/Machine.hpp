@@ -76,6 +76,7 @@ class Machine {
   void     op_Print  (itemnum);
   void     op_Vec    (itemnum);
   void     op_Nth    (itemnum);
+  void     op_Len    (itemnum);
   void     op_Val    (itemnum);
   void     op_Do     (itemnum);
 public:
