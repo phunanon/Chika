@@ -322,7 +322,9 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Equit: op_Equal(firstParam, false); break;
     case Op_GT: case Op_GTE: case Op_LT: case Op_LTE:
       op_Diff(firstParam, op); break;
-    case Op_Add: case Op_Sub: case Op_Mult: case Op_Div:
+    case Op_Add: case Op_Sub:
+    case Op_Mult: case Op_Div:
+    case Op_Mod:
       op_Arith(firstParam, op); break;
     case Op_Str:   op_Str  (firstParam); break;
     case Op_Print: op_Print(firstParam); break;
@@ -382,6 +384,7 @@ void Machine::op_Arith (itemnum firstParam, IType op) {
       case Op_Sub:  result -= num; break;
       case Op_Mult: result *= num; break;
       case Op_Div:  result /= num; break;
+      case Op_Mod:  result %= num; break;
     }
   }
   writeNum(stackItem(), result, len);

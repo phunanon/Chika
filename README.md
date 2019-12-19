@@ -159,8 +159,7 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `do` 1-N arg: returns its final argument.
 
-`+` / `-` / `*` / `/` 0 arg: returns `nil`.  
-`+` / `-` / `*` / `/` N arg: returns sum / subtraction / multiplication / division of N integers.
+`+` / `-` / `*` / `/` / `mod` N arg: returns sum / subtraction / multiplication / division / modulus of N integers. Zero args returns nil.
 
 `if` 2 arg: returns second arg if first arg is truthy, else nil.  
 `if` 3 arg: returns second arg if first arg is truthy, else third arg.

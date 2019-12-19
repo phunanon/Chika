@@ -61,6 +61,7 @@ enum IType {
   Op_Sub    = 0x37,
   Op_Mult   = 0x38,
   Op_Div    = 0x39,
+  Op_Mod    = 0x3A,
   Op_Str    = 0x44,
   Op_Vec    = 0xB0,
   Op_Nth    = 0xB1,
