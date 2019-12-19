@@ -68,6 +68,7 @@ enum IType {
   Op_Len    = 0xB2,
   Op_Apply  = 0xBA,
   Op_Val    = 0xCD, Op_Do     = 0xCE,
+  Op_MsNow  = 0xE0,
   Op_Print  = 0xEE
 };
 

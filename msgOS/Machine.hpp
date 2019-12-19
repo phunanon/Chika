@@ -2,7 +2,7 @@
 #include "string.h"
 #include "config.hpp"
 #include "utils.hpp"
-#include "Item.cpp"
+#include "Item.hpp"
 
 /*
 Prog memory:
@@ -53,7 +53,6 @@ class Machine {
   void     stackItem  (Item*);
   void     stackItem  (Item);
   void     setStackN  (itemnum);
-  uint8_t* returnItem (itemnum);
   void     returnItem (itemnum, Item*);
   void     returnItem (itemnum, Item);
   void     returnCollapseLast (itemnum);           //
@@ -73,12 +72,13 @@ class Machine {
   void     op_Diff   (itemnum, IType);
   void     op_Arith  (itemnum, IType);
   void     op_Str    (itemnum);
-  void     op_Print  (itemnum);
   void     op_Vec    (itemnum);
   void     op_Nth    (itemnum);
   void     op_Len    (itemnum);
   void     op_Val    (itemnum);
   void     op_Do     (itemnum);
+  void     op_MsNow  (itemnum);
+  void     op_Print  (itemnum);
 public:
   prognum pNum;
   Machine ();
@@ -90,10 +90,11 @@ public:
   uint8_t* pROM   ();
   void     romLen (proglen);            //Set length of program ROM
 
-  void    (*debugger)   (const char*, bool, uint32_t);
-  void    (*printMem)   (uint8_t*, uint8_t);
-  void    (*printItems) (uint8_t*, itemnum);
-  uint8_t (*loadProg)   (const char*);
-  uint8_t (*unloadProg) (const char*);
-  void    (*delay)      (long unsigned int);
+  //TODO make a class of these
+  void     (*debugger)   (const char*, bool, uint32_t);
+  void     (*printMem)   (uint8_t*, uint8_t);
+  void     (*printItems) (uint8_t*, itemnum);
+  uint8_t  (*loadProg)   (const char*);
+  uint8_t  (*unloadProg) (const char*);
+  uint32_t (*msNow)      ();
 };

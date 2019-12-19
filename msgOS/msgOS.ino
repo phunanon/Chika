@@ -40,6 +40,10 @@ void printItems (uint8_t* pItems, uint16_t n) {
   printf("\n");
 }
 
+uint32_t msNow () {
+  return millis();
+}
+
 Machine machine = Machine();
 uint8_t mem[CHIKA_SIZE];
 memolen progSize;
@@ -85,7 +89,7 @@ void setup() {
   machine.mem = mem;
   machine.progSize = progSize;
   machine.loadProg = loadProg;
-  machine.delay = delay;
+  machine.msNow = msNow;
   machine.debugger = debugger;
   machine.printMem = printMem;
   machine.printItems = printItems;

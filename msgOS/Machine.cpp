@@ -88,9 +88,6 @@ void Machine::setStackN (itemnum newN) {
 if (newN)
   memset(stackItem(), 0, (uint8_t*)iLast() - stackItem());
 }
-uint8_t* Machine::returnItem (itemnum replace) {
-  return pBytes() + itemsBytesLen(0, replace);
-}
 void Machine::returnItem (itemnum replace, Item* desc) {
   //Replace item currently in the return position
   memcpy(i(replace), desc, sizeof(Item));
@@ -100,13 +97,13 @@ void Machine::returnItem (itemnum replace, Item* desc) {
 void Machine::returnCollapseLast (itemnum replace) {
   itemlen lLen = itemBytesLen(iLast());
   //Move item bytes
-  memmove(returnItem(replace), stackItem() - lLen, lLen);
+  memmove(iBytes(replace), stackItem() - lLen, lLen);
   //Set old item in return position
   returnItem(replace, iLast());
 }
 void Machine::returnCollapseItem (itemnum replace, Item* desc) {
   //Move item bytes
-  memmove(returnItem(replace), stackItem(), desc->len);
+  memmove(iBytes(replace), stackItem(), desc->len);
   //Set new item in return position
   returnItem(replace, desc);
 }
@@ -327,12 +324,13 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Mod:
       op_Arith(firstParam, op); break;
     case Op_Str:   op_Str  (firstParam); break;
-    case Op_Print: op_Print(firstParam); break;
     case Op_Vec:   op_Vec  (firstParam); break;
     case Op_Nth:   op_Nth  (firstParam); break;
     case Op_Len:   op_Len  (firstParam); break;
     case Op_Val:   op_Val  (firstParam); break;
     case Op_Do:    op_Do   (firstParam); break;
+    case Op_MsNow: op_MsNow(firstParam); break;
+    case Op_Print: op_Print(firstParam); break;
     default: break;
   }
 }
@@ -423,12 +421,6 @@ void Machine::op_Str (itemnum firstParam) {
   returnCollapseItem(firstParam, Item(len, Val_Str));
 }
 
-void Machine::op_Print (itemnum firstParam) {
-  op_Str(firstParam);
-  debugger((const char*)iData(firstParam), false, 0);
-  returnNil(firstParam);
-}
-
 void Machine::op_Vec (itemnum firstParam) {
   //Copy item descriptors onto the end of the byte stack
   uint8_t* descs = stackItem();
@@ -482,4 +474,15 @@ void Machine::op_Val (itemnum firstParam) {
 void Machine::op_Do (itemnum firstParam) {
   //Collapse the stack to the last item
   returnCollapseLast(firstParam);
+}
+
+void Machine::op_MsNow (itemnum firstParam) {
+  *(int32_t*)iBytes(firstParam) = msNow();
+  returnItem(firstParam, Item(sizeof(int32_t), Val_I32));
+}
+
+void Machine::op_Print (itemnum firstParam) {
+  op_Str(firstParam);
+  debugger((const char*)iData(firstParam), false, 0);
+  returnNil(firstParam);
 }

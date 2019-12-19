@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <iostream>
 #include <fstream>
+#include <chrono>
 #include "Machine.cpp"
 
 void debugger (const char* output, bool showNum = false, uint32_t number = 0) {
@@ -38,7 +39,11 @@ void printItems (uint8_t* pItems, uint16_t n) {
   printf("\n");
 }
 
-void delay (long unsigned int t) {}
+auto start_time = std::chrono::high_resolution_clock::now();
+uint32_t msNow () {
+  auto current_time = std::chrono::high_resolution_clock::now();
+  return std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time).count();
+}
 
 
 Machine machine = Machine();
@@ -71,16 +76,15 @@ int main (int argc,  char* argv[]) {
   machine.mem = mem;
   machine.progSize = progSize;
   machine.loadProg = loadProg;
-  machine.delay = delay;
+  machine.msNow = msNow;
   machine.debugger = debugger;
   machine.printMem = printMem;
   machine.printItems = printItems;
 
-  if (argc == 2) {
+  if (argc == 2)
     machine.loadProg(argv[1]);
-  } else {
+  else
     machine.loadProg("init.kua");
-  }
 
   loop();
 }

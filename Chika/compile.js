@@ -28,7 +28,7 @@ const strFuncs =
    "<":   0x32, "<=":  0x33, ">":   0x34, ">=":  0x35,
    "+":  0x36, "-": 0x37, "*": 0x38, "/": 0x39, "mod": 0x3A,
    "str": 0x44, "vec": 0xB0, "nth": 0xB1, "len": 0xB2,
-   "val": 0xCD, "do": 0xCE, "print": 0xEE};
+   "val": 0xCD, "do": 0xCE, "ms-now": 0xE0, "print": 0xEE};
 const literals =
   {"nil": NIL, "true": Val_True, "false": Val_False};
 const formCodes =

@@ -184,9 +184,10 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 `str` 0 arg: returns `""`.  
 `str` N arg: returns concatenation of N args as a string.
 
+`ms-now` 0 arg: returns milliseconds since Arduino initialisation.
+
 `print` 0 arg: returns `nil`; prints `nil`.  
 `print` N arg: returns `nil`; prints result of `str` of N args.
-
 
 ### Compilation
 
