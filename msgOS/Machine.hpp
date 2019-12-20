@@ -80,6 +80,7 @@ class Machine {
   void     op_Do     (itemnum);
   void     op_MsNow  (itemnum);
   void     op_Print  (itemnum);
+
 public:
   prognum pNum;
   Machine ();

@@ -6,7 +6,9 @@
 bool isTypeTruthy (IType type);
 void skipArg (uint8_t** f);
 
-#define min(a,b) (a<b?a:b)
+#ifndef min
+  #define min(a,b) (a<b?a:b)
+#endif
 
 uint8_t _log10 (uint32_t);
 

@@ -96,7 +96,7 @@ function compile (source) {
   //Remove func signature
   funcs = funcs.map(f => f.remove(isString));
 
-  //Operator to the tail position, as object to insulate from func/var/arg detection
+  //Operator to the tail position, as object to insulate from func/var/param detection
   funcs = walkArrays(funcs, a => isString(a[0]), a => a.slice(1).concat([{op: a[0]}]));
 
   //Prepend forms with correct form code
@@ -144,7 +144,7 @@ function compile (source) {
     //Check if function parameter
     const param = funcRegister[fi].paras.indexOf(sym);
     if (param != -1)
-      return {hex: bytesToHex([Param_Val, param]), info: `arg: ${sym}`};
+      return {hex: bytesToHex([Param_Val, param]), info: `param: ${sym}`};
     //Check if variable or bind
     let bind = sym.endsWith("=");
     if (bind) sym = sym.slice(0, -1);

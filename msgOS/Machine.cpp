@@ -137,7 +137,6 @@ void Machine::heartbeat (prognum _pNum) {
   exeFunc(0x0000, -1);
   //Discard heartbeat function result
   iPop();
-while (true);
 }
 
 uint8_t* Machine::pFunc (funcnum fNum) {
