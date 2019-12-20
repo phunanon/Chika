@@ -152,6 +152,22 @@ uint8_t* Machine::pFunc (funcnum fNum) {
   return pROM();
 }
 
+bool Machine::findVar (itemnum& it, varnum vNum) {
+  bool found = false;
+  it = numItem() - 2; //Start -1 from last item, to permit "a= (inc a)"
+  for (; ; --it) {
+    if (i(it)->type() != Bind_Var) continue;
+    //Test if this bind is the correct number
+    if (*(varnum*)iData(it) == vNum) {
+      found = true;
+      break;
+    }
+    if (!it) break;
+  }
+  //The item after the bind is the variable
+  return found ? ++it : false;
+}
+
 void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
   uint8_t* f = pFunc(fNum);
   f += sizeof(funcnum);
@@ -275,23 +291,16 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
       varnum vNum = *(varnum*)(++f);
       f += sizeof(varnum);
       itemnum it;
-      bool found = false;
-      for (it = numItem() - 1; ; --it) {
-        if (i(it)->type() != Bind_Var) continue;
-        if (*(varnum*)iData(it) == vNum) {
-          found = true;
-          break;
-        }
-        if (!it) break;
-      }
-      if (found) {
-        Item* vItem = i(++it); //Pick the item after the bind
+      //If the variable is found
+      if (findVar(it, vNum)) {
+        Item* vItem = i(it);
         //Copy the bytes to the stack top
         memcpy(stackItem(), iBytes(it), vItem->len);
         //Copy its item descriptor too
         stackItem(vItem);
       } else
-        stackItem(Item(0, Val_Nil)); //No binding found - return nil
+      //No variable found - return nil
+        stackItem(Item(0, Val_Nil));
     } else
     if (*f < OPS_START) { //Constant?
       Item item = Item(constByteLen(type, ++f), type, true);

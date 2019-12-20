@@ -63,6 +63,7 @@ class Machine {
   void     iPop       (itemnum);                   //Pop items
 
   uint8_t* pFunc     (funcnum);
+  bool     findVar   (itemnum&, varnum);
 
   //All leave one V item on the stack
   void     exeFunc   (funcnum, itemnum);
