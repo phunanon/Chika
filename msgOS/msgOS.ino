@@ -56,8 +56,8 @@ uint8_t loadProg (const char* path) {
 return 0;
   }
   uint16_t pByte = 0;
-  machine.pNum = pNum;
-  uint8_t* rom = machine.pROM();
+  machine.setPNum(pNum);
+  uint8_t* rom = machine.pROM;
   while (prog.available())
     rom[pByte++] = prog.read();
   machine.romLen(pByte);

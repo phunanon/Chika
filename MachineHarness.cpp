@@ -33,7 +33,7 @@ void printMem (uint8_t* mem, uint8_t by) {
 void printItems (uint8_t* pItems, uint16_t n) {
   printf("Items: ");
   for (uint8_t it = 0; it < n; ++it) {
-    Item* item = (Item*)(pItems - ((it+1) * sizeof(Item)));
+    Item* item = (Item*)(pItems - (it * sizeof(Item)));
     printf("l%d t%X %c; ", item->len, item->type(), item->isConst() ? 'c' : ' ');
   }
   printf("\n");
@@ -52,12 +52,12 @@ memolen progSize;
 uint8_t pNum = 0;
 
 uint8_t loadProg (const char* path) {
-  machine.pNum = pNum;
+  machine.setPNum(pNum);
   std::ifstream fl(path);
   fl.seekg( 0, std::ios::end);
   size_t len = fl.tellg();
   fl.seekg(0, std::ios::beg);
-  fl.read((char*)machine.pROM(), len);
+  fl.read((char*)machine.pROM, len);
   fl.close();
   machine.romLen(len);
   return pNum++;

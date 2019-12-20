@@ -29,9 +29,10 @@ struct __attribute__((__packed__)) ProgInfo {
 
 
 class Machine {
-  uint8_t*  pHead    ();
-  uint8_t*  pBytes   ();
-  uint8_t*  pItems   ();
+  prognum   pNum;
+  uint8_t*  pHead;
+  uint8_t*  pBytes;
+  uint8_t*  pFirstItem;
   ProgInfo* pInfo    ();
   proglen   romLen   ();           // Get length of program ROM
   void      numItem  (itemnum);  //
@@ -82,15 +83,15 @@ class Machine {
   void     op_Print  (itemnum);
 
 public:
-  prognum pNum;
   Machine ();
   void heartbeat (prognum);
 
   uint8_t* mem;
   memolen  progSize;
   //Program ROM
-  uint8_t* pROM   ();
+  uint8_t* pROM;
   void     romLen (proglen);            //Set length of program ROM
+  void     setPNum (prognum);
 
   //TODO make a class of these
   void     (*debugger)   (const char*, bool, uint32_t);

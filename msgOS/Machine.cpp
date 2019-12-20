@@ -2,27 +2,22 @@
 
 Machine::Machine () {}
 
-uint8_t* Machine::pHead () {
-  return mem + (pNum * progSize);
-}
-uint8_t* Machine::pROM () {
-  return pHead() + sizeof(ProgInfo);
-}
-uint8_t* Machine::pBytes () {
-  return pROM() + romLen();
-}
-uint8_t* Machine::pItems () {
-  return pHead() + progSize;
-}
 ProgInfo* Machine::pInfo () {
-  return (ProgInfo*)pHead();
+  return (ProgInfo*)pHead;
 }
 
 void Machine::romLen (proglen len) {
   pInfo()->len = len;
+  pBytes = pROM + len;
 }
 proglen Machine::romLen () {
   return pInfo()->len;
+}
+void Machine::setPNum (prognum n) {
+  pNum = n;
+  pHead = mem + (pNum * progSize);
+  pROM = pHead + sizeof(ProgInfo);
+  pFirstItem = (pHead + progSize) - sizeof(Item);
 }
 void Machine::numItem (itemnum n) {
   pInfo()->numItem = n;
@@ -48,15 +43,15 @@ itemlen Machine::itemsBytesLen (itemnum from, itemnum to) {
   return n;
 }
 Item* Machine::i (itemnum iNum) {
-  return (Item*)(pItems() - ((iNum+1) * sizeof(Item)));
+  return (Item*)(pFirstItem - (iNum * sizeof(Item)));
 }
 uint8_t* Machine::iBytes (itemnum iNum) {
-  return pBytes() + itemsBytesLen(0, iNum);
+  return pBytes + itemsBytesLen(0, iNum);
 }
 uint8_t* Machine::iData (itemnum iNum) {
   uint8_t* bPtr = iBytes(iNum);
   if (i(iNum)->isConst())
-    return pROM() + (*(proglen*)bPtr);
+    return pROM + (*(proglen*)bPtr);
   else
     return bPtr;
 }
@@ -71,7 +66,7 @@ int32_t Machine::iInt (itemnum iNum) {
 }
 
 uint8_t* Machine::stackItem () {
-  return pBytes() + numByte();
+  return pBytes + numByte();
 }
 void Machine::stackItem (Item* desc) {
   numItem(numItem() + 1);
@@ -140,15 +135,15 @@ void Machine::heartbeat (prognum _pNum) {
 }
 
 uint8_t* Machine::pFunc (funcnum fNum) {
-  uint8_t* r = pROM();
-  uint8_t* rEnd = pBytes();
+  uint8_t* r = pROM;
+  uint8_t* rEnd = pBytes;
   while (r != rEnd) {
     if (*(funcnum*)r == fNum)
       return r;
     r += sizeof(funcnum);
     r += *(proglen*)r + sizeof(proglen);
   }
-  return pROM();
+  return pROM;
 }
 
 bool Machine::findVar (itemnum& it, varnum vNum) {
@@ -183,10 +178,10 @@ void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
     returnCollapseLast(firstParam);
 }
 
-enum IfResult { UnEvaled, WasTrue, WasFalse };
+enum IfResult : uint8_t { UnEvaled, WasTrue, WasFalse };
 
 uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
-  IType formCode = (IType)*f;
+  IType formCode = *(IType*)f;
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
   IfResult ifResult = UnEvaled;
@@ -279,17 +274,17 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
       f = exeForm(f, firstParam);
     } else
     //If a parameter
-    if (*f == Param_Val) {
+    if (type == Param_Val) {
       itemnum iNum = firstParam + *(argnum*)(++f);
+      f += sizeof(argnum);
       Item* iArg = i(iNum);
       //Copy the referenced value to the stack top
       memcpy(stackItem(), iData(iNum), iArg->len);
       //Copy its item descriptor too, as value
       stackItem(Item(iArg->len, iArg->type()));
-      f += sizeof(argnum);
     } else
     //If a variable
-    if (*f == Var_Val) {
+    if (type == Var_Val) {
       varnum vNum = *(varnum*)(++f);
       f += sizeof(varnum);
       itemnum it;
@@ -305,25 +300,25 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
         stackItem(Item(0, Val_Nil));
     } else
     //If a constant
-    if (*f < OPS_START) {
+    if (type < OPS_START) {
       Item item = Item(constByteLen(type, ++f), type, true);
-      *(proglen*)stackItem() = f - pROM();
+      *(proglen*)stackItem() = f - pROM;
       stackItem(item);
       f += constByteLen(type, f);
     } else
     //If a program function
-    if (*f == Op_Func) {
+    if (type == Op_Func) {
       funcnum fNum = *(funcnum*)(++f);
       exeFunc(fNum, firstArgItem);
       f += sizeof(funcnum);
       break;
     } else
     //If a native op or function through a variable or parameter
-    if (*f == Op_Var || *f == Op_Param) {
+    if (type == Op_Var || type == Op_Param) {
       itemnum it;
       bool found = true;
 
-      if (*f == Op_Var) {
+      if (type == Op_Var) {
         found = findVar(it, *(varnum*)(++f));
         f += sizeof(varnum);
       } else {
