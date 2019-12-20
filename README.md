@@ -75,6 +75,37 @@ Essentially, other than the SD card, serial, and I/O pins, I want no other msgOS
 
 *Chika* is a unique LISP-inspired language natively executed by msgOS. It substitutes heap- for stack-style contiguous memory management.
 
+### Examples
+
+    ;Function `add` adds its two parameters
+    (fn add a b
+      (+ a b))
+    (print "Hello, world!")
+    (print (add 1 2))
+
+    ;Prints `15`
+    (print
+      (do a= 10 b= 5
+        (+ a b)))
+
+    ;Prints `Hello!`
+    (fn my-print
+      (print str))
+    (do str= "Hello!"
+      (my-print))
+
+    ;Returns absolute of a number
+    (fn abs n
+      (if (< n 0) (* n -1I) n))
+
+    ;Prints `2`
+    (do a= (if true + -)
+      (print (a 1 1)))
+    
+    ;Prints `1`
+    (do a= abs
+      (print (a -1I)))
+
 ### Compiling and running
 
 #### Compilers
@@ -219,34 +250,3 @@ TODO
 #### Argument formats
 
 TODO
-
-### Examples
-
-    ;Function `add` adds its two parameters
-    (fn add a b
-      (+ a b))
-    (print "Hello, world!")
-    (print (add 1 2))
-
-    ;Prints `15`
-    (print
-      (do a= 10 b= 5
-        (+ a b)))
-
-    ;Prints `Hello!`
-    (fn my-print
-      (print str))
-    (do str= "Hello!"
-      (my-print))
-
-    ;Returns absolute of a number
-    (fn abs n
-      (if (< n 0) (* n -1I) n))
-
-    ;Prints `2`
-    (do a= (if true + -)
-      (print (a 1 1)))
-    
-    ;Prints `1`
-    (do a= abs
-      (print (a -1I)))
