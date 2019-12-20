@@ -432,8 +432,8 @@ void Machine::op_Arith (itemnum firstParam, IType op) {
       case Op_Mod:  result %= num; break;
     }
   }
-  writeNum(stackItem(), result, len);
-  returnCollapseItem(firstParam, Item(len, type));
+  writeNum(iBytes(firstParam), result, len);
+  returnItem(firstParam, Item(len, type));
 }
 
 void Machine::op_Str (itemnum firstParam) {
@@ -494,9 +494,9 @@ void Machine::op_Nth (itemnum firstParam) {
   uint8_t* itemBytes = vBytes;
   for (itemnum vi = 0; vi < nth; ++vi)
     itemBytes += itemBytesLen(&vItems[vi]);
-  memcpy(stackItem(), itemBytes, itemBytesLen(nthItem));
+  memmove(iBytes(firstParam), itemBytes, itemBytesLen(nthItem));
   //Return nth item descriptor
-  returnCollapseItem(firstParam, nthItem);
+  returnItem(firstParam, nthItem);
 }
 
 void Machine::op_Len (itemnum firstParam) {
