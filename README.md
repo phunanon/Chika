@@ -223,10 +223,10 @@ TODO
 ### Examples
 
     ;Function `add` adds its two parameters
-	  (fn add a b
-	    (+ a b))
-	  (print "Hello, world!")
-	  (print (add 1 2))
+    (fn add a b
+      (+ a b))
+    (print "Hello, world!")
+    (print (add 1 2))
 
     ;Prints `15`
     (print
@@ -242,3 +242,11 @@ TODO
     ;Returns absolute of a number
     (fn abs n
       (if (< n 0) (* n -1I) n))
+
+    ;Prints `2`
+    (do a= (if true + -)
+      (print (a 1 1)))
+    
+    ;Prints `1`
+    (do a= abs
+      (print (a -1I)))

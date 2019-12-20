@@ -279,7 +279,7 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
     if (type <= FORMS_END) {
       f = exeForm(f, firstParam);
     } else
-    //If an argument
+    //If a parameter
     if (*f == Param_Val) {
       itemnum iNum = firstParam + *(argnum*)(++f);
       Item* iArg = i(iNum);
@@ -319,9 +319,40 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
       f += sizeof(funcnum);
       break;
     } else
+    //If a native op or function through a variable or parameter
+    if (*f == Op_Var || *f == Op_Param) {
+      itemnum it;
+      bool found = true;
+
+      if (*f == Op_Var) {
+        found = findVar(it, *(varnum*)(++f));
+        f += sizeof(varnum);
+      } else {
+        it = firstParam + *(argnum*)(++f);
+        f += sizeof(argnum);
+      }
+      
+      if (!found)
+      //Variable wasn't found
+        returnNil(firstArgItem);
+      else {
+        IType type = i(it)->type();
+        //If a native op
+        if (type == Var_Op)
+          nativeOp(*(IType*)iData(it), firstArgItem);
+        else
+        //If a program function
+        if (type == Var_Func)
+          exeFunc(*(funcnum*)iData(it), firstArgItem);
+        else
+        //Variable wasn't of Var_Op/Var_Func type
+          returnNil(firstArgItem);
+      }
+      break;
+    } else
     //If a native op
     {
-      nativeOp((IType)*f, firstArgItem);
+      nativeOp(*(IType*)f, firstArgItem);
       ++f; //Skip op code
       break;
     }

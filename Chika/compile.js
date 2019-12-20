@@ -21,16 +21,18 @@ const num = s => parseInt(s.match(/-?\d+/g).join(""));
 const
   Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03,
   Val_True = 0x04, Val_False = 0x05, Val_Str = 0x06, Param_Val = 0x07,
-  Bind_Var = 0x08, Eval_Var = 0x09,
-  Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, NIL = 0x21, FNC = 0x22;
-const strFuncs =
+  Bind_Var = 0x08, Var_Val = 0x09,
+  Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12,
+  Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x21,
+  Op_Func = 0x22, Op_Var = 0x2A, Op_Param = 0x2B;
+const strOps =
   {"if":  0x23, "or":  0x24, "and": 0x25, "=":   0x30, "==": 0x31,
    "<":   0x32, "<=":  0x33, ">":   0x34, ">=":  0x35,
    "+":  0x36, "-": 0x37, "*": 0x38, "/": 0x39, "mod": 0x3A,
    "str": 0x44, "vec": 0xB0, "nth": 0xB1, "len": 0xB2,
    "val": 0xCD, "do": 0xCE, "ms-now": 0xE0, "print": 0xEE};
 const literals =
-  {"nil": NIL, "true": Val_True, "false": Val_False};
+  {"nil": Val_Nil, "true": Val_True, "false": Val_False};
 const formCodes =
   {"if": Form_If, "or": Form_Or, "and": Form_And};
 
@@ -51,7 +53,8 @@ function extractStrings (source) {
 const formise = s =>
   eval(
     "["+
-    s.replace(/\s*\n\s*/g, "")
+    s.replace(/\s*\n\s*/g, " ")
+     .trim()
      .replace(/ /g, "\", \"")
      .replace(/\(/g, "\", [\"")
      .replace(/\)/g, "\"], \"")
@@ -77,7 +80,7 @@ function compile (source) {
   source = extractedStrings.source;
   
   //Remove all comments and commas
-  source = source.replace(/;.+\n/g, "\n").replace(/,/g, "");
+  source = source.replace(/;.+\n/g, "\n").replace(/;.+$/g, "").replace(/,/g, "");
   
   //Replace all vectors with (vec ...) form
   source = source.replace(/\[/g, "(vec ").replace(/\]/g, ")");
@@ -93,15 +96,15 @@ function compile (source) {
   //Remove func signature
   funcs = funcs.map(f => f.remove(isString));
 
-  //Operator to the tail position
-  funcs = walkArrays(funcs, a => isString(a[0]), a => a.slice(1).concat([a[0]]));
+  //Operator to the tail position, as object to insulate from func/var/arg detection
+  funcs = walkArrays(funcs, a => isString(a[0]), a => a.slice(1).concat([{op: a[0]}]));
 
   //Prepend forms with correct form code
   function appendFormCode (form) {
     const op = last(form);
-    const formCode = formCodes[op];
+    const formCode = formCodes[op.op];
     const fCode = formCode != undefined ? formCode : Form_Eval;
-    return [{n: fCode, b: 1, info: `form: ${op}`}].concat(form);
+    return [{n: fCode, b: 1, info: `form: ${op.op}`}].concat(form);
   }
   funcs = funcs.map(f => walkArrays(f, a => a, appendFormCode));
 
@@ -129,15 +132,6 @@ function compile (source) {
       info: "string"});
   funcs = walkItems(funcs, i => i[0] == "`", serialiseString);
 
-  //Replace tail-positioned native and program functions
-  const funcHex = sym =>
-    strFuncs[sym] == undefined
-    ? {hex: numToHex(FNC, 1)
-            + numToLEHex(funcRegister.findIndex(f => f.sym == sym), 2),
-       info: `prog fn: ${sym}`}
-    : {n: strFuncs[sym], b: 1, info: `op: ${sym}`};
-  funcs = walkArrays(funcs, a => isString(last(a)), a => a.slice(0, -1).concat(funcHex(last(a))));
-
   //Replace symbol literals
   function replaceLiteral (l) {
     return {n: literals[l], b: 1, info: `literal: ${l}`};
@@ -154,14 +148,68 @@ function compile (source) {
     //Check if variable or bind
     let bind = sym.endsWith("=");
     if (bind) sym = sym.slice(0, -1);
-    let vari = variables.indexOf(sym);
-    if (vari == -1)
-      variables.push(sym);
-    const variHex = numToHex(bind ? Bind_Var : Param_Val, 1)
-                    + numToLEHex(variables.indexOf(sym), 2);
+    //Check if op, function, or variable
+    let variHex;
+    let op = strOps.hasOwnProperty(sym);
+    let func = funcRegister.findIndex(f => f.sym == sym);
+    //If op
+    if (op) {
+      variHex = numToHex(Var_Op, 1)
+                + numToLEHex(strOps[sym], 1);
+    } else
+    //If func
+    if (func != -1) {
+      variHex = numToHex(Var_Func, 1)
+                + numToLEHex(func, 2);
+    } else
+    //If not op or func, meaning bind or variable
+    {
+      if (!variables.includes(sym))
+        variables.push(sym);
+      variHex = numToHex(bind ? Bind_Var : Var_Val, 1)
+                + numToLEHex(variables.indexOf(sym), 2);
+    }
     return {hex: variHex, info: `${bind ? "bind" : "var"}: ${sym}`};
   }
   funcs = funcs.map((f, fi) => walkItems(f, isString, arg => argOrVarToHex(arg, fi)));
+
+  //Replace tail-positioned native and program functions
+  function funcHex (sym, fi) {
+    let funcIndex = funcRegister.findIndex(f => f.sym == sym);
+    //If this is a user function
+    if (funcIndex != -1)
+      return {hex: numToHex(Op_Func, 1)
+                   + numToLEHex(funcIndex, 2),
+              info: `prog fn: ${sym}`}
+    else
+    //If this is an param or variable
+    {
+      //If param
+      let vArg = funcRegister[fi].paras.indexOf(sym)
+      if (vArg != -1) {
+        return {hex: bytesToHex([Op_Param, vArg]),
+                info: `param op/fn: ${sym}`}
+      } else
+      //It's a variable
+      {
+        let vIndex = variables.indexOf(sym);
+        if (vIndex != -1)
+          return {hex: numToHex(Op_Var, 1)
+                      + numToLEHex(vIndex, 2),
+                  info: `var op/fn: ${sym}`}
+        else {
+          //TODO
+        }
+      }
+    }
+  }
+  const opOrFuncHex = (op, fi) =>
+    strOps[op.op] == undefined
+    ? funcHex(op.op, fi)
+    : {n: strOps[op.op], b: 1, info: `op: ${op.op}`};
+  funcs = funcs.map((f, fi) =>
+            walkArrays(f, a => last(a).op != undefined,
+              a => a.slice(0, -1).concat(opOrFuncHex(last(a), fi))));
 
   //Prepend function length
   const itemsLen = items => items.reduce((acc, i) => acc + (i.hex ? i.hex.length / 2 : i.b), 0);
