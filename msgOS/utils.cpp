@@ -14,14 +14,16 @@ void skipArg (uint8_t** f) {
   //It's a form - skip f to the end of it
   uint8_t nForm = 0;
   do {
-    if (**f <= FORMS_END) ++nForm;
-    else if (**f < OPS_START) {
+    //If it's a form, increment form counter
+    if (**f <= FORMS_END) {
+      ++*f;
+      ++nForm;
+    } else {
+      //If an op, decrement form counter
+      if (**f >= OPS_START) --nForm;
       IType type = (IType)**f;
       *f += constByteLen(type, ++*f);
-      continue;
     }
-    else if (**f >= OPS_START) --nForm;
-    ++*f;
   } while (nForm);
 }
 

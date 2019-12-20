@@ -35,8 +35,8 @@ typedef uint16_t strilen;
 typedef uint16_t vectlen;
 
 
-//TODO: refactor ints to e.g. Val_U08
-//NOTE: when adding a new value type ensure its implementation in constByteLen
+//NOTE: when adding a new value type, or an op longer than 1B
+//  ensure its implementation in constByteLen
 enum IType {
   Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03, FORMS_END = 0x03,
   Val_True  = 0x04, Val_False = 0x05,

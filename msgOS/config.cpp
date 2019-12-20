@@ -11,6 +11,7 @@ funclen constByteLen (IType t, uint8_t* body) {
     case Val_U16: return 2;
     case Val_I32: return 4;
     case Val_Nil: return 0;
+    case Op_Func: return sizeof(funcnum);
   }
   return 0;
 }
