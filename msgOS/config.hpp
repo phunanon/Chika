@@ -41,7 +41,7 @@ enum IType {
   Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03, FORMS_END = 0x03,
   Val_True  = 0x04, Val_False = 0x05,
   Val_Str   = 0x06,
-  Eval_Arg  = 0x07,
+  Param_Val = 0x07,
   Bind_Var  = 0x08,
   Eval_Var  = 0x09,
   Val_Vec   = 0x0A, Val_Dict  = 0x0B,

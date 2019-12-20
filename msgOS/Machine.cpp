@@ -275,10 +275,12 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
 
     //Evaluate next
     IType type = (IType)*f;
-    if (type <= FORMS_END) { //Form?
+    //If a form
+    if (type <= FORMS_END) {
       f = exeForm(f, firstParam);
     } else
-    if (*f == Eval_Arg) { //Arg?
+    //If an argument
+    if (*f == Param_Val) {
       itemnum iNum = firstParam + *(argnum*)(++f);
       Item* iArg = i(iNum);
       //Copy the referenced value to the stack top
@@ -287,7 +289,8 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
       stackItem(Item(iArg->len, iArg->type()));
       f += sizeof(argnum);
     } else
-    if (*f == Eval_Var) { //Variable evaluation?
+    //If a variable
+    if (*f == Var_Val) {
       varnum vNum = *(varnum*)(++f);
       f += sizeof(varnum);
       itemnum it;
@@ -302,18 +305,22 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
       //No variable found - return nil
         stackItem(Item(0, Val_Nil));
     } else
-    if (*f < OPS_START) { //Constant?
+    //If a constant
+    if (*f < OPS_START) {
       Item item = Item(constByteLen(type, ++f), type, true);
       *(proglen*)stackItem() = f - pROM();
       stackItem(item);
       f += constByteLen(type, f);
     } else
-    if (*f == Op_Func) { //Func?
+    //If a program function
+    if (*f == Op_Func) {
       funcnum fNum = *(funcnum*)(++f);
       exeFunc(fNum, firstArgItem);
       f += sizeof(funcnum);
       break;
-    } else { //Native op?
+    } else
+    //If a native op
+    {
       nativeOp((IType)*f, firstArgItem);
       ++f; //Skip op code
       break;

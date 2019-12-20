@@ -20,7 +20,7 @@ const num = s => parseInt(s.match(/-?\d+/g).join(""));
 
 const
   Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03,
-  Val_True = 0x04, Val_False = 0x05, STR = 0x06, Eval_Arg = 0x07,
+  Val_True = 0x04, Val_False = 0x05, Val_Str = 0x06, Param_Val = 0x07,
   Bind_Var = 0x08, Eval_Var = 0x09,
   Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, NIL = 0x21, FNC = 0x22;
 const strFuncs =
@@ -121,7 +121,7 @@ function compile (source) {
 
   //Serialise strings back in
   const serialiseString = s =>
-    ({hex: (numToHex(STR, 1)
+    ({hex: (numToHex(Val_Str, 1)
             +Array.from(strings[num(s)])
                   .map(c => numToHex(c.charCodeAt(0), 1))
                   .join("")
@@ -144,19 +144,20 @@ function compile (source) {
   }
   funcs = walkItems(funcs, i => literals[i] != undefined, replaceLiteral);
 
-  //Replace arguments, variables, and binds
+  //Replace parameters, variables, and binds
   const variables = [];
   function argOrVarToHex (sym, fi) {
+    //Check if function parameter
     const param = funcRegister[fi].paras.indexOf(sym);
     if (param != -1)
-      return {hex: bytesToHex([Eval_Arg, param]), info: `arg: ${sym}`};
+      return {hex: bytesToHex([Param_Val, param]), info: `arg: ${sym}`};
     //Check if variable or bind
     let bind = sym.endsWith("=");
     if (bind) sym = sym.slice(0, -1);
     let vari = variables.indexOf(sym);
     if (vari == -1)
       variables.push(sym);
-    const variHex = numToHex(bind ? Bind_Var : Eval_Var, 1)
+    const variHex = numToHex(bind ? Bind_Var : Param_Val, 1)
                     + numToLEHex(variables.indexOf(sym), 2);
     return {hex: variHex, info: `${bind ? "bind" : "var"}: ${sym}`};
   }
