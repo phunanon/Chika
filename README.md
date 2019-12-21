@@ -77,11 +77,14 @@ Essentially, other than the SD card, serial, and I/O pins, I want no other msgOS
 
 ### Examples
 
-    ;Function `add` adds its two parameters
-    (fn add a b
-      (+ a b))
-    (print "Hello, world!")
-    (print (add 1 2))
+    ;Calculates Nth term of Fibonacci Sequence
+    (fn fib n
+      (if (< n 3) 1I
+        (+ (fib (- n 1I)) (fib (- n 2I)))))
+
+    ;Returns absolute of a number
+    (fn abs n
+      (if (< n 0) (* n -1I) n))
 
     ;Prints `15`
     (print
@@ -94,17 +97,10 @@ Essentially, other than the SD card, serial, and I/O pins, I want no other msgOS
     (do str= "Hello!"
       (my-print))
 
-    ;Returns absolute of a number
-    (fn abs n
-      (if (< n 0) (* n -1I) n))
-
-    ;Prints `2`
+    ;Prints `2 1`
     (do a= (if true + -)
-      (print (a 1 1)))
-    
-    ;Prints `1`
-    (do a= abs
-      (print (a -1I)))
+        b= abs
+      (print (a 1 1) " " (b -1I)))
 
 ### Compiling and running
 

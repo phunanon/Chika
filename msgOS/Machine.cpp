@@ -76,18 +76,13 @@ void Machine::stackItem (Item* desc) {
 void Machine::stackItem (Item desc) {
   stackItem(&desc);
 }
-void Machine::setStackN (itemnum newN) {
-  numItem(newN);
-  numByte(itemsBytesLen(0, newN));
-//Erase stack onward, for improved debug readability
-if (newN)
-  memset(stackItem(), 0, (uint8_t*)iLast() - stackItem());
-}
 void Machine::returnItem (itemnum replace, Item* desc) {
+  bytenum newNumBytes = (numByte() - itemsBytesLen(replace, numItem())) + itemBytesLen(desc);
   //Replace item currently in the return position
   memcpy(i(replace), desc, sizeof(Item));
   //Update number of items and bytes
-  setStackN(replace + 1);
+  numItem(replace + 1);
+  numByte(newNumBytes);
 }
 void Machine::returnCollapseLast (itemnum replace) {
   itemlen lLen = itemBytesLen(iLast());
@@ -220,7 +215,7 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
               }
               ifResult = WasFalse;
             } else ifResult = WasTrue;
-            setStackN(firstArgItem); //Forget condition item
+            iPop(); //Forget condition item
           }
           break;
 
@@ -233,7 +228,7 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
           if (firstArgItem == numItem()) break; //Nothing evaluted yet
           //If previous eval was false
           if (!isTypeTruthy(iLast()->type()))
-            setStackN(firstArgItem); //Forget condition item
+            iPop(); //Forget condition item
           //Previous eval was true
           else {
             //Skip all args until Op_Or
@@ -248,7 +243,7 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
           if (evaled) {
             //Test previous eval
             bool isTruthy = isTypeTruthy(iLast()->type());
-            setStackN(firstArgItem); //Forget condition item
+            iPop(); //Forget condition item
             //If falsey
             if (!isTruthy) {
               //Skip all args until Op_And
@@ -509,7 +504,9 @@ void Machine::op_Len (itemnum firstParam) {
 
 void Machine::op_Val (itemnum firstParam) {
   //Truncate the stack to the first item
-  setStackN(firstParam + 1);
+  bytenum newNumBytes = (numByte() - itemsBytesLen(firstParam + 1, numItem()));
+  numItem(firstParam + 1);
+  numByte(newNumBytes);
 }
 
 void Machine::op_Do (itemnum firstParam) {

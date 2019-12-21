@@ -53,7 +53,6 @@ class Machine {
   uint8_t* stackItem  ();
   void     stackItem  (Item*);
   void     stackItem  (Item);
-  void     setStackN  (itemnum);
   void     returnItem (itemnum, Item*);
   void     returnItem (itemnum, Item);
   void     returnCollapseLast (itemnum);           //
