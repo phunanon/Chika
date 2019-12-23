@@ -182,10 +182,6 @@ Unmodified parameters must be returned through `val`.
 
 Note: mathematical functions will cast all arguments as the type of the first argument.
 
-`val` 1-N arg: returns its first argument.
-
-`do` 1-N arg: returns its final argument.
-
 `+` / `-` / `*` / `/` / `mod` N arg: returns sum / subtraction / multiplication / division / modulus of N integers. Zero args returns nil.
 
 `if` 2 arg: returns second arg if first arg is truthy, else nil.  
@@ -212,6 +208,14 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 `str` N arg: returns concatenation of N args as a string.
 
 `ms-now` 0 arg: returns milliseconds since Arduino initialisation.
+
+`reduce f[ s*N] v`: returns reduction of vector `v` through `f`, with 0-N seeds. `f` is (item acc) => acc.
+
+`val` 1-N arg: returns its first argument.
+
+`do` 1-N arg: returns its final argument.
+
+`ms-now` 0 arg: returns milliseconds since Arduino/Machine start.
 
 `print` 0 arg: returns `nil`; prints `nil`.  
 `print` N arg: returns `nil`; prints result of `str` of N args.

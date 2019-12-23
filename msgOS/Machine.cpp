@@ -355,20 +355,34 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Equit: op_Equal(firstParam, false); break;
     case Op_GT: case Op_GTE: case Op_LT: case Op_LTE:
       op_Diff(firstParam, op); break;
-    case Op_Add: case Op_Sub:
-    case Op_Mult: case Op_Div:
-    case Op_Mod:
+    case Op_Add: case Op_Sub: case Op_Mult: case Op_Div: case Op_Mod:
       op_Arith(firstParam, op); break;
-    case Op_Str:   op_Str  (firstParam); break;
-    case Op_Vec:   op_Vec  (firstParam); break;
-    case Op_Nth:   op_Nth  (firstParam); break;
-    case Op_Len:   op_Len  (firstParam); break;
-    case Op_Val:   op_Val  (firstParam); break;
-    case Op_Do:    op_Do   (firstParam); break;
-    case Op_MsNow: op_MsNow(firstParam); break;
-    case Op_Print: op_Print(firstParam); break;
+    case Op_Str:    op_Str   (firstParam); break;
+    case Op_Vec:    op_Vec   (firstParam); break;
+    case Op_Nth:    op_Nth   (firstParam); break;
+    case Op_Len:    op_Len   (firstParam); break;
+    case Op_Reduce: op_Reduce(firstParam); break;
+    case Op_Val:    op_Val   (firstParam); break;
+    case Op_Do:     op_Do    (firstParam); break;
+    case Op_MsNow:  op_MsNow (firstParam); break;
+    case Op_Print:  op_Print (firstParam); break;
     default: break;
   }
+}
+
+
+void Machine::burstVec () {
+  itemnum iVec = numItem() - 1;
+  uint8_t* vBytes = iData(iVec);
+  uint8_t* vEnd = (vBytes + i(iVec)->len) - sizeof(vectlen);
+  itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
+  //Copy item descriptors from end of vector onto the item stack
+  //  overwriting the vector item descriptor
+  itemlen descsLen = vNumItem * sizeof(Item);
+  memcpy(((uint8_t*)iLast() + sizeof(Item)) - descsLen, vEnd - descsLen, descsLen);
+  //Adjust number of items and bytes, noting the original vector no longer exists
+  numItem((numItem() - 1) + vNumItem);
+  numByte((numByte() - descsLen) - sizeof(vectlen));
 }
 
 
@@ -500,6 +514,33 @@ void Machine::op_Len (itemnum firstParam) {
   }
   *(uint32_t*)iBytes(firstParam) = len;
   returnItem(firstParam, Item(sizeof(uint32_t), Val_I32));
+}
+
+void Machine::op_Reduce (itemnum firstParam) {
+  //Extract function or op number from first parameter
+  bool isOp = i(firstParam)->type() == Var_Op;
+  funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
+  //Burst vector in situ (the last item on the stack)
+  burstVec();
+  //Copy seed or first item onto stack - either (reduce f v) (reduce f s v)
+  {
+    Item* seed = i(firstParam + 1);
+    memcpy(stackItem(), iBytes(firstParam + 1), itemBytesLen(seed));
+    stackItem(seed);
+  }
+  //Reduce loop, where the stack is now: [burst v]*N [seed: either v0 or seed]
+  itemnum iSeed = numItem() - 1;
+  for (itemnum it = firstParam + 2; it < iSeed; ++it) {
+    //Copy next item onto stack
+    Item* iNext = i(it);
+    memcpy(stackItem(), iBytes(it), itemBytesLen(iNext));
+    stackItem(iNext);
+    //Execute func or op, which returns to iSeed
+    if (isOp) nativeOp((IType)fCode, iSeed);
+    else      exeFunc(fCode, iSeed);
+  }
+  //Collapse return
+  returnCollapseLast(firstParam);
 }
 
 void Machine::op_Val (itemnum firstParam) {

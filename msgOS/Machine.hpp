@@ -69,6 +69,7 @@ class Machine {
   void     exeFunc   (funcnum, itemnum);
   uint8_t* exeForm   (uint8_t*, itemnum);
   void     nativeOp  (IType, itemnum);
+  void     burstVec  ();
   void     op_Equal  (itemnum, bool);
   void     op_Diff   (itemnum, IType);
   void     op_Arith  (itemnum, IType);
@@ -76,6 +77,7 @@ class Machine {
   void     op_Vec    (itemnum);
   void     op_Nth    (itemnum);
   void     op_Len    (itemnum);
+  void     op_Reduce (itemnum);
   void     op_Val    (itemnum);
   void     op_Do     (itemnum);
   void     op_MsNow  (itemnum);
