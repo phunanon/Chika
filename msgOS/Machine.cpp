@@ -363,6 +363,7 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Len:    op_Len   (firstParam); break;
     case Op_Apply: case Op_Reduce:
       op_AppRed(firstParam, op == Op_Reduce); break;
+    case Op_Map:    op_Map   (firstParam); break;
     case Op_Val:    op_Val   (firstParam); break;
     case Op_Do:     op_Do    (firstParam); break;
     case Op_MsNow:  op_MsNow (firstParam); break;
@@ -374,7 +375,7 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
 
 void Machine::burstVec () {
   itemnum iVec = numItem() - 1;
-  uint8_t* vBytes = iData(iVec);
+  uint8_t* vBytes = iBytes(iVec);
   uint8_t* vEnd = (vBytes + i(iVec)->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
   //Copy item descriptors from end of vector onto the item stack
@@ -549,6 +550,44 @@ void Machine::op_AppRed (itemnum firstParam, bool isReduce) {
       else      exeFunc(fCode, firstParam + 1);
   }
   //Collapse return
+  returnCollapseLast(firstParam);
+}
+
+void Machine::op_Map (itemnum firstParam) {
+  //Extract function or op number from first parameter
+  bool isOp = i(firstParam)->type() == Var_Op;
+  funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
+  //Find shortest vector
+  itemnum iFirstVec = firstParam + 1;
+  itemnum nVec = numItem() - iFirstVec;
+  vectlen shortest = -1;
+  for (itemnum it = iFirstVec, itEnd = iFirstVec + nVec; it < itEnd; ++it) {
+    vectlen l = readNum(iBytes(it + 1) - sizeof(vectlen), sizeof(vectlen));
+    if (l < shortest) shortest = l;
+  }
+  //Map loop
+  itemnum iMapped = firstParam + 1 + nVec;
+  uint8_t* pFirstVec = iBytes(iFirstVec);
+  for (itemnum it = 0; it < shortest; ++it) {
+    bytenum descOffset = sizeof(Item) * it;
+    for (itemnum vi = iFirstVec, viEnd = iFirstVec + nVec; vi < viEnd; ++vi) {
+      //Fast-fetch descriptor and bytes
+      //  by using a byte offset in the cannibalised first Item
+      uint8_t* vFirstDesc = pFirstVec + ((itemsBytesLen(iFirstVec, vi + 1) - sizeof(vectlen)) - sizeof(Item));
+      itemlen viBytesOffset = it ? *(itemlen*)vFirstDesc
+                                 : itemsBytesLen(iFirstVec, vi);
+      Item iDesc = *(Item*)(vFirstDesc - descOffset);
+      if (it) *(itemlen*)vFirstDesc += itemBytesLen(&iDesc);
+      else    *(itemlen*)vFirstDesc  = viBytesOffset + itemBytesLen(&iDesc);
+      //Copy onto stack
+      memcpy(stackItem(), pFirstVec + viBytesOffset, itemBytesLen(&iDesc));
+      stackItem(iDesc);
+    }
+    if (isOp) nativeOp((IType)fCode, iMapped + it);
+    else      exeFunc(fCode, iMapped + it);
+  }
+  //Vectorise and collapse return
+  op_Vec(iMapped);
   returnCollapseLast(firstParam);
 }
 

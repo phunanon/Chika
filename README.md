@@ -213,6 +213,8 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `reduce f[ s*N] v`: returns reduction of vector `v` through `f`, with 0-N seeds. `f` is (item acc) => acc.
 
+`map f v*N`: returns mapping of 1-N vectors through `f`, where `f` is (item*N) => mapped.
+
 `val` 1-N arg: returns its first argument.
 
 `do` 1-N arg: returns its final argument.

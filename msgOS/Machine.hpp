@@ -78,6 +78,7 @@ class Machine {
   void     op_Nth    (itemnum);
   void     op_Len    (itemnum);
   void     op_AppRed (itemnum, bool);
+  void     op_Map    (itemnum);
   void     op_Val    (itemnum);
   void     op_Do     (itemnum);
   void     op_MsNow  (itemnum);
