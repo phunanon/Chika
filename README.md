@@ -127,7 +127,7 @@ Decoupling logic through 0-to-many relationships with other programs has its ben
 
 I like it. I've been very happy learning Clojure coming from the C++ and C# world. I feel its syntax strikes the perfect balance between person and machine.  
 I know other languages are more suitable for microcontrollers (e.g. Forth), and appreciate C *et al* more for what they *don't* compile into an image.
-Chika doesn't include homoiconicity, a built-in compiler, macros, &c., but it succeeds in abstracting away memory management and static typing.
+Chika doesn't include homoiconicity, native reader/compiler, macros, laziness, arity, &c., but it succeeds in abstracting away memory management and static typing.
 
 #### Why dynamic variables?
 
@@ -211,7 +211,7 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `len` 1 arg: returns length of vector parameter.
 
-`apply f[ i*N] v` 2-N arg: makes N individual items and one vector the parameters of function `f`.
+`burst v`: explodes vector `v` onto the argument stack (like Lisp `apply`).
 
 `reduce f[ s*N] v`: returns reduction of vector `v` through `f`, with 0-N seeds. `f` is (item acc) => acc.
 

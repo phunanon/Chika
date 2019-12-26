@@ -35,7 +35,7 @@ typedef uint16_t strilen;
 typedef uint16_t vectlen;
 
 
-//NOTE: when adding a new value type, or an op longer than 1B
+//NOTE: when adding a new value type or op longer than 1B
 //  ensure its implementation in constByteLen
 enum IType : uint8_t {
   Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03,
@@ -52,9 +52,9 @@ enum IType : uint8_t {
   Val_I32   = 0x12,
   Var_Op    = 0x1A,
   Var_Func  = 0x1B,
-  Val_Nil   = 0x21,
+  Val_Nil   = 0x1E,
 
-  OPS_START = 0x22,
+  OPS_START = 0x1F,
   Op_Func   = 0x22,
   Op_If     = 0x23,
   Op_Or     = 0x24,
@@ -73,7 +73,9 @@ enum IType : uint8_t {
   Op_Vec    = 0xB0,
   Op_Nth    = 0xB1,
   Op_Len    = 0xB2,
-  Op_Apply  = 0xBA,
+  Op_Skip   = 0xB3,
+  Op_Take   = 0xB4,
+  Op_Burst  = 0xBA,
   Op_Reduce = 0xBB,
   Op_Map    = 0xBC,
   Op_Val    = 0xCD, Op_Do     = 0xCE,

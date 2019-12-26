@@ -361,8 +361,8 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Vec:    op_Vec   (firstParam); break;
     case Op_Nth:    op_Nth   (firstParam); break;
     case Op_Len:    op_Len   (firstParam); break;
-    case Op_Apply: case Op_Reduce:
-      op_AppRed(firstParam, op == Op_Reduce); break;
+    case Op_Burst:  burstVec();            break;
+    case Op_Reduce: op_Reduce(firstParam); break;
     case Op_Map:    op_Map   (firstParam); break;
     case Op_Val:    op_Val   (firstParam); break;
     case Op_Do:     op_Do    (firstParam); break;
@@ -518,36 +518,28 @@ void Machine::op_Len (itemnum firstParam) {
   returnItem(firstParam, Item(sizeof(uint32_t), Val_I32));
 }
 
-void Machine::op_AppRed (itemnum firstParam, bool isReduce) {
+void Machine::op_Reduce (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
   funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
   //Burst vector in situ (the last item on the stack)
   burstVec();
-  //If is reduce op
-  if (isReduce) {
-    //Copy seed or first item onto stack - either (reduce f v) (reduce f s v)
-    {
-      Item* seed = i(firstParam + 1);
-      memcpy(stackItem(), iBytes(firstParam + 1), itemBytesLen(seed));
-      stackItem(seed);
-    }
-    //Reduce loop, where the stack is now: [burst v]*N [seed: either v0 or seed]
-    itemnum iSeed = numItem() - 1;
-    for (itemnum it = firstParam + 2; it < iSeed; ++it) {
-      //Copy next item onto stack
-      Item* iNext = i(it);
-      memcpy(stackItem(), iBytes(it), itemBytesLen(iNext));
-      stackItem(iNext);
-      //Execute func or op, which returns to iSeed
-      if (isOp) nativeOp((IType)fCode, iSeed);
-      else      exeFunc(fCode, iSeed);
-    }
-  } else
-  //Is apply op
+  //Copy seed or first item onto stack - either (reduce f v) (reduce f s v)
   {
-      if (isOp) nativeOp((IType)fCode, firstParam + 1);
-      else      exeFunc(fCode, firstParam + 1);
+    Item* seed = i(firstParam + 1);
+    memcpy(stackItem(), iBytes(firstParam + 1), itemBytesLen(seed));
+    stackItem(seed);
+  }
+  //Reduce loop, where the stack is now: [burst v]*N [seed: either v0 or seed]
+  itemnum iSeed = numItem() - 1;
+  for (itemnum it = firstParam + 2; it < iSeed; ++it) {
+    //Copy next item onto stack
+    Item* iNext = i(it);
+    memcpy(stackItem(), iBytes(it), itemBytesLen(iNext));
+    stackItem(iNext);
+    //Execute func or op, which returns to iSeed
+    if (isOp) nativeOp((IType)fCode, iSeed);
+    else      exeFunc(fCode, iSeed);
   }
   //Collapse return
   returnCollapseLast(firstParam);
