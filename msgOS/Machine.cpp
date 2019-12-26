@@ -403,11 +403,19 @@ vectlen Machine::vectLen (itemnum it) {
 
 
 void Machine::op_Equal (itemnum firstParam, bool equality) {
-  //Find equity through byte comparison, and equality through item comparison
+  //Find equity (==) through byte comparison, and equality (=) through item or int comparison
   itemnum it = firstParam + 1, itEnd = numItem();
+  Item* a = i(firstParam);
+  int32_t aNum = iInt(firstParam);
+  bool isInt = isTypeInt(a->type());
   for (; it < itEnd; ++it) {
-    Item* a = i(firstParam);
     Item* b = i(it);
+    //When an int
+    if (equality && isInt) {
+      int32_t bNum = iInt(it);
+      if (aNum == bNum) continue;
+      break;
+    }
     //Equity through byte comparison
     itemlen len = a->len;
     if (len != b->len) break;
@@ -529,7 +537,6 @@ void Machine::op_Len (itemnum firstParam) {
   returnItem(firstParam, Item(sizeof(uint32_t), Val_I32));
 }
 
-  //(sect v skip take)
 void Machine::op_Sect (itemnum firstParam) {
   //Get vector length
   vectlen len = vectLen(firstParam);

@@ -193,7 +193,7 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `and` N arg: returns true if all args truthy.
 
-`=` N arg: equality, returns true if N items are of the same type, length, and byte equality.
+`=` N arg: equality, true if all args are of the same type, length, and byte equality. Compares ints by value.
 
 `==` N arg: equity, returns true if N items are of byte equality.
 

@@ -4,6 +4,10 @@ bool isTypeTruthy (IType type) {
   return type != Val_Nil && type != Val_False;
 }
 
+bool isTypeInt (IType type) {
+  return type >= Val_U08 && type <= Val_I32;
+}
+
 void skipArg (uint8_t** f) {
   //Is a value?
   if (**f > FORMS_END) {

@@ -1,0 +1,22 @@
+(fn not x (if x false true))
+(fn inc n (+ n 1))
+(fn dec n (- n 1))
+(fn first v (nth v 0))
+(fn last v (nth v (dec (len v))))
+(fn rest v (sect v 1 (dec (len v))))
+(fn prepend v i (vec i (burst v)))
+(fn append  v i (vec (burst v) i))
+(fn concat  v1 v2 (vec (burst v1) (burst v2)))
+(fn abs n (if (< n 0) (* n -1I) n))
+(fn every? vec pred
+  (if (= (len vec) 0)
+    true
+    (if (pred (first vec))
+      (every? (rest vec) pred)
+      false)))
+(fn some vec pred
+  (if (= (len vec) 0)
+    nil
+    (if (pred (first vec))
+      (first vec)
+      (some (rest vec) pred))))

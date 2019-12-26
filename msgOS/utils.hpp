@@ -4,6 +4,7 @@
 #include "config.hpp"
 
 bool isTypeTruthy (IType type);
+bool isTypeInt (IType type);
 void skipArg (uint8_t** f);
 
 #ifndef min
