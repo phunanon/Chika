@@ -50,6 +50,7 @@ class Machine {
 
   int32_t  iInt       (itemnum);  //Item-agnostic readNum
 
+  void     trunStack  (itemnum);
   uint8_t* stackItem  ();
   void     stackItem  (Item*);
   void     stackItem  (Item);
@@ -70,6 +71,7 @@ class Machine {
   uint8_t* exeForm   (uint8_t*, itemnum);
   void     nativeOp  (IType, itemnum);
   void     burstVec  ();
+  vectlen  vectLen   (itemnum);
   void     op_Equal  (itemnum, bool);
   void     op_Diff   (itemnum, IType);
   void     op_Arith  (itemnum, IType);
@@ -77,6 +79,7 @@ class Machine {
   void     op_Vec    (itemnum);
   void     op_Nth    (itemnum);
   void     op_Len    (itemnum);
+  void     op_Sect   (itemnum);
   void     op_Reduce (itemnum);
   void     op_Map    (itemnum);
   void     op_Val    (itemnum);

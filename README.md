@@ -199,17 +199,16 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `<` / `<=` / `>` / `>=` N arg: returns true if N items are in monotonically increasing / non-decreasing / decreasing / non-increasing order.
 
-`vec` 0 arg: returns empty vector.  
-`vec` N arg: returns vector of N args.
+`vec` 0-N arg: returns vector of its arguments.
 
 `nth vec N`: returns item `N` of vector `vec`.
 
-`len` 1 arg: returns either vector, string, or internal item length.
-
-`str` 0 arg: returns `""`.  
+`str` 0 arg: returns empty string.  
 `str` N arg: returns concatenation of N args as a string.
 
-`len` 1 arg: returns length of vector parameter.
+`len i`: returns either vector, string, or internal item length.
+
+`sect v skip take`: returns `take` many times from vector `v`, `skip` many from the vector head.
 
 `burst v`: explodes vector `v` onto the argument stack (like Lisp `apply`).
 
@@ -223,8 +222,7 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `ms-now` 0 arg: returns milliseconds since Machine initialisation.
 
-`print` 0 arg: returns `nil`; prints `nil`.  
-`print` N arg: returns `nil`; prints result of `str` of N args.
+`print` 0-N arg: returns `nil`; prints new line of result of `str` of N args.
 
 ### Compilation
 

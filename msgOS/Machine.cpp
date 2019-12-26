@@ -65,6 +65,10 @@ int32_t Machine::iInt (itemnum iNum) {
   return readNum(iData(iNum), constByteLen(i(iNum)->type()));
 }
 
+void Machine::trunStack (itemnum to) {
+  numByte(numByte() - itemsBytesLen(to, numItem()));
+  numItem(to);
+}
 uint8_t* Machine::stackItem () {
   return pBytes + numByte();
 }
@@ -361,6 +365,7 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Vec:    op_Vec   (firstParam); break;
     case Op_Nth:    op_Nth   (firstParam); break;
     case Op_Len:    op_Len   (firstParam); break;
+    case Op_Sect:   op_Sect  (firstParam); break;
     case Op_Burst:  burstVec();            break;
     case Op_Reduce: op_Reduce(firstParam); break;
     case Op_Map:    op_Map   (firstParam); break;
@@ -385,6 +390,10 @@ void Machine::burstVec () {
   //Adjust number of items and bytes, noting the original vector no longer exists
   numItem((numItem() - 1) + vNumItem);
   numByte((numByte() - descsLen) - sizeof(vectlen));
+}
+
+vectlen Machine::vectLen (itemnum it) {
+  return readNum(iBytes(it + 1) - sizeof(vectlen), sizeof(vectlen));
 }
 
 
@@ -506,16 +515,38 @@ void Machine::op_Nth (itemnum firstParam) {
 
 void Machine::op_Len (itemnum firstParam) {
   Item* item = i(firstParam);
-  uint8_t* itData = iData(firstParam);
   uint32_t len = item->len;
   switch (item->type()) {
-    case Val_Vec:
-      len = readNum((itData + len) - sizeof(vectlen), sizeof(vectlen));
-      break;
+    case Val_Vec: len = vectLen(firstParam); break;
     case Val_Str: --len; break;
   }
   *(uint32_t*)iBytes(firstParam) = len;
   returnItem(firstParam, Item(sizeof(uint32_t), Val_I32));
+}
+
+  //(sect v skip take)
+void Machine::op_Sect (itemnum firstParam) {
+  //Get vector length
+  vectlen len = vectLen(firstParam);
+  //Retain the skip and take
+  vectlen skip = iInt(firstParam + 1);
+  vectlen take = iInt(firstParam + 2);
+  //Bound skip and take to vector length
+  if (skip >= len) {
+    *(vectlen*)stackItem() = 0;
+    stackItem(Item(sizeof(vectlen), Val_Vec));
+    returnCollapseLast(firstParam);
+    return;
+  }
+  if (skip + take > len)
+    take = (skip + take) - len;
+  //Vector becomes only parameter and is burst
+  trunStack(firstParam + 1);
+  burstVec();
+  //Truncate to skip+take then vectorise at skip
+  trunStack(firstParam + skip + take);
+  op_Vec(firstParam + skip);
+  returnCollapseLast(firstParam);
 }
 
 void Machine::op_Reduce (itemnum firstParam) {
@@ -554,7 +585,7 @@ void Machine::op_Map (itemnum firstParam) {
   itemnum nVec = numItem() - iFirstVec;
   vectlen shortest = -1;
   for (itemnum it = iFirstVec, itEnd = iFirstVec + nVec; it < itEnd; ++it) {
-    vectlen l = readNum(iBytes(it + 1) - sizeof(vectlen), sizeof(vectlen));
+    vectlen l = vectLen(it);
     if (l < shortest) shortest = l;
   }
   //Map loop
@@ -585,9 +616,7 @@ void Machine::op_Map (itemnum firstParam) {
 
 void Machine::op_Val (itemnum firstParam) {
   //Truncate the stack to the first item
-  bytenum newNumBytes = (numByte() - itemsBytesLen(firstParam + 1, numItem()));
-  numItem(firstParam + 1);
-  numByte(newNumBytes);
+  trunStack(firstParam + 1);
   //If it's const, copy as value
   Item* it = i(firstParam);
   if (it->isConst()) {
