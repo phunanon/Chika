@@ -596,6 +596,12 @@ void Machine::op_Val (itemnum firstParam) {
   bytenum newNumBytes = (numByte() - itemsBytesLen(firstParam + 1, numItem()));
   numItem(firstParam + 1);
   numByte(newNumBytes);
+  //If it's const, copy as value
+  Item* it = i(firstParam);
+  if (it->isConst()) {
+    memcpy(iBytes(firstParam), iData(firstParam), it->len);
+    returnItem(firstParam, Item(it->len, it->type(), false));
+  }
 }
 
 void Machine::op_Do (itemnum firstParam) {
