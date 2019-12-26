@@ -177,13 +177,18 @@ void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
     returnCollapseLast(firstParam);
 }
 
-enum IfResult : uint8_t { UnEvaled, WasTrue, WasFalse };
+
+enum IfResult : uint8_t { UnEvaled = 0, WasTrue, WasFalse };
+
+union SpecialFormData {
+  IfResult ifData = UnEvaled;
+};
 
 uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
   IType formCode = *(IType*)f;
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
-  IfResult ifResult = UnEvaled;
+  SpecialFormData formData;
   while (true) {
 
     //If we're in a special form
@@ -196,14 +201,14 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
           if (firstArgItem == numItem()) break; //Nothing evaluted yet
           //(if true if-true[ if-false])
           //                ^
-          if (ifResult == WasTrue) {
+          if (formData.ifData == WasTrue) {
             //Was true: skip the if-false arg if present
             if (*f != Op_If) skipArg(&f);
             return ++f; //Skip if op
           } else
           //(if false if-true if-false)
           //                          ^
-          if (ifResult == WasFalse) {
+          if (formData.ifData == WasFalse) {
             return ++f; //Skip if op
           } else
           //(if cond if-true[ if-false])
@@ -217,8 +222,8 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
                 returnNil(firstArgItem);
                 return ++f;
               }
-              ifResult = WasFalse;
-            } else ifResult = WasTrue;
+              formData.ifData = WasFalse;
+            } else formData.ifData = WasTrue;
             iPop(); //Forget condition item
           }
           break;
