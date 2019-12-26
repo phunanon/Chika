@@ -81,7 +81,10 @@ function compile (source) {
   source = extractedStrings.source;
   
   //Remove all comments and commas
-  source = source.replace(/;.+\n/g, "\n").replace(/;.+$/g, "").replace(/,/g, "");
+  source = source.replace(/\/\*.+\*\//gs, "")
+                 .replace(/\/\/.+\n/g, "\n")
+                 .replace(/\/\/.+$/g, "")
+                 .replace(/,/g, "");
   
   //Replace all vectors with (vec ...) form
   source = source.replace(/\[/g, "(vec ").replace(/\]/g, ")");

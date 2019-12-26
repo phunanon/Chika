@@ -156,7 +156,9 @@ Names can include (almost) any characters excluding whitespace.
 
 `(fn func-name[ N params] [1-N forms])`: a function definition, with 0-N parameter symbols separated by spaces, and 1-N forms.
 
-`;...`: a comment, which can be suitated on a new line or at the end of one.
+`//...`: a comment, which can be suitated on a new line or at the end of one.
+
+`/*...*/`: a multiline comment.
 
 `,`: a comma, treated as whitespace.
 
