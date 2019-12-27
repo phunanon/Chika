@@ -50,6 +50,7 @@ enum IType : uint8_t {
   Val_U08   = 0x10,
   Val_U16   = 0x11,
   Val_I32   = 0x12,
+  Val_Char  = 0x19,
   Var_Op    = 0x1A,
   Var_Func  = 0x1B,
   Val_Nil   = 0x1E,

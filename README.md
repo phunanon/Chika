@@ -210,7 +210,7 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `sect v skip take`: returns `take` many times from vector `v`, `skip` many from the vector head.
 
-`burst v`: explodes vector `v` onto the argument stack (like Lisp `apply`).
+`burst v`: explodes vector or string `v` onto the argument stack as either vector items or Val_Char items (like Lisp `apply`).
 
 `reduce f[ s*N] v`: returns reduction of vector `v` through `f`, with 0-N seeds. `f` is (item acc) => acc.
 

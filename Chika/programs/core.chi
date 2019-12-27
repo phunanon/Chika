@@ -5,8 +5,8 @@
 (fn last v (nth v (dec (len v))))
 (fn rest v (sect v 1 (dec (len v))))
 (fn prepend v i (vec i (burst v)))
-(fn append  v i (vec (burst v) i))
-(fn concat  v1 v2 (vec (burst v1) (burst v2)))
+(fn append v i (vec (burst v) i))
+(fn concat v1 v2 (vec (burst v1) (burst v2)))
 (fn abs n (if (< n 0) (* n -1I) n))
 (fn every? vec pred
   (if (= (len vec) 0)
@@ -20,3 +20,6 @@
     (if (pred (first vec))
       (first vec)
       (some (rest vec) pred))))
+(fn substr s skip take
+  (str (burst (sect (vec (burst s))
+                    skip take))))

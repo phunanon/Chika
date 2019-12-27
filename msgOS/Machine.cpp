@@ -385,8 +385,20 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
 
 void Machine::burstVec () {
   itemnum iVec = numItem() - 1;
+  Item* itVec = i(iVec);
+  //If a string, burst as characters
+  if (itVec->type() == Val_Str) {
+    //Ensure it is copied as value
+    op_Val(iVec);
+    //Remove the original string item descriptor
+    trunStack(iVec);
+    //Generate an Item for each character
+    for (itemlen s = 0, sLen = itVec->len - 1; s < sLen; ++s)
+      stackItem(Item(1, Val_Char));
+    return;
+  }
   uint8_t* vBytes = iBytes(iVec);
-  uint8_t* vEnd = (vBytes + i(iVec)->len) - sizeof(vectlen);
+  uint8_t* vEnd = (vBytes + itVec->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
   //Copy item descriptors from end of vector onto the item stack
   //  overwriting the vector item descriptor
@@ -483,6 +495,10 @@ void Machine::op_Str (itemnum firstParam) {
       case Val_U16:
       case Val_I32:
         len += int2chars(target, readNum(iData(it), constByteLen(type)));
+        break;
+      case Val_Char:
+        *target = *iData(it);
+        ++len;
         break;
       case Val_Nil:
         const char* sNil = "nil";
