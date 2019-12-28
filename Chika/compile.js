@@ -81,7 +81,7 @@ function compile (source) {
   source = extractedStrings.source;
   
   //Remove all comments and commas
-  source = source.replace(/\/\*.+\*\//gs, "")
+  source = source.replace(/\/\*[\s\S]+\*\//g, "")
                  .replace(/\/\/.+\n/g, "\n")
                  .replace(/\/\/.+$/g, "")
                  .replace(/,/g, "");
@@ -229,6 +229,7 @@ function compile (source) {
       .map(n => n.hex == undefined ? numToLEHex(n.n, n.b) : n.hex)
       .join("");
 
+  console.log((image.length / 2) + "B");
   return {assembly: JSON.stringify(funcs, null, ' '), image};
 }
 

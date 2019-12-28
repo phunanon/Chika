@@ -61,7 +61,7 @@ class Machine {
   void     returnCollapseItem (itemnum, Item);     // Collapse the LIFO so the last stack item is moved to be the return item
   void     returnItemFrom     (itemnum, itemnum);
   void     returnNil  (itemnum);
-  void     iPop       (itemnum);                   //Pop items
+  void     iPop       ();                   //Pop item
 
   uint8_t* pFunc     (funcnum);
   bool     findVar   (itemnum&, varnum);

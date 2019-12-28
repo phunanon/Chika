@@ -51,7 +51,7 @@ uint8_t* Machine::iBytes (itemnum iNum) {
 uint8_t* Machine::iData (itemnum iNum) {
   uint8_t* bPtr = iBytes(iNum);
   if (i(iNum)->isConst())
-    return pROM + (*(proglen*)bPtr);
+    return pROM + *(proglen*)bPtr;
   else
     return bPtr;
 }
@@ -118,10 +118,8 @@ void Machine::returnNil (itemnum replace) {
   returnItem(replace, Item(0, Val_Nil));
 }
 
-void Machine::iPop (itemnum n = 1) {
-  itemnum nItem = numItem();
-  numItem(nItem - n);
-  numByte(numByte() - i(nItem - 1)->len);
+void Machine::iPop () {
+  trunStack(numItem() - 1);
 }
 
 
@@ -296,7 +294,7 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
       if (findVar(it, vNum)) {
         Item* vItem = i(it);
         //Copy the bytes to the stack top
-        memcpy(stackItem(), iBytes(it), vItem->len);
+        memcpy(stackItem(), iBytes(it), itemBytesLen(vItem));
         //Copy its item descriptor too
         stackItem(vItem);
       } else
