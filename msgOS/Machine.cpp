@@ -1,35 +1,39 @@
 #include "Machine.hpp"
 
+ProgInfo progs[NUM_PROG];
+
 Machine::Machine () {}
 
-ProgInfo* Machine::pInfo () {
-  return (ProgInfo*)pHead;
-}
-
 void Machine::romLen (proglen len) {
-  pInfo()->len = len;
+  pInfo->romLen = len;
   pBytes = pROM + len;
 }
 proglen Machine::romLen () {
-  return pInfo()->len;
+  return pInfo->romLen;
+}
+bytenum ramOffset (prognum pNum) {
+  bytenum offset = 0;
+  for (prognum p = 0; p < pNum; ++p)
+    offset += progs[p].ramLen;
+  return offset;
 }
 void Machine::setPNum (prognum n) {
   pNum = n;
-  pHead = mem + (pNum * progSize);
-  pROM = pHead + sizeof(ProgInfo);
-  pFirstItem = (pHead + progSize) - sizeof(Item);
+  pROM = mem + ramOffset(pNum);
+  pFirstItem = (pROM + progs[n].ramLen) - sizeof(Item);
+  pInfo = progs + pNum;
 }
 void Machine::numItem (itemnum n) {
-  pInfo()->numItem = n;
+  pInfo->numItem = n;
 }
 itemnum Machine::numItem () {
-  return pInfo()->numItem;
+  return pInfo->numItem;
 }
 void Machine::numByte (bytenum n) {
-  pInfo()->numByte = n;
+  pInfo->numByte = n;
 }
 bytenum Machine::numByte () {
-  return pInfo()->numByte;
+  return pInfo->numByte;
 }
 
 itemlen Machine::itemBytesLen (Item* it) {
@@ -135,7 +139,7 @@ void Machine::collapseItems (itemnum to, itemnum nItem) {
 
 
 void Machine::heartbeat (prognum _pNum) {
-  pNum = _pNum;
+  setPNum(_pNum);
   exeFunc(0x0000, -1);
   //Discard heartbeat function result
   iPop();

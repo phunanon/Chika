@@ -48,18 +48,20 @@ uint32_t msNow () {
 
 Machine machine = Machine();
 uint8_t mem[CHIKA_SIZE];
-memolen progSize;
 uint8_t pNum = 0;
 
 uint8_t loadProg (const char* path) {
-  machine.setPNum(pNum);
-  std::ifstream fl(path);
-  fl.seekg( 0, std::ios::end);
-  size_t len = fl.tellg();
+  std::ifstream fl(path, std::ios::in | std::ios::binary);
+  fl.seekg(0, std::ios::end);
+  size_t fLen = fl.tellg();
   fl.seekg(0, std::ios::beg);
-  fl.read((char*)machine.pROM, len);
+  bytenum ramLen;
+  fl.read((char*)&ramLen, sizeof(bytenum));
+  progs[pNum].ramLen = ramLen <= MAX_PROG_RAM ? ramLen : MAX_PROG_RAM;
+  machine.setPNum(pNum);
+  fl.read((char*)machine.pROM, fLen - sizeof(bytenum));
   fl.close();
-  machine.romLen(len);
+  machine.romLen(fLen - sizeof(bytenum));
   return pNum++;
 }
 
@@ -70,11 +72,7 @@ void loop () {
 }
 
 int main (int argc,  char* argv[]) {
-  //FIXME currently only one file at a time: Read config file
-  progSize = CHIKA_SIZE;
-
   machine.mem = mem;
-  machine.progSize = progSize;
   machine.loadProg = loadProg;
   machine.msNow = msNow;
   machine.debugger = debugger;
@@ -86,5 +84,6 @@ int main (int argc,  char* argv[]) {
   else
     machine.loadProg("init.kua");
 
-  loop();
+  while (true)
+    loop();
 }

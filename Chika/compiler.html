@@ -9,7 +9,8 @@ const e  = (el) => document.querySelector(el);
 const es = (el) => document.querySelectorAll(el);
 
 function DOM_compile () {
-  const compiled = compile(e("textarea").value);
+  const ramRequest = e("#ramRequest").value;
+  const compiled = compile(e("textarea").value, ramRequest);
   const imageHex = compiled.image;
   e("#assembly").value = compiled.assembly;
   e("#image").value = imageHex + "\n\n\n0x" + imageHex.match(/.{2}/g).join(", 0x");
@@ -41,6 +42,7 @@ textarea {
       <textarea id="image"></textarea>
     </div>
     <div>
+      <input type="number" id="ramRequest" value="8192">
       <button onclick="DOM_compile()">Compile</button>
       <size>0B<size></size>
     </div>

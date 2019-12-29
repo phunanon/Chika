@@ -4,36 +4,23 @@
 #include "utils.hpp"
 #include "Item.hpp"
 
-/*
-Prog memory:
--- prog HEAD
-- two bytes: uint16_t progLen
-- two bytes: uint16_t item stack count
-- four bytes: uint32_t item stack byte count
--- prog ROM
-- onward: progLen bytes: program ROM
--- prog LIFO bytes
-- onward: N bytes: program item LIFO bytes
--- prog LIFO items
-- tail backward: N bytes: program item LIFO items
-*/
-
-struct __attribute__((__packed__)) ProgInfo {
-  proglen len;
+struct ProgInfo {
+  proglen romLen;
+  bytenum ramLen;
   itemnum numItem;
   bytenum numByte;
-
-  ProgInfo (proglen _len, itemnum _numItem, bytenum _numByte)
-    : len(_len), numItem(_numItem), numByte(_numByte) {}
+  ProgInfo () {}
+  ProgInfo (proglen _romLen, bytenum _ramLen, itemnum _numItem, bytenum _numByte)
+    : romLen(_romLen), ramLen(_ramLen), numItem(_numItem), numByte(_numByte) {}
 };
 
+extern ProgInfo progs[];
 
 class Machine {
   prognum   pNum;
-  uint8_t*  pHead;
   uint8_t*  pBytes;
   uint8_t*  pFirstItem;
-  ProgInfo* pInfo    ();
+  ProgInfo* pInfo;
   proglen   romLen   ();           // Get length of program ROM
   void      numItem  (itemnum);  //
   itemnum   numItem  ();           // Set/Get number of LIFO items
@@ -93,7 +80,6 @@ public:
   void heartbeat (prognum);
 
   uint8_t* mem;
-  memolen  progSize;
   //Program ROM
   uint8_t* pROM;
   void     romLen (proglen);            //Set length of program ROM

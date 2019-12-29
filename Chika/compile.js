@@ -74,7 +74,7 @@ function funcise (forms) {
   return funcs;
 }
 
-function compile (source) {
+function compile (source, ramRequest) {
 
   //Extract all strings, and replace them with "`n`"
   const extractedStrings = extractStrings(source);
@@ -226,6 +226,7 @@ function compile (source) {
 
   //assembly to image
   const image =
+    numToLEHex(ramRequest, 4) + //Prepend program RAM request
     flatten(funcs)
       .filter(isObject)
       .map(n => n.hex == undefined ? numToLEHex(n.n, n.b) : n.hex)

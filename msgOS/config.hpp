@@ -20,6 +20,9 @@
 //CHIKA_SIZE: all Chika programs' memory
 #define CHIKA_SIZE (MEM_SIZE - WORK_SIZE)
 
+#define NUM_PROG     4
+#define MAX_PROG_RAM 8192
+
 
 typedef uint32_t memolen;
 typedef uint16_t proglen;

@@ -46,7 +46,6 @@ uint32_t msNow () {
 
 Machine machine = Machine();
 uint8_t mem[CHIKA_SIZE];
-memolen progSize;
 uint8_t pNum = 0;
 
 uint8_t loadProg (const char* path) {
@@ -55,9 +54,13 @@ uint8_t loadProg (const char* path) {
     Serial.println("Program not found");
 return 0;
   }
-  uint16_t pByte = 0;
   machine.setPNum(pNum);
   uint8_t* rom = machine.pROM;
+  bytenum ramLen;
+  for (uint8_t b = 0; b < sizeof(ramLen); ++b)
+    *(char*)&ramLen = prog.read();
+  progs[pNum].ramLen = ramLen <= MAX_PROG_RAM ? ramLen : MAX_PROG_RAM;
+  uint16_t pByte = 0;
   while (prog.available())
     rom[pByte++] = prog.read();
   machine.romLen(pByte);
@@ -76,18 +79,7 @@ void setup() {
   }
   Serial.println("successful.");
   
-  //Read config file
-  File setF = SD.open("msgOS.set");
-  if (setF) {
-    progSize = CHIKA_SIZE / setF.read();
-    setF.close();
-  } else {
-    Serial.println("Using defaults.");
-    progSize = CHIKA_SIZE;
-  }
-  
   machine.mem = mem;
-  machine.progSize = progSize;
   machine.loadProg = loadProg;
   machine.msNow = msNow;
   machine.debugger = debugger;

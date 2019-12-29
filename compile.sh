@@ -1,5 +1,4 @@
-rm -r bin
-mkdir bin
+mkdir -p bin
 
 cd Chika
 nodejs compiler.js programs/init.chi
