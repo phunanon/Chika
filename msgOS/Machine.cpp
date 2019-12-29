@@ -138,9 +138,15 @@ void Machine::collapseItems (itemnum to, itemnum nItem) {
 
 
 
+void Machine::entry () {
+  exeFunc(0x0000, -1);
+  //Discard entry result
+  iPop();
+}
+
 void Machine::heartbeat (prognum _pNum) {
   setPNum(_pNum);
-  exeFunc(0x0000, -1);
+  exeFunc(0x0001, -1);
   //Discard heartbeat function result
   iPop();
 }

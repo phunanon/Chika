@@ -33,13 +33,14 @@ textarea {
   </head>
   <body>
     <div>
-      <textarea class="wide">(fn abs n
-  (if (< n 0) (* n -1I) n))
+<textarea class="wide">
+(print "entry")
 
-(print "(abs -123I) = " (abs -123I)
-       ", (abs 123I)  = " (abs 123I))</textarea>
-      <textarea id="assembly"></textarea>
-      <textarea id="image"></textarea>
+(fn heartbeat
+  (print "heartbeat"))
+</textarea>
+      <textarea id="assembly" readonly></textarea>
+      <textarea id="image" readonly></textarea>
     </div>
     <div>
       <input type="number" id="ramRequest" value="8192">

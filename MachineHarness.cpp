@@ -62,16 +62,11 @@ uint8_t loadProg (const char* path) {
   fl.read((char*)machine.pROM, fLen - sizeof(bytenum));
   fl.close();
   machine.romLen(fLen - sizeof(bytenum));
+  machine.entry();
   return pNum++;
 }
 
-void loop () {
-  //Round-robin the heartbeats
-  for (uint8_t p = 0; p < pNum; ++p)
-    machine.heartbeat(p);
-}
-
-int main (int argc,  char* argv[]) {
+int main (int argc, char* argv[]) {
   machine.mem = mem;
   machine.loadProg = loadProg;
   machine.msNow = msNow;
@@ -84,6 +79,8 @@ int main (int argc,  char* argv[]) {
   else
     machine.loadProg("init.kua");
 
+  //Round-robin the heartbeats
   while (true)
-    loop();
+    for (uint8_t p = 0; p < pNum; ++p)
+      machine.heartbeat(p);
 }

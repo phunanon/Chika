@@ -79,6 +79,7 @@ class Machine {
 
 public:
   Machine ();
+  void entry ();
   void heartbeat (prognum);
 
   uint8_t* mem;
