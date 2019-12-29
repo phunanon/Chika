@@ -20,3 +20,12 @@ funclen constByteLen (IType t, uint8_t* body) {
   }
   return 0;
 }
+
+IType fitInt (uint8_t nBytes) {
+  switch (nBytes) {
+    case 1: return Val_U08;
+    case 2: return Val_U16;
+    case 3: case 4: return Val_I32;
+  }
+  return Val_Nil;
+}

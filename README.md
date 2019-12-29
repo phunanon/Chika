@@ -182,9 +182,7 @@ Unmodified parameters must be returned through `val`.
 
 #### Native functions
 
-Note: mathematical functions will cast all arguments as the type of the first argument.
-
-`+` / `-` / `*` / `/` / `mod` N arg: returns sum / subtraction / multiplication / division / modulus of N integers. Zero args returns nil.
+`+` / `-` / `*` / `/` / `mod` N arg: returns sum / subtraction / multiplication / division / modulus of N integers. Zero args returns nil. Well cast all parameters as the type of the first argument.
 
 `if` 2 arg: returns second arg if first arg is truthy, else nil.  
 `if` 3 arg: returns second arg if first arg is truthy, else third arg.
@@ -192,6 +190,8 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 `or` N arg: returns first truthy arg.
 
 `and` N arg: returns true if all args truthy.
+
+`recur` N arg: on the stack replace the parameters with N arguments and recall the function.
 
 `=` N arg: equality, true if all args are of the same type, length, and byte equality. Compares ints by value.
 
@@ -205,6 +205,10 @@ Note: mathematical functions will cast all arguments as the type of the first ar
 
 `str` 0 arg: returns empty string.  
 `str` N arg: returns concatenation of N args as a string.
+
+`type` 1 arg: returns type code of argument.
+
+`cast` 2 arg: returns first argument as the second argument type code.
 
 `len i`: returns either vector, string, or internal item length.
 

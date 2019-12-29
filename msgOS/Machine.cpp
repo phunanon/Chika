@@ -397,6 +397,8 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Add: case Op_Sub: case Op_Mult: case Op_Div: case Op_Mod:
       op_Arith(firstParam, op); break;
     case Op_Str:    op_Str   (firstParam); break;
+    case Op_Type:   op_Type  (firstParam); break;
+    case Op_Cast:   op_Cast  (firstParam); break;
     case Op_Vec:    op_Vec   (firstParam); break;
     case Op_Nth:    op_Nth   (firstParam); break;
     case Op_Len:    op_Len   (firstParam); break;
@@ -546,6 +548,16 @@ void Machine::op_Str (itemnum firstParam) {
   returnCollapseItem(firstParam, Item(len, Val_Str));
 }
 
+void Machine::op_Type (itemnum firstParam) {
+  writeNum(iBytes(firstParam), i(firstParam)->type(), sizeof(IType));
+  returnItem(firstParam, Item(sizeof(IType), fitInt(sizeof(IType))));
+}
+
+void Machine::op_Cast (itemnum firstParam) {
+  IType to = (IType)readNum(iData(firstParam + 1), sizeof(IType));
+  returnItem(firstParam, Item(constByteLen(to), to, i(firstParam)->isConst()));
+}
+
 void Machine::op_Vec (itemnum firstParam) {
   //Copy item descriptors onto the end of the byte stack
   uint8_t* descs = stackItem();
@@ -579,13 +591,13 @@ void Machine::op_Nth (itemnum firstParam) {
 
 void Machine::op_Len (itemnum firstParam) {
   Item* item = i(firstParam);
-  uint32_t len = item->len;
+  itemlen len = item->len;
   switch (item->type()) {
     case Val_Vec: len = vectLen(firstParam); break;
     case Val_Str: --len; break;
   }
-  *(uint32_t*)iBytes(firstParam) = len;
-  returnItem(firstParam, Item(sizeof(uint32_t), Val_I32));
+  *(itemlen*)iBytes(firstParam) = len; //TODO make itemlen
+  returnItem(firstParam, Item(sizeof(itemlen), fitInt(sizeof(itemlen))));
 }
 
 void Machine::op_Sect (itemnum firstParam) {

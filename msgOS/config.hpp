@@ -75,6 +75,8 @@ enum IType : uint8_t {
   Op_Div    = 0x39,
   Op_Mod    = 0x3A,
   Op_Str    = 0x44,
+  Op_Type   = 0xAA,
+  Op_Cast   = 0xAB,
   Op_Vec    = 0xB0,
   Op_Nth    = 0xB1,
   Op_Len    = 0xB2,
@@ -87,4 +89,5 @@ enum IType : uint8_t {
   Op_Print  = 0xEE
 };
 
-funclen constByteLen (IType t, uint8_t* body = nullptr);
+funclen constByteLen (IType, uint8_t* = nullptr);
+IType fitInt (uint8_t);

@@ -64,6 +64,8 @@ class Machine {
   void     op_Diff   (itemnum, IType);
   void     op_Arith  (itemnum, IType);
   void     op_Str    (itemnum);
+  void     op_Type   (itemnum);
+  void     op_Cast   (itemnum);
   void     op_Vec    (itemnum);
   void     op_Nth    (itemnum);
   void     op_Len    (itemnum);
