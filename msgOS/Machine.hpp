@@ -62,6 +62,7 @@ class Machine {
   void     returnItemFrom     (itemnum, itemnum);
   void     returnNil  (itemnum);
   void     iPop       ();                   //Pop item
+  void     collapseItems (itemnum, itemnum);
 
   uint8_t* pFunc     (funcnum);
   bool     findVar   (itemnum&, varnum);

@@ -121,6 +121,16 @@ void Machine::returnNil (itemnum replace) {
 void Machine::iPop () {
   trunStack(numItem() - 1);
 }
+void Machine::collapseItems (itemnum to, itemnum nItem) {
+  itemnum from = numItem() - nItem;
+  itemlen iBytesLen = itemsBytesLen(from, numItem());
+  //Move item bytes and reduce number
+  memcpy(iBytes(to), stackItem() - iBytesLen, iBytesLen);
+  numByte(numByte() - itemsBytesLen(to, from));
+  //Move item descriptors and reduce number
+  memcpy(i((to + nItem) - 1), iLast(), sizeof(Item) * nItem);
+  numItem(to + nItem);
+}
 
 
 
@@ -159,14 +169,21 @@ bool Machine::findVar (itemnum& it, varnum vNum) {
   return found ? ++it : false;
 }
 
+bool recurring = false;
 void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
   uint8_t* f = pFunc(fNum);
   f += sizeof(funcnum);
   funclen fLen = *(funclen*)f;
   f += sizeof(funclen);
+  uint8_t* fStart = f;
   uint8_t* fEnd = f + fLen;
   while (f != fEnd) {
     f = exeForm(f, firstParam);
+    if (recurring) {
+      recurring = false;
+      f = fStart;
+      continue;
+    }
     if (f != fEnd)
       iPop();
   }
@@ -187,7 +204,7 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
   SpecialFormData formData;
-  while (true) {
+  while (!recurring) {
 
     //If we're in a special form
     if (formCode != Form_Eval) {
@@ -272,9 +289,9 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
     //Evaluate next
     IType type = (IType)*f;
     //If a form
-    if (type <= FORMS_END) {
+    if (type <= FORMS_END)
       f = exeForm(f, firstParam);
-    } else
+    else
     //If a parameter
     if (type == Param_Val) {
       itemnum iNum = firstParam + *(argnum*)(++f);
@@ -307,6 +324,12 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
       *(proglen*)stackItem() = f - pROM;
       stackItem(item);
       f += constByteLen(type, f);
+    } else
+    //If an explicit function recursion
+    if (type == Op_Recur) {
+      //As a tail-call, collapse args into params position, set recurring flag
+      collapseItems(firstParam, numItem() - firstArgItem);
+      recurring = true;
     } else
     //If a program function
     if (type == Op_Func) {

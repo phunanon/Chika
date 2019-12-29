@@ -23,10 +23,11 @@ const
   Val_True = 0x04, Val_False = 0x05, Val_Str = 0x06, Param_Val = 0x07,
   Bind_Var = 0x08, Var_Val = 0x09,
   Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12,
-  Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x21,
+  Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x1E,
   Op_Func = 0x22, Op_Var = 0x2A, Op_Param = 0x2B;
 const strOps =
-  {"if":    0x23, "or":     0x24, "and":    0x25, "=":     0x30, "==":   0x31,
+  {"if":    0x23, "or":     0x24, "and":    0x25, "recur": 0x2F,
+   "=":     0x30, "==":     0x31,
    "<":     0x32, "<=":     0x33, ">":      0x34, ">=":    0x35,
    "+":     0x36, "-":      0x37, "*":      0x38, "/":     0x39, "mod":  0x3A,
    "str":   0x44, "vec":    0xB0, "nth":    0xB1, "len":   0xB2, "sect": 0xB3,
@@ -202,7 +203,8 @@ function compile (source) {
                       + numToLEHex(vIndex, 2),
                   info: `var op/fn: ${sym}`}
         else {
-          //TODO
+          console.error(`Func not found: ${sym}`);
+          return {hex: "", info: "err"};
         }
       }
     }

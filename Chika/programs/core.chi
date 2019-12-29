@@ -20,19 +20,19 @@
   (if (= (len vec) 0)
     true
     (if (pred (first vec))
-      (every? (rest vec) pred)
+      (recur (rest vec) pred)
       false)))
 (fn some vec pred
   (if (= (len vec) 0)
     nil
     (if (pred (first vec))
       (first vec)
-      (some (rest vec) pred))))
+      (recur (rest vec) pred))))
 (fn -filter pred v filtered
   (if (= (len v) 0)
     filtered
     (do f= (first v)
-      (-filter pred (rest v)
+      (recur pred (rest v)
         (if (pred f)
           (append filtered f)
           filtered)))))
