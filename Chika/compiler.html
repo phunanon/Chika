@@ -34,10 +34,11 @@ textarea {
   <body>
     <div>
 <textarea class="wide">
-(print "entry")
+(val 0)
 
-(fn heartbeat
-  (print "heartbeat"))
+(fn heartbeat state
+  (print state)
+  (+ state 1))
 </textarea>
       <textarea id="assembly" readonly></textarea>
       <textarea id="image" readonly></textarea>

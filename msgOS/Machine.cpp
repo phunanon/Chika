@@ -139,16 +139,12 @@ void Machine::collapseItems (itemnum to, itemnum nItem) {
 
 
 void Machine::entry () {
-  exeFunc(0x0000, -1);
-  //Discard entry result
-  iPop();
+  exeFunc(0x0000, 0);
 }
 
 void Machine::heartbeat (prognum _pNum) {
   setPNum(_pNum);
-  exeFunc(0x0001, -1);
-  //Discard heartbeat function result
-  iPop();
+  exeFunc(0x0001, 0);
 }
 
 uint8_t* Machine::pFunc (funcnum fNum) {
@@ -198,7 +194,7 @@ void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
       iPop();
   }
   //Move last item into return position
-  if (firstParam != (itemnum)-1)
+  if (numItem() > 0)
     returnCollapseLast(firstParam);
 }
 
