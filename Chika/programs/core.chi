@@ -28,16 +28,14 @@
     (if (pred (first vec))
       (first vec)
       (recur (rest vec) pred))))
-(fn -filter pred v filtered
+(fn filter v pred filtered
   (if (= (len v) 0)
     filtered
     (do f= (first v)
-      (recur pred (rest v)
+      (recur (rest v) pred
         (if (pred f)
           (append filtered f)
           filtered)))))
-(fn filter pred v
-  (-filter pred v []))
 
 (fn substr s skip take
   (str (burst (sect (vec (burst s))

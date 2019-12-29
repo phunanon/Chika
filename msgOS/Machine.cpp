@@ -296,6 +296,11 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
     if (type == Param_Val) {
       itemnum iNum = firstParam + *(argnum*)(++f);
       f += sizeof(argnum);
+      //If parameter is outside bounds return nil
+      if (iNum >= firstArgItem) {
+        stackItem(Item(sizeof(Val_Nil), Val_Nil));
+        continue;
+      }
       Item* iArg = i(iNum);
       //Copy the referenced value to the stack top
       memcpy(stackItem(), iData(iNum), iArg->len);
@@ -407,6 +412,11 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
 void Machine::burstVec () {
   itemnum iVec = numItem() - 1;
   Item* itVec = i(iVec);
+  //If nil, destroy the vector
+  if (itVec->type() == Val_Nil) {
+    trunStack(iVec);
+    return;
+  }
   //If a string, burst as characters
   if (itVec->type() == Val_Str) {
     //Ensure it is copied as value
