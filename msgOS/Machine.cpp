@@ -392,8 +392,10 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
 
 void Machine::nativeOp (IType op, itemnum firstParam) {
   switch (op) {
-    case Op_Equal: op_Equal(firstParam, true);  break;
-    case Op_Equit: op_Equal(firstParam, false); break;
+    case Op_Equal: case Op_Nequal: case Op_Equit: case Op_Nequit:
+      op_Equal(firstParam, op == Op_Equal || op == Op_Nequal);
+      if (op == Op_Nequal || op == Op_Nequit) negate(firstParam);
+      break;
     case Op_GT: case Op_GTE: case Op_LT: case Op_LTE:
       op_Diff(firstParam, op); break;
     case Op_Add: case Op_Sub: case Op_Mult: case Op_Div: case Op_Mod:
@@ -450,6 +452,11 @@ void Machine::burstVec () {
 
 vectlen Machine::vectLen (itemnum it) {
   return readNum(iBytes(it + 1) - sizeof(vectlen), sizeof(vectlen));
+}
+
+
+void Machine::negate (itemnum firstParam) {
+  returnItem(firstParam, Item(0, isTypeTruthy(i(firstParam)->type()) ? Val_False : Val_True));
 }
 
 
@@ -607,7 +614,9 @@ void Machine::op_Sect (itemnum firstParam) {
   vectlen len = vectLen(firstParam);
   //Retain the skip and take
   vectlen skip = iInt(firstParam + 1);
-  vectlen take = iInt(firstParam + 2);
+  vectlen take = len - skip;
+  if (numItem() - firstParam == 3)
+    take = iInt(firstParam + 2);
   //Bound skip and take to vector length
   if (skip >= len) {
     *(vectlen*)stackItem() = 0;

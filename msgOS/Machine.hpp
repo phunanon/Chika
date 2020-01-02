@@ -60,6 +60,7 @@ class Machine {
   void     nativeOp  (IType, itemnum);
   void     burstVec  ();
   vectlen  vectLen   (itemnum);
+  void     negate    (itemnum);
   void     op_Equal  (itemnum, bool);
   void     op_Diff   (itemnum, IType);
   void     op_Arith  (itemnum, IType);

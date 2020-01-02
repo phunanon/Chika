@@ -9,9 +9,10 @@
 (fn neg n (* n -1I))
 (fn abs n (if (pos? n) (neg n) n))
 
-(fn first v (nth v 0))
+(fn first v  (nth v 0))
+(fn second v (nth v 1))
 (fn last v (nth v (dec (len v))))
-(fn rest v (sect v 1 (dec (len v))))
+(fn rest v (sect v 1))
 (fn prepend v i (vec i (burst v)))
 (fn append v i (vec (burst v) i))
 (fn concat v1 v2 (vec (burst v1) (burst v2)))

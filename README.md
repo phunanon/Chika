@@ -193,9 +193,11 @@ Unmodified parameters must be returned through `val`.
 
 `recur` N arg: on the stack replace the parameters with N arguments and recall the function.
 
-`=` N arg: equality, true if all args are of the same type, length, and byte equality. Compares ints by value.
+`=` N arg: equality, true if all args are of the same type, length, and byte equality. Compares ints by value.  
+`!=` N arg: negative equality.
 
-`==` N arg: equity, returns true if N items are of byte equality.
+`==` N arg: equity, returns true if N items are of byte equality.  
+`!==` N arg: negative equity.
 
 `<` / `<=` / `>` / `>=` N arg: returns true if N items are in monotonically increasing / non-decreasing / decreasing / non-increasing order.
 
@@ -212,7 +214,7 @@ Unmodified parameters must be returned through `val`.
 
 `len i`: returns either vector, string, or internal item length.
 
-`sect v skip take`: returns `take` many times from vector `v`, `skip` many from the vector head.
+`sect v skip[ take]`: returns `take` or rest many items from vector `v`, `skip` many from the vector head.
 
 `burst v`: explodes vector or string `v` onto the argument stack as either vector items or Val_Char items (like Lisp `apply`).
 
