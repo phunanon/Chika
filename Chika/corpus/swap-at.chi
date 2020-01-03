@@ -1,0 +1,8 @@
+(fn swap-at v n
+  (do half1= (sect v 0 n)
+      half2= (sect v n)
+    (vec
+      (burst half1)
+      (second  half2)
+      (first half2)
+      (burst (sect half2 2)))))
