@@ -156,7 +156,7 @@ uint8_t* Machine::pFunc (funcnum fNum) {
     r += sizeof(funcnum);
     r += *(proglen*)r + sizeof(proglen);
   }
-  return pROM;
+  return nullptr;
 }
 
 bool Machine::findVar (itemnum& it, varnum vNum) {
@@ -178,14 +178,20 @@ bool Machine::findVar (itemnum& it, varnum vNum) {
 bool recurring = false;
 void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
   uint8_t* f = pFunc(fNum);
+  if (f == nullptr) return;
+  uint8_t* fEnd;
   f += sizeof(funcnum);
-  funclen fLen = *(funclen*)f;
-  f += sizeof(funclen);
+  {
+    funclen fLen = *(funclen*)f;
+    f += sizeof(funclen);
+    fEnd = f + fLen;
+  }
   uint8_t* fStart = f;
-  uint8_t* fEnd = f + fLen;
+  itemnum nParam = numItem() - firstParam;
   while (f != fEnd) {
-    f = exeForm(f, firstParam);
+    f = exeForm(f, firstParam, nParam);
     if (recurring) {
+      nParam = numItem() - firstParam;
       recurring = false;
       f = fStart;
       continue;
@@ -205,7 +211,7 @@ union SpecialFormData {
   IfResult ifData = UnEvaled;
 };
 
-uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
+uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam, itemnum nParam) {
   IType formCode = *(IType*)f;
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
@@ -296,22 +302,23 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam) {
     IType type = (IType)*f;
     //If a form
     if (type <= FORMS_END)
-      f = exeForm(f, firstParam);
+      f = exeForm(f, firstParam, nParam);
     else
     //If a parameter
     if (type == Param_Val) {
-      itemnum iNum = firstParam + *(argnum*)(++f);
+      itemnum paramNum = *(argnum*)(++f);
       f += sizeof(argnum);
-      //If parameter is outside bounds return nil
-      if (iNum >= firstArgItem) {
+      //If parameter is outside bounds, stack nil
+      if (paramNum >= nParam) {
         stackItem(Item(sizeof(Val_Nil), Val_Nil));
         continue;
       }
-      Item* iArg = i(iNum);
+      paramNum += firstParam;
+      Item* iParam = i(paramNum);
       //Copy the referenced value to the stack top
-      memcpy(stackItem(), iData(iNum), iArg->len);
+      memcpy(stackItem(), iData(paramNum), iParam->len);
       //Copy its item descriptor too, as value
-      stackItem(Item(iArg->len, iArg->type()));
+      stackItem(Item(iParam->len, iParam->type()));
     } else
     //If a variable
     if (type == Var_Val) {

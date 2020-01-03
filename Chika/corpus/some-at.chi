@@ -1,0 +1,7 @@
+(fn some-at v p n
+  (if (!= (len v) 0)
+    (do f= (first v)
+        N= (or n 0)
+      (if (p f)
+        N
+        (recur (rest v) p (inc N))))))

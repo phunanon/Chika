@@ -56,7 +56,7 @@ class Machine {
 
   //All leave one V item on the stack
   void     exeFunc   (funcnum, itemnum);
-  uint8_t* exeForm   (uint8_t*, itemnum);
+  uint8_t* exeForm   (uint8_t*, itemnum, itemnum);
   void     nativeOp  (IType, itemnum);
   void     burstVec  ();
   vectlen  vectLen   (itemnum);
