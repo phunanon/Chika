@@ -256,11 +256,6 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam, itemnum nParam) {
           break;
 
         case Form_Or:
-          //Did or-form end without truthy value?
-          if (*f == Op_Or) {
-            returnNil(firstArgItem);
-            return ++f;
-          }
           if (firstArgItem == numItem()) break; //Nothing evaluted yet
           //If previous eval was false
           if (!isTypeTruthy(iLast()->type()))
@@ -270,6 +265,11 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam, itemnum nParam) {
             //Skip all args until Op_Or
             while (*f != Op_Or)
               skipArg(&f);
+            return ++f;
+          }
+          //Did or-form end without truthy value?
+          if (*f == Op_Or) {
+            returnNil(firstArgItem);
             return ++f;
           }
           break;
