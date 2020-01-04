@@ -79,29 +79,30 @@ Essentially, other than the SD card, serial, and I/O pins, I want no other msgOS
 
 See [core.chi](Chika/programs/core.chi) and [the corpus](Chika/corpus) for more, realistic examples.
 
-    ;Calculates Nth term of Fibonacci Sequence
+    //Calculates Nth term of Fibonacci Sequence
     (fn fib n
       (if (< n 3) 1I
         (+ (fib (- n 1I)) (fib (- n 2I)))))
 
-    ;Returns absolute of a number
+    //Returns absolute of a number
     (fn abs n
       (if (< n 0) (* n -1I) n))
 
-    ;Prints `15`
+    //Prints `15`
     (print
       (do a= + b= 10 c= 5
         (a b c)))
 
-    ;Prints `Hello!`
+    //Prints `Hello!`
     (fn my-print
       (print str))
     (do str= "Hello!"
       (my-print))
 
-    ;Filter function, found in core.chi
-    ;Note: first, rest, and append are all implemented in Chika in core.chi
-    (fn filter v pred filtered
+    //Filter function, found in core.chi
+    //Note: `first`, `rest`, and `append` are all implemented in Chika in core.chi
+    //Note: `filtered` is an optional argument - `append` accepts nil as a vector
+    (fn filter v pred, filtered
       (if (= (len v) 0)
         filtered
         (do f= (first v)

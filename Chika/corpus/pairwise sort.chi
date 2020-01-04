@@ -1,0 +1,6 @@
+(fn sort v
+  (if (< (burst v))
+    v
+    (do bad=   (some-pair-at v >)
+        fixed= (swap-at v bad)
+        (recur fixed))))

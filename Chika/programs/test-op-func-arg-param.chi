@@ -1,19 +1,19 @@
 
-;All these tests should print `6`
+//All these tests should print `6`
 
-;Test op in variable
+//Test op in variable
 (do a= -
   (print (a 10 4)))
 
-;Test function in variable
+//Test function in variable
 (fn inc n (+ n 1))
 (do a= inc
   (print (a 5)))
 
-;Test op in parameter
+//Test op in parameter
 (fn thing f a (f a 4))
 (print (thing - 10))
 
-;Test function in parameter
+//Test function in parameter
 (fn plz f a (f a))
 (print (plz inc 5))
