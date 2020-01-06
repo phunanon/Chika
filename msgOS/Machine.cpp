@@ -406,6 +406,7 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_GT: case Op_GTE: case Op_LT: case Op_LTE:
       op_Diff(firstParam, op); break;
     case Op_Add: case Op_Sub: case Op_Mult: case Op_Div: case Op_Mod:
+    case Op_BNot: case Op_BAnd: case Op_BOr: case Op_BXor: case Op_LShift: case Op_RShift:
       op_Arith(firstParam, op); break;
     case Op_Str:    op_Str   (firstParam); break;
     case Op_Type:   op_Type  (firstParam); break;
@@ -514,14 +515,20 @@ void Machine::op_Arith (itemnum firstParam, IType op) {
   IType type = i(firstParam)->type();
   itemlen len = constByteLen(type);
   int32_t result = readNum(iData(firstParam), len);
+  if (op == Op_BNot) result = ~result;
   for (itemnum it = firstParam + 1, itEnd = numItem(); it < itEnd; ++it) {
     int32_t num = readNum(iData(it), min(len, constByteLen(i(it)->type())));
     switch (op) {
-      case Op_Add:  result += num; break;
-      case Op_Sub:  result -= num; break;
-      case Op_Mult: result *= num; break;
-      case Op_Div:  result /= num; break;
-      case Op_Mod:  result %= num; break;
+      case Op_Add:    result +=  num; break;
+      case Op_Sub:    result -=  num; break;
+      case Op_Mult:   result *=  num; break;
+      case Op_Div:    result /=  num; break;
+      case Op_Mod:    result %=  num; break;
+      case Op_BAnd:   result &=  num; break;
+      case Op_BOr:    result |=  num; break;
+      case Op_BXor:   result ^=  num; break;
+      case Op_LShift: result <<= num; break;
+      case Op_RShift: result >>= num; break;
     }
   }
   writeNum(iBytes(firstParam), result, len);

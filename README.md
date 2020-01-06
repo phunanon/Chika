@@ -192,7 +192,8 @@ Unmodified parameters must be returned through `val`.
 
 #### Native functions
 
-`+` / `-` / `*` / `/` / `mod` N arg: returns sum / subtraction / multiplication / division / modulus of N integers. Zero args returns nil. Well cast all parameters as the type of the first argument.
+`+` / `-` / `*` / `/` / `mod` / `&` / `|` / `^` / `<<` / `>>` N arg: returns sum / subtraction / multiplication / division / modulus / AND / OR / XOR / left shift / right shift of N integers. Zero args returns nil. Will cast all parameters as the type of the first argument.  
+`~` 1 arg: returns NOT.
 
 `if` 2 arg: returns second arg if first arg is truthy, else nil.  
 `if` 3 arg: returns second arg if first arg is truthy, else third arg.
