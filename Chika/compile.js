@@ -22,7 +22,7 @@ const
   Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03,
   Val_True = 0x04, Val_False = 0x05, Val_Str = 0x06, Param_Val = 0x07,
   Bind_Var = 0x08, Var_Val = 0x09,
-  Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12,
+  Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, Val_Char = 0x19,
   Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x1E,
   Op_Func = 0x22, Op_Var = 0x2A, Op_Param = 0x2B;
 const strOps =
@@ -85,10 +85,14 @@ function compile (source, ramRequest) {
   source = extractedStrings.source;
   
   //Remove all comments and commas
-  source = source.replace(/\/\*[\s\S]+\*\//g, "")
-                 .replace(/\/\/.+\n/g, "\n")
-                 .replace(/\/\/.+$/g, "")
-                 .replace(/,/g, "");
+  //Harden char literals with \
+  //Comma newline space is treated as one whitespace
+  source = source.replace(/\/\*[\s\S]+\*\//g, "") //Multiline comments
+                 .replace(/\/\/.+\n/g, "\n")      //Single line comments
+                 .replace(/\/\/.+$/g, "")         //Document-final comment
+                 .replace(/\\/g, "/")             //Replace slashes to protect from eval
+                 .replace(/;/g, "")               //Semicolon whitespace
+                 .replace(/,\s*/g, "");           //Comma whitespace
   
   //Replace all vectors with (vec ...) form
   source = source.replace(/\[/g, "(vec ").replace(/\]/g, ")");
@@ -129,6 +133,12 @@ function compile (source, ramRequest) {
             info: `int: ${s}`};
   }
   funcs = walkItems(funcs, isChikaNum, serialiseNum);
+
+  //Serialise chars
+  const charise = s => (
+    {hex: bytesToHex([Val_Char, s.charCodeAt(1)]),
+     info: `char: ${s[1]}`});
+  funcs = walkItems(funcs, s => s[0] == "/", charise);
 
   //Serialise strings back in
   const serialiseString = s =>

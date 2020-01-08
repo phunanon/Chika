@@ -170,7 +170,9 @@ Names can include (almost) any characters excluding whitespace.
 
 `/*...*/`: a multiline comment.
 
-`,`: a comma, treated as whitespace.
+`;`: a semicolon, treated as whitespace.
+
+`,`: a comma, treated as whitespace, and spaces after it are erased.
 
 `..=`: binding, whereby `..` is a symbol name.
 
@@ -187,6 +189,8 @@ Unmodified parameters must be returned through `val`.
 `0W`: 16-bit unsigned integer.
 
 `0I`: 32-bit signed integer.
+
+`\c`: ASCII character.
 
 `[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty.
 
