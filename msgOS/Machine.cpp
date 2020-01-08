@@ -731,12 +731,12 @@ void Machine::op_Do (itemnum firstParam) {
 }
 
 void Machine::op_MsNow (itemnum firstParam) {
-  *(int32_t*)iBytes(firstParam) = msNow();
+  *(int32_t*)iBytes(firstParam) = harness->msNow();
   returnItem(firstParam, Item(sizeof(int32_t), Val_I32));
 }
 
 void Machine::op_Print (itemnum firstParam) {
   op_Str(firstParam);
-  debugger((const char*)iData(firstParam), false, 0);
+  harness->print((const char*)iData(firstParam));
   returnNil(firstParam);
 }

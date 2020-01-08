@@ -4,6 +4,17 @@
 #include "utils.hpp"
 #include "Item.hpp"
 
+class IMachineHarness {
+public:
+  virtual void     print      (const char*) = 0;
+  virtual void     debugger   (const char*, bool, uint32_t) = 0;
+  virtual void     printMem   (uint8_t*, uint8_t)           = 0;
+  virtual void     printItems (uint8_t*, itemnum)           = 0;
+  virtual uint8_t  loadProg   (const char*)                 = 0;
+  virtual uint8_t  unloadProg (const char*)                 = 0;
+  virtual uint32_t msNow      ()                            = 0;
+};
+
 struct ProgInfo {
   proglen romLen;
   bytenum ramLen;
@@ -89,11 +100,5 @@ public:
   void     romLen (proglen);            //Set length of program ROM
   void     setPNum (prognum);
 
-  //TODO make a class of these
-  void     (*debugger)   (const char*, bool, uint32_t);
-  void     (*printMem)   (uint8_t*, uint8_t);
-  void     (*printItems) (uint8_t*, itemnum);
-  uint8_t  (*loadProg)   (const char*);
-  uint8_t  (*unloadProg) (const char*);
-  uint32_t (*msNow)      ();
+  IMachineHarness* harness;
 };

@@ -2,7 +2,22 @@
 #include <SD.h>
 #include "Machine.hpp"
 
-void debugger (const char* output, bool showNum = false, uint32_t number = 0) {
+class ArduinoHarness : IMachineHarness {
+public:
+  virtual void     print      (const char*);
+  virtual void     debugger   (const char*, bool, uint32_t);
+  virtual void     printMem   (uint8_t*, uint8_t);
+  virtual void     printItems (uint8_t*, itemnum);
+  virtual uint8_t  loadProg   (const char*);
+  virtual uint8_t  unloadProg (const char*);
+  virtual uint32_t msNow      ();
+};
+
+void ArduinoHarness::print (const char* output) {
+  Serial.println(output);
+}
+
+void ArduinoHarness::debugger (const char* output, bool showNum = false, uint32_t number = 0) {
   if (showNum) {
     Serial.print(output);
     Serial.print(" ");
@@ -13,7 +28,7 @@ void debugger (const char* output, bool showNum = false, uint32_t number = 0) {
   }
 }
 
-void printMem (uint8_t* mem, uint8_t by) {
+void ArduinoHarness::printMem (uint8_t* mem, uint8_t by) {
   uint8_t* mEnd = mem + by;
   for (uint8_t* m = mem - by; m < mEnd; ++m) {
     if (*m < 16) Serial.print("0");
@@ -25,7 +40,7 @@ void printMem (uint8_t* mem, uint8_t by) {
   Serial.println("^");
 }
 
-void printItems (uint8_t* pItems, uint16_t n) {
+void ArduinoHarness::printItems (uint8_t* pItems, uint16_t n) {
   Serial.print("Items: ");
   for (uint8_t it = 0; it < n; ++it) {
     Item* item = (Item*)(pItems - ((it+1) * sizeof(Item)));
@@ -40,7 +55,7 @@ void printItems (uint8_t* pItems, uint16_t n) {
   printf("\n");
 }
 
-uint32_t msNow () {
+uint32_t ArduinoHarness::msNow () {
   return millis();
 }
 
@@ -48,11 +63,11 @@ Machine machine = Machine();
 uint8_t mem[CHIKA_SIZE];
 uint8_t pNum = 0;
 
-uint8_t loadProg (const char* path) {
+uint8_t ArduinoHarness::loadProg (const char* path) {
   File prog = SD.open(path);
   if (!prog) {
     Serial.println("Program not found");
-return 0;
+    return 0;
   }
   machine.setPNum(pNum);
   uint8_t* rom = machine.pROM;
@@ -68,6 +83,10 @@ return 0;
   return pNum++;
 }
 
+uint8_t ArduinoHarness::unloadProg (const char* path) {
+  return --pNum;
+}
+
 void setup() {
   while (!Serial);
   Serial.begin(9600);
@@ -79,14 +98,11 @@ void setup() {
   }
   Serial.println("successful.");
   
+  ArduinoHarness harness = ArduinoHarness();
   machine.mem = mem;
-  machine.loadProg = loadProg;
-  machine.msNow = msNow;
-  machine.debugger = debugger;
-  machine.printMem = printMem;
-  machine.printItems = printItems;
+  machine.harness = (IMachineHarness*)(&harness);
 
-  machine.loadProg("init.kua");
+  harness.loadProg("init.kua");
 }
 
 void loop () {

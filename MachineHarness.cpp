@@ -4,7 +4,22 @@
 #include <chrono>
 #include "Machine.cpp"
 
-void debugger (const char* output, bool showNum = false, uint32_t number = 0) {
+class PCHarness : IMachineHarness {
+public:
+  virtual void     print      (const char*);
+  virtual void     debugger   (const char*, bool, uint32_t);
+  virtual void     printMem   (uint8_t*, uint8_t);
+  virtual void     printItems (uint8_t*, itemnum);
+  virtual uint8_t  loadProg   (const char*);
+  virtual uint8_t  unloadProg (const char*);
+  virtual uint32_t msNow      ();
+};
+
+void PCHarness::print (const char* output) {
+  printf("%s\n", output);
+}
+
+void PCHarness::debugger (const char* output, bool showNum = false, uint32_t number = 0) {
   if (showNum) {
     printf("%s", output);
     printf("%s", " ");
@@ -15,7 +30,7 @@ void debugger (const char* output, bool showNum = false, uint32_t number = 0) {
   }
 }
 
-void printMem (uint8_t* mem, uint8_t by) {
+void PCHarness::printMem (uint8_t* mem, uint8_t by) {
   uint8_t margin = by * .5;
   uint8_t left = by - margin;
   uint8_t right = by + margin;
@@ -30,7 +45,7 @@ void printMem (uint8_t* mem, uint8_t by) {
   printf("\n");
 }
 
-void printItems (uint8_t* pItems, uint16_t n) {
+void PCHarness::printItems (uint8_t* pItems, uint16_t n) {
   printf("Items: ");
   for (uint8_t it = 0; it < n; ++it) {
     Item* item = (Item*)(pItems - (it * sizeof(Item)));
@@ -40,7 +55,7 @@ void printItems (uint8_t* pItems, uint16_t n) {
 }
 
 auto start_time = std::chrono::high_resolution_clock::now();
-uint32_t msNow () {
+uint32_t PCHarness::msNow () {
   auto current_time = std::chrono::high_resolution_clock::now();
   return std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time).count();
 }
@@ -50,7 +65,7 @@ Machine machine = Machine();
 uint8_t mem[CHIKA_SIZE];
 uint8_t pNum = 0;
 
-uint8_t loadProg (const char* path) {
+uint8_t PCHarness::loadProg (const char* path) {
   std::ifstream fl(path, std::ios::in | std::ios::binary);
   fl.seekg(0, std::ios::end);
   size_t fLen = fl.tellg();
@@ -66,18 +81,17 @@ uint8_t loadProg (const char* path) {
   return pNum++;
 }
 
-int main (int argc, char* argv[]) {
-  machine.mem = mem;
-  machine.loadProg = loadProg;
-  machine.msNow = msNow;
-  machine.debugger = debugger;
-  machine.printMem = printMem;
-  machine.printItems = printItems;
+uint8_t PCHarness::unloadProg (const char* path) {
+  return --pNum;
+}
 
-  if (argc == 2)
-    machine.loadProg(argv[1]);
-  else
-    machine.loadProg("init.kua");
+int main (int argc, char* argv[]) {
+  PCHarness harness = PCHarness();
+  machine.harness = (IMachineHarness*)(&harness);
+  machine.mem = mem;
+
+  if (argc == 2) harness.loadProg(argv[1]);
+  else           harness.loadProg("init.kua");
 
   //Round-robin the heartbeats
   while (true)
