@@ -50,6 +50,7 @@ enum IType : uint8_t {
   Bind_Var  = 0x08,
   Var_Val   = 0x09,
   Val_Vec   = 0x0A, Val_Dict  = 0x0B,
+  Val_Blob  = 0x0F,
   Val_U08   = 0x10,
   Val_U16   = 0x11,
   Val_I32   = 0x12,
@@ -91,6 +92,7 @@ enum IType : uint8_t {
   Op_Burst  = 0xBA,
   Op_Reduce = 0xBB,
   Op_Map    = 0xBC,
+  Op_For    = 0xBD,
   Op_Val    = 0xCD, Op_Do     = 0xCE,
   Op_MsNow  = 0xE0,
   Op_Print  = 0xEE

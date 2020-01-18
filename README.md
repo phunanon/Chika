@@ -235,7 +235,11 @@ Unmodified parameters must be returned through `val`.
 
 `reduce f[ s*N] v`: returns reduction of vector `v` through `f`, with 0-N seeds. `f` is (item acc) => acc.
 
-`map f v*N`: returns mapping of 1-N vectors through `f`, where `f` is (item*N) => mapped.
+`map f v*N`: returns mapping of 1-N vectors through `f`, where `f` is (item*N) => mapped.  
+Example: `(map str [\a \b \c] [1 2 3]) => [a1 b2 c3]`
+
+`for f v*N`: returns iterative mapping of 1-N vectors through `f`, where `f` is (item*N) => mapped.  
+Example: `(for str [\a \b \c] [1 2 3]) => [a1 a2 a3 b1 b2 b3 c1 c2 c3]`
 
 `val` 1-N arg: returns its first argument.
 

@@ -418,6 +418,7 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Burst:  burstVec();            break;
     case Op_Reduce: op_Reduce(firstParam); break;
     case Op_Map:    op_Map   (firstParam); break;
+    case Op_For:    op_For   (firstParam); break;
     case Op_Val:    op_Val   (firstParam); break;
     case Op_Do:     op_Do    (firstParam); break;
     case Op_MsNow:  op_MsNow (firstParam); break;
@@ -711,6 +712,78 @@ void Machine::op_Map (itemnum firstParam) {
   }
   //Vectorise and collapse return
   op_Vec(iMapped);
+  returnCollapseLast(firstParam);
+}
+
+// (for func [\a \b \c] [1 2 3])
+// [a1 a2 a3 b1 b2 b3 c1 c2 c3]
+void Machine::op_For (itemnum firstParam) {
+  //Extract function or op number from first parameter
+  bool isOp = i(firstParam)->type() == Var_Op;
+  funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
+  //Output N byte lengths and N byte counters onto stack as blob item
+  itemnum iFirstVec = firstParam + 1;
+  argnum nVec = numItem() - iFirstVec;
+  itemlen* lens    = (vectlen*)stackItem(); //Holds param vector lengths
+  itemlen* counts  = lens + nVec;           //Holds loop vector indexes
+  itemlen* offsets = counts + nVec;         //Holds loop vector byte offsets
+  itemlen* stagedOffsets = offsets + nVec;  //Holds offset for next vector byte offset increment
+  {
+    vectlen nLen = 0;
+    for (itemnum v = iFirstVec, vEnd = iFirstVec + nVec; v < vEnd; ++v)
+      lens[nLen++] = vectLen(v);
+  }
+  memset(counts,  0, sizeof(itemlen) * nVec * 3);
+  stackItem(Item(sizeof(itemlen) * nVec * 4, Val_Blob));
+  //For loop
+  uint8_t* pFirstVec = iBytes(iFirstVec);
+  bool forLoop = true;
+  while (forLoop) {
+    //Output one of each item, indexed by each counter
+    itemnum exeAt = numItem();
+    for (argnum v = 0, vLast = nVec - 1; v < nVec; ++v) {
+      bytenum descOffset = sizeof(Item) * counts[v];
+      //Fast-fetch descriptor and bytes
+      //  by using a byte offset in the byte counter
+      uint8_t* vStart = pFirstVec + itemsBytesLen(iFirstVec, iFirstVec + v);
+      uint8_t* vFirstDesc = vStart + i(iFirstVec + v)->len - sizeof(vectlen) - sizeof(Item);
+      uint8_t* viBytes = vStart + offsets[v];
+      Item desc = *(Item*)(vFirstDesc - descOffset);
+      itemlen iLen = itemBytesLen(&desc);
+      stagedOffsets[v] = iLen;
+      //Increment end counter
+      if (v == vLast) {
+        ++counts[v];
+        offsets[v] += iLen;
+        //Check & reset counters
+        argnum v = 0;
+        for (; v < nVec; ++v) {
+          argnum reverseV = (nVec - 1) - v;
+          vectlen* c = &counts[reverseV];
+          if (*c == lens[reverseV]) {
+            *c = 0;
+            offsets[reverseV] = 0;
+            if (reverseV) {
+              argnum nextV = reverseV - 1;
+              ++counts[nextV];
+              offsets[nextV] += stagedOffsets[nextV];
+            }
+          } else break;
+        }
+        //If counters all fully incremented, for loop is complete
+        if (v == nVec)
+          forLoop = false;
+      }
+      //Copy onto stack
+      memcpy(stackItem(), viBytes, iLen);
+      stackItem(desc);
+    }
+    //Reduce extracted values
+    if (isOp) nativeOp((IType)fCode, exeAt);
+    else      exeFunc(fCode, exeAt);
+  }
+  //Vectorise and collapse return
+  op_Vec(firstParam + 1 + nVec + 1);
   returnCollapseLast(firstParam);
 }
 

@@ -84,6 +84,7 @@ class Machine {
   void     op_Sect   (itemnum);
   void     op_Reduce (itemnum);
   void     op_Map    (itemnum);
+  void     op_For    (itemnum);
   void     op_Val    (itemnum);
   void     op_Do     (itemnum);
   void     op_MsNow  (itemnum);
