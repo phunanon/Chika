@@ -150,6 +150,10 @@ Using pre-allocated memory to store and execute a variable number of programs at
 - uses stacks
 - uses C/V items
 
+#### Internal features
+
+- tail-call optimisation
+
 ### Program lifetime
 
 - entry

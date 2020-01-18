@@ -189,7 +189,7 @@ void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
   uint8_t* fStart = f;
   itemnum nParam = numItem() - firstParam;
   while (f != fEnd) {
-    f = exeForm(f, firstParam, nParam);
+    f = exeForm(f, fEnd, firstParam, nParam);
     if (recurring) {
       nParam = numItem() - firstParam;
       recurring = false;
@@ -205,13 +205,22 @@ void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
 }
 
 
+//Tail-call opitimise
+void Machine::tailCallOptim (IType type, uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum& firstArgItem) {
+  if (f == funcEnd - constByteLen(type) - 1) {
+    //collapse args into params position
+    collapseItems(firstParam, numItem() - firstArgItem);
+    firstArgItem = firstParam;
+  }
+}
+
 enum IfResult : uint8_t { UnEvaled = 0, WasTrue, WasFalse };
 
 union SpecialFormData {
   IfResult ifData = UnEvaled;
 };
 
-uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam, itemnum nParam) {
+uint8_t* Machine::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum nParam) {
   IType formCode = *(IType*)f;
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
@@ -302,7 +311,7 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam, itemnum nParam) {
     IType type = (IType)*f;
     //If a form
     if (type <= FORMS_END)
-      f = exeForm(f, firstParam, nParam);
+      f = exeForm(f, funcEnd, firstParam, nParam);
     else
     //If a parameter
     if (type == Param_Val) {
@@ -345,12 +354,13 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam, itemnum nParam) {
     } else
     //If an explicit function recursion
     if (type == Op_Recur) {
-      //As a tail-call, collapse args into params position, set recurring flag
-      collapseItems(firstParam, numItem() - firstArgItem);
+      //Tail-call optimise and set recur flag
+      tailCallOptim(type, f, funcEnd, firstParam, firstArgItem);
       recurring = true;
     } else
     //If a program function
     if (type == Op_Func) {
+      tailCallOptim(type, f, funcEnd, firstParam, firstArgItem);
       funcnum fNum = *(funcnum*)(++f);
       exeFunc(fNum, firstArgItem);
       f += sizeof(funcnum);
@@ -379,9 +389,10 @@ uint8_t* Machine::exeForm (uint8_t* f, itemnum firstParam, itemnum nParam) {
           nativeOp(*(IType*)iData(it), firstArgItem);
         else
         //If a program function
-        if (type == Var_Func)
+        if (type == Var_Func) {
+          tailCallOptim(type, f, funcEnd, firstParam, firstArgItem);
           exeFunc(*(funcnum*)iData(it), firstArgItem);
-        else
+        } else
         //Variable wasn't of Var_Op/Var_Func type
           returnNil(firstArgItem);
       }
