@@ -6,7 +6,7 @@
 (fn odd? n (not (even? n)))
 (fn pos? n (<= 0 n))
 (fn neg? n (< n 0))
-(fn neg n (* n -1I))
+(fn neg n (- 0i n))
 (fn abs n (if (pos? n) (neg n) n))
 
 (fn first v  (nth v 0))

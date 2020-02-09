@@ -14,7 +14,7 @@ const bytesToHex = nums => nums.map(n => numToHex(n, 1)).join("");
 const last = arr => arr[arr.length - 1];
 const isObject = o => o === Object(o);
 const isString = s => typeof s === "string";
-const isChikaNum = s => isString(s) && s.search(/^-?\d+[W|I]*$/) != -1 && s.match(/-?\d+[W|I]*/g).join("") == s;
+const isChikaNum = s => isString(s) && s.search(/^-?\d+[w|i]*$/) != -1 && s.match(/-?\d+[w|i]*/g).join("") == s;
 const num = s => parseInt(s.match(/-?\d+/g).join(""));
 
 
@@ -122,8 +122,8 @@ function compile (source, ramRequest) {
 
   //Serialise integers
   function serialiseNum (s) {
-    const isU16 = s.endsWith("W");
-    const isI32 = s.endsWith("I");
+    const isU16 = s.endsWith("w");
+    const isI32 = s.endsWith("i");
     if (isU16 || isI32)
       s = s.slice(0, -1);
     const type = isI32 ? Val_I32 : (isU16 ? Val_U16 : Val_U08);

@@ -190,9 +190,9 @@ Unmodified parameters must be returned through `val`.
 
 `0`: 8-bit unsigned integer.
 
-`0W`: 16-bit unsigned integer.
+`0w`: 16-bit unsigned integer.
 
-`0I`: 32-bit signed integer.
+`0i`: 32-bit signed integer.
 
 `\c`: ASCII character.
 
