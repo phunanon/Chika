@@ -3,6 +3,6 @@
       half2= (sect v n)
     (vec
       (burst half1)
-      (second  half2)
-      (first half2)
-      (burst (sect half2 2)))))
+      (2nd half2)
+      (1st half2)
+      (b-sect half2 2))))

@@ -100,12 +100,12 @@ See [core.chi](Chika/programs/core.chi) and [the corpus](Chika/corpus) for more,
       (my-print))
 
     //Filter function, found in core.chi
-    //Note: `first`, `rest`, and `append` are all implemented in Chika in core.chi
+    //Note: `1st`, `rest`, and `append` are all implemented in Chika in core.chi
     //Note: `filtered` is an optional argument - `append` accepts nil as a vector
     (fn filter v pred, filtered
       (if (= (len v) 0)
         filtered
-        (do f= (first v)
+        (do f= (1st v)
           (recur (rest v) pred
             (if (pred f)
               (append filtered f)

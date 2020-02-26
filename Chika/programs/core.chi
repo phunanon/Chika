@@ -9,8 +9,8 @@
 (fn neg n (- 0i n))
 (fn abs n (if (pos? n) (neg n) n))
 
-(fn first v  (nth v 0))
-(fn second v (nth v 1))
+(fn 1st  v (nth v 0))
+(fn 2nd  v (nth v 1))
 (fn last v (nth v (dec (len v))))
 (fn rest v (sect v 1))
 (fn prepend v i (vec i (burst v)))
@@ -21,19 +21,19 @@
 (fn every? vec pred
   (if (= (len vec) 0)
     true
-    (if (pred (first vec))
+    (if (pred (1st vec))
       (recur (rest vec) pred)
       false)))
 (fn some vec pred
   (if (= (len vec) 0)
     nil
-    (if (pred (first vec))
-      (first vec)
+    (if (pred (1st vec))
+      (1st vec)
       (recur (rest vec) pred))))
-(fn filter v pred filtered
+(fn filter v pred, filtered
   (if (= (len v) 0)
     filtered
-    (do f= (first v)
+    (do f= (1st v)
       (recur (rest v) pred
         (if (pred f)
           (append filtered f)
@@ -42,3 +42,12 @@
 (fn substr s skip take
   (str (b-sect (vec (burst s))
                skip take)))
+
+//e.g. (zip-select [false true false] [\a \b \c]) => \b
+(fn zip-select select from
+  (if (not-empty? select)
+    (if (1st select)
+      (1st from)
+      (recur (rest select) (rest from)))
+    nil))
+

@@ -1,8 +1,8 @@
 (fn some-pair-at v p n
   (if (< 1 (len v))
-    (do 1st= (first  v)
-        2nd= (second v)
-        N=   (or n 0)
-      (if (p 1st 2nd)
+    (do i1= (1st v)
+        i2= (2nd v)
+        N=  (or n 0)
+      (if (p i1 i2)
         N
         (recur (rest v) p (inc N))))))
