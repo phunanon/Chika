@@ -205,13 +205,14 @@ void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
 }
 
 
-//Tail-call opitimise
+//Collapse args into params position
+void Machine::collapseArgs (itemnum firstParam, itemnum& firstArgItem) {
+  collapseItems(firstParam, numItem() - firstArgItem);
+  firstArgItem = firstParam;
+}
 void Machine::tailCallOptim (IType type, uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum& firstArgItem) {
-  if (f == funcEnd - constByteLen(type) - 1) {
-    //collapse args into params position
-    collapseItems(firstParam, numItem() - firstArgItem);
-    firstArgItem = firstParam;
-  }
+  if (f == funcEnd - constByteLen(type) - 1) //If the op is a tail call
+    collapseArgs(firstParam, firstArgItem);
 }
 
 enum IfResult : uint8_t { UnEvaled = 0, WasTrue, WasFalse };
@@ -354,8 +355,8 @@ uint8_t* Machine::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, ite
     } else
     //If an explicit function recursion
     if (type == Op_Recur) {
-      //Tail-call optimise and set recur flag
-      tailCallOptim(type, f, funcEnd, firstParam, firstArgItem);
+      //Treat as if tail-call and set recur flag
+      collapseArgs(firstParam, firstArgItem);
       recurring = true;
     } else
     //If a program function

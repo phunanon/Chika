@@ -67,6 +67,7 @@ class Machine {
 
   //All leave one V item on the stack
   void     exeFunc   (funcnum, itemnum);
+  void     collapseArgs  (itemnum, itemnum&);
   void     tailCallOptim (IType, uint8_t*, uint8_t*, itemnum, itemnum&);
   uint8_t* exeForm   (uint8_t*, uint8_t*, itemnum, itemnum);
   void     nativeOp  (IType, itemnum);
