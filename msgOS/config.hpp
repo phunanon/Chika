@@ -82,7 +82,7 @@ enum IType : uint8_t {
   Op_BXor   = 0x43,
   Op_LShift = 0x44,
   Op_RShift = 0x45,
-  Op_Str    = 0x55,
+  Op_Str    = 0xA0,
   Op_Type   = 0xAA,
   Op_Cast   = 0xAB,
   Op_Vec    = 0xB0,
