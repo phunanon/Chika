@@ -233,7 +233,8 @@ Unmodified parameters must be returned through `val`.
 
 `len i`: returns either vector, string, or internal item length.
 
-`sect v skip[ take]`: returns `take` or rest many items from vector `v`, `skip` many from the vector head.
+`sect v skip[ take]`: returns `take` or rest many items from vector `v`, `skip` many from the vector head, as a vector.  
+`b-sect v skip[ take]`: the same as `sect` but returns items burst.
 
 `burst v`: explodes vector or string `v` onto the argument stack as either vector items or Val_Char items (like Lisp `apply`).
 

@@ -425,7 +425,8 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Vec:    op_Vec   (firstParam); break;
     case Op_Nth:    op_Nth   (firstParam); break;
     case Op_Len:    op_Len   (firstParam); break;
-    case Op_Sect:   op_Sect  (firstParam); break;
+    case Op_Sect: case Op_BSect:
+      op_Sect(firstParam, op == Op_BSect); break;
     case Op_Burst:  burstVec();            break;
     case Op_Reduce: op_Reduce(firstParam); break;
     case Op_Map:    op_Map   (firstParam); break;
@@ -635,7 +636,7 @@ void Machine::op_Len (itemnum firstParam) {
   returnItem(firstParam, Item(sizeof(itemlen), fitInt(sizeof(itemlen))));
 }
 
-void Machine::op_Sect (itemnum firstParam) {
+void Machine::op_Sect (itemnum firstParam, bool isBurst) {
   //Get vector length
   vectlen len = vectLen(firstParam);
   //Retain the skip and take
@@ -655,10 +656,15 @@ void Machine::op_Sect (itemnum firstParam) {
   //Vector becomes only parameter and is burst
   trunStack(firstParam + 1);
   burstVec();
-  //Truncate to skip+take then vectorise at skip
+  //Truncate to skip+take
   trunStack(firstParam + skip + take);
-  op_Vec(firstParam + skip);
-  returnCollapseLast(firstParam);
+  //Either return burst items (b-sect) or a vector (sect)
+  if (isBurst) {
+    collapseItems(firstParam, take);
+  } else {
+    op_Vec(firstParam + skip);
+    returnCollapseLast(firstParam);
+  }
 }
 
 void Machine::op_Reduce (itemnum firstParam) {
@@ -726,8 +732,6 @@ void Machine::op_Map (itemnum firstParam) {
   returnCollapseLast(firstParam);
 }
 
-// (for func [\a \b \c] [1 2 3])
-// [a1 a2 a3 b1 b2 b3 c1 c2 c3]
 void Machine::op_For (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;

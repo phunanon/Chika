@@ -82,7 +82,7 @@ class Machine {
   void     op_Vec    (itemnum);
   void     op_Nth    (itemnum);
   void     op_Len    (itemnum);
-  void     op_Sect   (itemnum);
+  void     op_Sect   (itemnum, bool);
   void     op_Reduce (itemnum);
   void     op_Map    (itemnum);
   void     op_For    (itemnum);

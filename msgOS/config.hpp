@@ -89,6 +89,7 @@ enum IType : uint8_t {
   Op_Nth    = 0xB1,
   Op_Len    = 0xB2,
   Op_Sect   = 0xB3,
+  Op_BSect  = 0xB4,
   Op_Burst  = 0xBA,
   Op_Reduce = 0xBB,
   Op_Map    = 0xBC,
