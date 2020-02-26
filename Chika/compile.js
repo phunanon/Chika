@@ -22,8 +22,8 @@ const
   Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03,
   Val_True = 0x04, Val_False = 0x05, Val_Str = 0x06, Param_Val = 0x07,
   Bind_Var = 0x08, Var_Val = 0x09,
-  Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, Val_Char = 0x19,
-  Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x1E,
+  Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, Val_Char = 0x13,
+  Val_Args = 0x19, Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x1E,
   Op_Func = 0x22, Op_Var = 0x2A, Op_Param = 0x2B;
 const strOps =
   {"if":    0x23, "or":     0x24, "and":    0x25, "recur": 0x2F,
@@ -161,6 +161,8 @@ function compile (source, ramRequest) {
   //Replace parameters, variables, and binds
   const variables = [];
   function argOrVarToHex (sym, fi) {
+    if (sym == "args")
+      return {hex: numToHex(Val_Args, 1), info: `args val`};
     //Check if function parameter
     const param = funcRegister[fi].paras.indexOf(sym);
     if (param != -1)

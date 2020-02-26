@@ -182,7 +182,7 @@ Names can include (almost) any characters excluding whitespace.
 
 Parameters override variables.
 
-Unmodified parameters must be returned through `val`.
+Functions must end in a form - to return a value use `val`.
 
 #### Data types
 
@@ -197,6 +197,10 @@ Unmodified parameters must be returned through `val`.
 `\c`: ASCII character.
 
 `[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty.
+
+#### Constants
+
+`args`: emits a vector of function arguments.
 
 #### Native functions
 

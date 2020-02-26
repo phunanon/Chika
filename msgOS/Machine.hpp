@@ -58,6 +58,7 @@ class Machine {
   void     returnCollapseItem (itemnum, Item*);    //
   void     returnCollapseItem (itemnum, Item);     // Collapse the LIFO so the last stack item is moved to be the return item
   void     returnItemFrom     (itemnum, itemnum);
+  void     restackCopy        (itemnum, itemnum);
   void     returnNil  (itemnum);
   void     iPop       ();                   //Pop item
   void     collapseItems (itemnum, itemnum);
@@ -65,13 +66,14 @@ class Machine {
   uint8_t* pFunc     (funcnum);
   bool     findVar   (itemnum&, varnum);
 
-  //All leave one V item on the stack
-  void     exeFunc   (funcnum, itemnum);
   void     collapseArgs  (itemnum, itemnum&);
   void     tailCallOptim (IType, uint8_t*, uint8_t*, itemnum, itemnum&);
+  void     burstVec  ();
+  void     op_Sect   (itemnum, bool);
+  //All leave one V item on the stack
+  void     exeFunc   (funcnum, itemnum);
   uint8_t* exeForm   (uint8_t*, uint8_t*, itemnum, itemnum);
   void     nativeOp  (IType, itemnum);
-  void     burstVec  ();
   vectlen  vectLen   (itemnum);
   void     negate    (itemnum);
   void     op_Equal  (itemnum, bool);
@@ -83,7 +85,6 @@ class Machine {
   void     op_Vec    (itemnum);
   void     op_Nth    (itemnum);
   void     op_Len    (itemnum);
-  void     op_Sect   (itemnum, bool);
   void     op_Reduce (itemnum);
   void     op_Map    (itemnum);
   void     op_For    (itemnum);

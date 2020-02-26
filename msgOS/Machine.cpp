@@ -118,6 +118,15 @@ void Machine::returnItemFrom (itemnum to, itemnum from) {
   //Copy descriptor
   returnItem(to, iFrom);
 }
+//Copies N items to the end of the stack
+void Machine::restackCopy (itemnum from, itemnum nItem) {
+  bytenum nByte = itemsBytesLen(from, from + nItem);
+  //Copy bytes and descriptors
+  memcpy(stackItem(), iBytes(from), nByte);
+  memcpy(i(numItem()) - (nItem - 1), i(from) - (nItem - 1), nItem * sizeof(Item));
+  numItem(numItem() + nItem);
+  numByte(numByte() + nByte);
+}
 void Machine::returnNil (itemnum replace) {
   returnItem(replace, Item(0, Val_Nil));
 }
@@ -329,6 +338,12 @@ uint8_t* Machine::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, ite
       memcpy(stackItem(), iData(paramNum), iParam->len);
       //Copy its item descriptor too, as value
       stackItem(Item(iParam->len, iParam->type()));
+    } else
+    //If a vector of the function arguments
+    if (type == Val_Args) {
+      restackCopy(firstParam, nParam);
+      op_Vec(firstArgItem);
+      ++f; //Skip const code
     } else
     //If a variable
     if (type == Var_Val) {
