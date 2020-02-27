@@ -137,9 +137,13 @@ function compile (source, ramRequest) {
   funcs = walkItems(funcs, isChikaNum, serialiseNum);
 
   //Serialise chars
+  function serialiseChar (s) {
+    let complex = {"/nl": '\n'}[s];
+    return (complex ? complex : s[1]).charCodeAt(0);
+  }
   const charise = s => (
-    {hex: bytesToHex([Val_Char, s.charCodeAt(1)]),
-     info: `char: ${s[1]}`});
+    {hex: bytesToHex([Val_Char, serialiseChar(s)]),
+     info: `char: ${s.substr(1)}`});
   funcs = walkItems(funcs, s => s[0] == "/", charise);
 
   //Serialise strings back in

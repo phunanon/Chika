@@ -196,7 +196,7 @@ Functions must end in a form - to return a value use `val`.
 
 `0i`: 32-bit signed integer.
 
-`\c`: ASCII character.
+`\c`: ASCII character. Extended: \nl newline.
 
 `[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty.
 
