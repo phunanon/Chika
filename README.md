@@ -100,16 +100,18 @@ See [core.chi](Chika/programs/core.chi) and [the corpus](Chika/corpus) for more,
       (my-print))
 
     //Filter function, found in core.chi
-    //Note: `1st`, `rest`, and `append` are all implemented in Chika in core.chi
+    //Note: `1st`, `append`, and `odd?` are all implemented in Chika in core.chi
     //Note: `filtered` is an optional argument - `append` accepts nil as a vector
-    (fn filter v pred, filtered
+    (fn filter v pred; filtered
       (if (= (len v) 0)
         filtered
         (do f= (1st v)
-          (recur (rest v) pred
+          (recur (sect v) pred
             (if (pred f)
               (append filtered f)
               filtered)))))
+    //Returns [1 3]
+    (filter [0 1 2 3] odd?)
 
 
 ### Compiling and running
@@ -226,7 +228,7 @@ Functions must end in a form - to return a value use `val`.
 
 `vec` 0-N arg: returns vector of its arguments.
 
-`nth vec N`: returns item `N` of vector `vec`.
+`nth i N`: returns item or character `N` of vector or string `i`.
 
 `str` 0 arg: returns empty string.  
 `str` N arg: returns concatenation of N args as a string.
@@ -237,8 +239,10 @@ Functions must end in a form - to return a value use `val`.
 
 `len i`: returns either vector, string, or internal item length.
 
-`sect v skip[ take]`: returns `take` or rest many items from vector `v`, `skip` many from the vector head, as a vector.  
-`b-sect v skip[ take]`: the same as `sect` but returns items burst.
+`sect v`: returns `v` with first item omitted;  
+`sect v skip`: returns `v` with first `skip` items omitted;  
+`sect v skip take`: returns `v` with `take` length and first `skip` items omitted;  
+`b-sect`: the same as `sect` but returns items burst.
 
 `burst v`: explodes vector or string `v` onto the argument stack as either vector items or Val_Char items (like Lisp `apply`).
 

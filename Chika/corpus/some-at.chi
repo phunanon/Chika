@@ -4,4 +4,4 @@
         N= (or n 0)
       (if (p f)
         N
-        (recur (rest v) p (inc N))))))
+        (recur (sect v) p (inc N))))))

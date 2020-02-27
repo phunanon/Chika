@@ -1,40 +1,39 @@
-(fn not x (if x false true))
+(fn ! x (if x false true))
 
 (fn inc n (+ n 1))
 (fn dec n (- n 1))
 (fn even? n (= (mod n 2) 0))
-(fn odd? n (not (even? n)))
+(fn odd? n (! (even? n)))
 (fn pos? n (<= 0 n))
 (fn neg? n (< n 0))
 (fn neg n (- 0i n))
 (fn abs n (if (pos? n) (neg n) n))
 
-(fn 1st  v (nth v 0))
-(fn 2nd  v (nth v 1))
-(fn last v (nth v (dec (len v))))
-(fn rest v (sect v 1))
+(fn 1st  i (nth i 0))
+(fn 2nd  i (nth i 1))
+(fn last i (nth i (dec (len i))))
 (fn prepend v i (vec i (burst v)))
 (fn append  v i (vec (burst v) i))
 (fn concat v1 v2 (vec (burst v1) (burst v2)))
-(fn not-empty? v (!= (len v) 0))
+(fn !empty? i (!= (len i) 0))
 
 (fn every? vec pred
   (if (= (len vec) 0)
     true
     (if (pred (1st vec))
-      (recur (rest vec) pred)
+      (recur (sect vec) pred)
       false)))
 (fn some vec pred
   (if (= (len vec) 0)
     nil
     (if (pred (1st vec))
       (1st vec)
-      (recur (rest vec) pred))))
+      (recur (sect vec) pred))))
 (fn filter v pred, filtered
   (if (= (len v) 0)
     filtered
     (do f= (1st v)
-      (recur (rest v) pred
+      (recur (sect v) pred
         (if (pred f)
           (append filtered f)
           filtered)))))
@@ -45,9 +44,9 @@
 
 //e.g. (zip-select [false true false] [\a \b \c]) => \b
 (fn zip-select select from
-  (if (not-empty? select)
+  (if (!empty? select)
     (if (1st select)
       (1st from)
-      (recur (rest select) (rest from)))
+      (recur (sect select) (sect from)))
     nil))
 

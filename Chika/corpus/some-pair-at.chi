@@ -5,4 +5,4 @@
         N=  (or n 0)
       (if (p i1 i2)
         N
-        (recur (rest v) p (inc N))))))
+        (recur (sect v) p (inc N))))))

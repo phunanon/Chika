@@ -625,9 +625,25 @@ void Machine::op_Vec (itemnum firstParam) {
 
 void Machine::op_Nth (itemnum firstParam) {
   int32_t nth = iInt(firstParam + 1);
+  Item* it = i(firstParam);
+  //Return nil on negative nth or non-str/vec
+  if (nth < 0 || (it->type() != Val_Vec && it->type() != Val_Str)) {
+    returnNil(firstParam);
+    return;
+  }
+  //Different behaviour for if a string or a vector
+  if (it->type() == Val_Str) {
+    if (it->len < 2 || nth > it->len - 2) {
+      returnNil(firstParam);
+      return;
+    }
+    *iBytes(firstParam) = iData(firstParam)[nth];
+    returnItem(firstParam, Item(1, Val_Char));
+    return;
+  }
   //Collate vector info
   uint8_t* vBytes = iData(firstParam);
-  uint8_t* vEnd = (vBytes + i(firstParam)->len) - sizeof(vectlen);
+  uint8_t* vEnd = (vBytes + it->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
   Item* vItems = &((Item*)vEnd)[-vNumItem];
   //Find item descriptor at nth
@@ -655,11 +671,14 @@ void Machine::op_Len (itemnum firstParam) {
 void Machine::op_Sect (itemnum firstParam, bool isBurst) {
   //Get vector length
   vectlen len = vectLen(firstParam);
-  //Retain the skip and take
-  vectlen skip = iInt(firstParam + 1);
-  vectlen take = len - skip;
-  if (numItem() - firstParam == 3)
-    take = iInt(firstParam + 2);
+  //Retain the skip and take, or use defaults
+  vectlen skip = 1,
+          take = len - skip;
+  {
+    argnum nArg = numItem() - firstParam;
+    if (nArg > 1) skip = iInt(firstParam + 1);
+    if (nArg > 2) take = iInt(firstParam + 2);
+  }
   //Bound skip and take to vector length
   if (skip >= len) {
     *(vectlen*)stackItem() = 0;
