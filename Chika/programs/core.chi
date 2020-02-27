@@ -38,10 +38,6 @@
           (append filtered f)
           filtered)))))
 
-(fn substr s skip take
-  (str (b-sect (vec (burst s))
-               skip take)))
-
 //e.g. (zip-select [false true false] [\a \b \c]) => \b
 (fn zip-select select from
   (if (!empty? select)

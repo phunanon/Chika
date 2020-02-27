@@ -443,7 +443,7 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
     case Op_Len:    op_Len   (firstParam); break;
     case Op_Sect: case Op_BSect:
       op_Sect(firstParam, op == Op_BSect); break;
-    case Op_Burst:  burstVec();            break;
+    case Op_Burst:  burstItem();           break;
     case Op_Reduce: op_Reduce(firstParam); break;
     case Op_Map:    op_Map   (firstParam); break;
     case Op_For:    op_For   (firstParam); break;
@@ -456,10 +456,10 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
 }
 
 
-void Machine::burstVec () {
+void Machine::burstItem () {
   itemnum iVec = numItem() - 1;
   Item* itVec = i(iVec);
-  //If nil, destroy the vector
+  //If nil, destroy the item
   if (itVec->type() == Val_Nil) {
     trunStack(iVec);
     return;
@@ -669,8 +669,15 @@ void Machine::op_Len (itemnum firstParam) {
 }
 
 void Machine::op_Sect (itemnum firstParam, bool isBurst) {
-  //Get vector length
-  vectlen len = vectLen(firstParam);
+  IType type = i(firstParam)->type();
+  bool isStr = type == Val_Str;
+  //Return nil if not a vector or string
+  if (type != Val_Vec && !isStr) {
+    returnNil(firstParam);
+    return;
+  }
+  //Get vector or string length
+  vectlen len = isStr ? i(firstParam)->len - 1 : vectLen(firstParam);
   //Retain the skip and take, or use defaults
   vectlen skip = 1,
           take = len - skip;
@@ -679,18 +686,33 @@ void Machine::op_Sect (itemnum firstParam, bool isBurst) {
     if (nArg > 1) skip = iInt(firstParam + 1);
     if (nArg > 2) take = iInt(firstParam + 2);
   }
-  //Bound skip and take to vector length
+  //Bound skip and take to length
   if (skip >= len) {
-    *(vectlen*)stackItem() = 0;
-    stackItem(Item(sizeof(vectlen), Val_Vec));
+    //Return empty vector or string if skip is beyond length
+    if (isStr) {
+      *(char*)stackItem() = 0;
+      stackItem(Item(1, Val_Str));
+    } else {
+      *(vectlen*)stackItem() = 0;
+      stackItem(Item(sizeof(vectlen), Val_Vec));
+    }
     returnCollapseLast(firstParam);
     return;
   }
   if (skip + take > len)
     take = (skip + take) - len;
+  if (isStr) {
+    //Copy subsection of memory to start of the string, add terminator
+    memcpy(iBytes(firstParam), iData(firstParam) + skip, take);
+    iBytes(firstParam)[take + 1] = 0;
+    //Either return burst characters (b-sect) or a string (sect)
+    returnItem(firstParam, Item(take + 1, Val_Str));
+    if (isBurst) burstItem();
+    return;
+  }
   //Vector becomes only parameter and is burst
   trunStack(firstParam + 1);
-  burstVec();
+  burstItem();
   //Truncate to skip+take
   trunStack(firstParam + skip + take);
   //Either return burst items (b-sect) or a vector (sect)
@@ -706,8 +728,8 @@ void Machine::op_Reduce (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
   funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
-  //Burst vector in situ (the last item on the stack)
-  burstVec();
+  //Burst item in situ (the last item on the stack)
+  burstItem();
   //Copy seed or first item onto stack - either (reduce f v) (reduce f s v)
   {
     Item* seed = i(firstParam + 1);
