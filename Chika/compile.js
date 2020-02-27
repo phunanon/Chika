@@ -51,7 +51,9 @@ const walkArrays = (arr, pred, func) =>
 function extractStrings (source) {
   const strings = [];
   let numStr = 0;
+  source = source.replace(/\\"/g, "/quotes");
   source = source.replace(/"(.*?)"/g, m => { strings.push(m.slice(1,-1)); return "`"+(numStr++)+"`"; });
+  source = source.replace(/\/quotes/g, "\\\"");
   return {source, strings};
 }
 
@@ -60,6 +62,7 @@ const formise = s =>
     "["+
     s.replace(/\s*\n\s*/g, " ")
      .trim()
+     .replace(/\/"/g, "/\\\"")
      .replace(/ /g, "\", \"")
      .replace(/\(/g, "\", [\"")
      .replace(/\)/g, "\"], \"")
