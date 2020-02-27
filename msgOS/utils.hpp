@@ -17,4 +17,3 @@ uint8_t _log10 (uint32_t);
 uint8_t int2chars (uint8_t*, int32_t);
 
 int32_t readNum  (uint8_t*, uint8_t);
-void    writeNum (uint8_t*, int32_t, uint8_t);

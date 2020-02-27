@@ -42,9 +42,6 @@ uint8_t _log10 (uint32_t v) {
 int32_t readNum (uint8_t* b, uint8_t len) {
   return *(int32_t*)b & ((uint32_t)-1 >> ((4 - len) * 8));
 }
-void writeNum (uint8_t* b, int32_t i, uint8_t len) {
-  memcpy(b, &i, len);
-}
 
 //Provide at least 11 bytes; returns length
 uint8_t int2chars (uint8_t* str, int32_t n) {

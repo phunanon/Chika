@@ -560,7 +560,7 @@ void Machine::op_Arith (itemnum firstParam, IType op) {
       case Op_RShift: result >>= num; break;
     }
   }
-  writeNum(iBytes(firstParam), result, len);
+  memcpy(iBytes(firstParam), &result, len);
   returnItem(firstParam, Item(len, type));
 }
 
@@ -601,7 +601,7 @@ void Machine::op_Str (itemnum firstParam) {
 }
 
 void Machine::op_Type (itemnum firstParam) {
-  writeNum(iBytes(firstParam), i(firstParam)->type(), sizeof(IType));
+  *(IType*)iBytes(firstParam) = i(firstParam)->type();
   returnItem(firstParam, Item(sizeof(IType), fitInt(sizeof(IType))));
 }
 
@@ -617,7 +617,7 @@ void Machine::op_Vec (itemnum firstParam) {
   bytenum itemsLen = sizeof(Item) * nItems;
   memcpy(descs, iLast(), itemsLen);
   //Append number of items
-  writeNum(descs + itemsLen, nItems, sizeof(vectlen));
+  *(vectlen*)(descs + itemsLen) = nItems;
   //Return umbrella item descriptor
   bytenum bytesLen = itemsBytesLen(firstParam, numItem()) + itemsLen + sizeof(vectlen);
   returnItem(firstParam, Item(bytesLen, Val_Vec));
@@ -664,7 +664,7 @@ void Machine::op_Len (itemnum firstParam) {
     case Val_Vec: len = vectLen(firstParam); break;
     case Val_Str: --len; break;
   }
-  *(itemlen*)iBytes(firstParam) = len; //TODO make itemlen
+  *(itemlen*)iBytes(firstParam) = len;
   returnItem(firstParam, Item(sizeof(itemlen), fitInt(sizeof(itemlen))));
 }
 
