@@ -206,6 +206,8 @@ Functions must end in a form - to return a value use `val`.
 
 #### Native functions
 
+`!`: negates argument.
+
 `+` / `-` / `*` / `/` / `mod` / `&` / `|` / `^` / `<<` / `>>` N arg: returns sum / subtraction / multiplication / division / modulus / AND / OR / XOR / left shift / right shift of N integers. Zero args returns nil. Will cast all parameters as the type of the first argument.  
 `~` 1 arg: returns NOT.
 

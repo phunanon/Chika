@@ -426,9 +426,10 @@ uint8_t* Machine::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, ite
 
 void Machine::nativeOp (IType op, itemnum firstParam) {
   switch (op) {
+    case Op_Not:    op_Not   (firstParam); break;
     case Op_Equal: case Op_Nequal: case Op_Equit: case Op_Nequit:
       op_Equal(firstParam, op == Op_Equal || op == Op_Nequal);
-      if (op == Op_Nequal || op == Op_Nequit) negate(firstParam);
+      if (op == Op_Nequal || op == Op_Nequit) op_Not(firstParam);
       break;
     case Op_GT: case Op_GTE: case Op_LT: case Op_LTE:
       op_Diff(firstParam, op); break;
@@ -491,9 +492,9 @@ vectlen Machine::vectLen (itemnum it) {
   return readNum(iBytes(it + 1) - sizeof(vectlen), sizeof(vectlen));
 }
 
-
-void Machine::negate (itemnum firstParam) {
-  returnItem(firstParam, Item(0, isTypeTruthy(i(firstParam)->type()) ? Val_False : Val_True));
+void Machine::op_Not (itemnum firstParam) {
+  bool isTruthy = isTypeTruthy(i(firstParam)->type());
+  returnItem(firstParam, Item(0, isTruthy ? Val_False : Val_True));
 }
 
 
@@ -700,7 +701,7 @@ void Machine::op_Sect (itemnum firstParam, bool isBurst) {
     return;
   }
   if (skip + take > len)
-    take = (skip + take) - len;
+    take = len - skip;
   if (isStr) {
     //Copy subsection of memory to start of the string, add terminator
     memcpy(iBytes(firstParam), iData(firstParam) + skip, take);

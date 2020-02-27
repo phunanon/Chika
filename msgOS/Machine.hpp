@@ -75,7 +75,7 @@ class Machine {
   uint8_t* exeForm   (uint8_t*, uint8_t*, itemnum, itemnum);
   void     nativeOp  (IType, itemnum);
   vectlen  vectLen   (itemnum);
-  void     negate    (itemnum);
+  void     op_Not    (itemnum);
   void     op_Equal  (itemnum, bool);
   void     op_Diff   (itemnum, IType);
   void     op_Arith  (itemnum, IType);
