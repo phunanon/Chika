@@ -93,6 +93,15 @@ int main (int argc, char* argv[]) {
   if (argc == 2) harness.loadProg(argv[1]);
   else           harness.loadProg("init.kua");
 
+  //Beat all hearts once, check if all are dead for early exit
+  {
+    bool allDead = true;
+    for (uint8_t p = 0; p < pNum; ++p)
+      if (machine.heartbeat(p))
+        allDead = false;
+    if (allDead) return 0;
+  }
+
   //Round-robin the heartbeats
   while (true)
     for (uint8_t p = 0; p < pNum; ++p)

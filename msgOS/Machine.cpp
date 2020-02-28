@@ -151,9 +151,9 @@ void Machine::entry () {
   exeFunc(0x0000, 0);
 }
 
-void Machine::heartbeat (prognum _pNum) {
+bool Machine::heartbeat (prognum _pNum) {
   setPNum(_pNum);
-  exeFunc(0x0001, 0);
+  return exeFunc(0x0001, 0);
 }
 
 uint8_t* Machine::pFunc (funcnum fNum) {
@@ -185,13 +185,14 @@ bool Machine::findVar (itemnum& it, varnum vNum) {
 }
 
 bool recurring = false;
-void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
+bool Machine::exeFunc (funcnum fNum, itemnum firstParam) {
   uint8_t* f = pFunc(fNum);
-  if (f == nullptr) return;
+  if (f == nullptr) return false;
   uint8_t* fEnd;
   f += sizeof(funcnum);
   {
     funclen fLen = *(funclen*)f;
+    if (!fLen) return false;
     f += sizeof(funclen);
     fEnd = f + fLen;
   }
@@ -211,6 +212,7 @@ void Machine::exeFunc (funcnum fNum, itemnum firstParam) {
   //Move last item into return position
   if (numItem() > 0)
     returnCollapseLast(firstParam);
+  return true;
 }
 
 

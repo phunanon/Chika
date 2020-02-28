@@ -71,7 +71,7 @@ class Machine {
   void     burstItem ();
   void     op_Sect   (itemnum, bool);
   //All leave one V item on the stack
-  void     exeFunc   (funcnum, itemnum);
+  bool     exeFunc   (funcnum, itemnum);
   uint8_t* exeForm   (uint8_t*, uint8_t*, itemnum, itemnum);
   void     nativeOp  (IType, itemnum);
   vectlen  vectLen   (itemnum);
@@ -96,7 +96,7 @@ class Machine {
 public:
   Machine ();
   void entry ();
-  void heartbeat (prognum);
+  bool heartbeat (prognum);
 
   uint8_t* mem;
   //Program ROM
