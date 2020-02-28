@@ -2,24 +2,13 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
-#include "ChVM.cpp"
+#include "ChVM.hpp"
 
-class PCHarness : IMachineHarness {
-public:
-  virtual void     print      (const char*);
-  virtual void     debugger   (const char*, bool, uint32_t);
-  virtual void     printMem   (uint8_t*, uint8_t);
-  virtual void     printItems (uint8_t*, itemnum);
-  virtual uint8_t  loadProg   (const char*);
-  virtual uint8_t  unloadProg (const char*);
-  virtual uint32_t msNow      ();
-};
-
-void PCHarness::print (const char* output) {
+void ChVM_Harness::print (const char* output) {
   printf("%s\n", output);
 }
 
-void PCHarness::debugger (const char* output, bool showNum = false, uint32_t number = 0) {
+void ChVM_Harness::debugger (const char* output, bool showNum = false, uint32_t number = 0) {
   if (showNum) {
     printf("%s", output);
     printf("%s", " ");
@@ -30,7 +19,7 @@ void PCHarness::debugger (const char* output, bool showNum = false, uint32_t num
   }
 }
 
-void PCHarness::printMem (uint8_t* mem, uint8_t by) {
+void ChVM_Harness::printMem (uint8_t* mem, uint8_t by) {
   uint8_t margin = by * .5;
   uint8_t left = by - margin;
   uint8_t right = by + margin;
@@ -45,7 +34,7 @@ void PCHarness::printMem (uint8_t* mem, uint8_t by) {
   printf("\n");
 }
 
-void PCHarness::printItems (uint8_t* pItems, uint16_t n) {
+void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   printf("Items: ");
   for (uint8_t it = 0; it < n; ++it) {
     Item* item = (Item*)(pItems - (it * sizeof(Item)));
@@ -55,17 +44,17 @@ void PCHarness::printItems (uint8_t* pItems, uint16_t n) {
 }
 
 auto start_time = std::chrono::high_resolution_clock::now();
-uint32_t PCHarness::msNow () {
+uint32_t ChVM_Harness::msNow () {
   auto current_time = std::chrono::high_resolution_clock::now();
   return std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time).count();
 }
 
 
-Machine machine = Machine();
+ChVM machine = ChVM();
 uint8_t mem[CHIKA_SIZE];
 uint8_t pNum = 0;
 
-uint8_t PCHarness::loadProg (const char* path) {
+uint8_t ChVM_Harness::loadProg (const char* path) {
   std::ifstream fl(path, std::ios::in | std::ios::binary);
   fl.seekg(0, std::ios::end);
   size_t fLen = fl.tellg();
@@ -81,13 +70,13 @@ uint8_t PCHarness::loadProg (const char* path) {
   return pNum++;
 }
 
-uint8_t PCHarness::unloadProg (const char* path) {
+uint8_t ChVM_Harness::unloadProg (const char* path) {
   return --pNum;
 }
 
 int main (int argc, char* argv[]) {
-  PCHarness harness = PCHarness();
-  machine.harness = (IMachineHarness*)(&harness);
+  ChVM_Harness harness = ChVM_Harness();
+  machine.harness = &harness;
   machine.mem = mem;
 
   if (argc == 2) harness.loadProg(argv[1]);

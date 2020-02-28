@@ -2,13 +2,13 @@
 
 ProgInfo progs[NUM_PROG];
 
-Machine::Machine () {}
+ChVM::ChVM () {}
 
-void Machine::romLen (proglen len) {
+void ChVM::romLen (proglen len) {
   pInfo->romLen = len;
   pBytes = pROM + len;
 }
-proglen Machine::romLen () {
+proglen ChVM::romLen () {
   return pInfo->romLen;
 }
 bytenum ramOffset (prognum pNum) {
@@ -17,74 +17,74 @@ bytenum ramOffset (prognum pNum) {
     offset += progs[p].ramLen;
   return offset;
 }
-void Machine::setPNum (prognum n) {
+void ChVM::setPNum (prognum n) {
   pNum = n;
   pROM = mem + ramOffset(pNum);
   pFirstItem = (pROM + progs[n].ramLen) - sizeof(Item);
   pInfo = progs + pNum;
 }
-void Machine::numItem (itemnum n) {
+void ChVM::numItem (itemnum n) {
   pInfo->numItem = n;
 }
-itemnum Machine::numItem () {
+itemnum ChVM::numItem () {
   return pInfo->numItem;
 }
-void Machine::numByte (bytenum n) {
+void ChVM::numByte (bytenum n) {
   pInfo->numByte = n;
 }
-bytenum Machine::numByte () {
+bytenum ChVM::numByte () {
   return pInfo->numByte;
 }
 
-itemlen Machine::itemBytesLen (Item* it) {
+itemlen ChVM::itemBytesLen (Item* it) {
   return it->isConst() ? sizeof(proglen) : it->len;
 }
 //`to` is exclusive
-itemlen Machine::itemsBytesLen (itemnum from, itemnum to) {
+itemlen ChVM::itemsBytesLen (itemnum from, itemnum to) {
   bytenum n = 0;
   for (itemnum it = from; it < to; ++it)
     n += itemBytesLen(i(it));
   return n;
 }
-Item* Machine::i (itemnum iNum) {
+Item* ChVM::i (itemnum iNum) {
   return (Item*)(pFirstItem - (iNum * sizeof(Item)));
 }
-uint8_t* Machine::iBytes (itemnum iNum) {
+uint8_t* ChVM::iBytes (itemnum iNum) {
   return (pBytes + numByte()) - itemsBytesLen(iNum, numItem());
 }
-uint8_t* Machine::iData (itemnum iNum) {
+uint8_t* ChVM::iData (itemnum iNum) {
   uint8_t* bPtr = iBytes(iNum);
   if (i(iNum)->isConst())
     return pROM + *(proglen*)bPtr;
   else
     return bPtr;
 }
-Item* Machine::iLast () {
+Item* ChVM::iLast () {
   itemnum nItem = numItem();
   if (!nItem) return nullptr;
   return i(nItem - 1);
 }
 
-int32_t Machine::iInt (itemnum iNum) {
+int32_t ChVM::iInt (itemnum iNum) {
   return readNum(iData(iNum), constByteLen(i(iNum)->type()));
 }
 
-void Machine::trunStack (itemnum to) {
+void ChVM::trunStack (itemnum to) {
   numByte(numByte() - itemsBytesLen(to, numItem()));
   numItem(to);
 }
-uint8_t* Machine::stackItem () {
+uint8_t* ChVM::stackItem () {
   return pBytes + numByte();
 }
-void Machine::stackItem (Item* desc) {
+void ChVM::stackItem (Item* desc) {
   numItem(numItem() + 1);
   numByte(numByte() + itemBytesLen(desc));
   memcpy(iLast(), desc, sizeof(Item));
 }
-void Machine::stackItem (Item desc) {
+void ChVM::stackItem (Item desc) {
   stackItem(&desc);
 }
-void Machine::returnItem (itemnum replace, Item* desc) {
+void ChVM::returnItem (itemnum replace, Item* desc) {
   bytenum newNumBytes = (numByte() - itemsBytesLen(replace, numItem())) + itemBytesLen(desc);
   //Replace item currently in the return position
   memcpy(i(replace), desc, sizeof(Item));
@@ -92,26 +92,26 @@ void Machine::returnItem (itemnum replace, Item* desc) {
   numItem(replace + 1);
   numByte(newNumBytes);
 }
-void Machine::returnCollapseLast (itemnum replace) {
+void ChVM::returnCollapseLast (itemnum replace) {
   itemlen lLen = itemBytesLen(iLast());
   //Move item bytes
   memmove(iBytes(replace), stackItem() - lLen, lLen);
   //Set old item in return position
   returnItem(replace, iLast());
 }
-void Machine::returnCollapseItem (itemnum replace, Item* desc) {
+void ChVM::returnCollapseItem (itemnum replace, Item* desc) {
   //Move item bytes
   memmove(iBytes(replace), stackItem(), desc->len);
   //Set new item in return position
   returnItem(replace, desc);
 }
-void Machine::returnItem (itemnum replace, Item desc) {
+void ChVM::returnItem (itemnum replace, Item desc) {
   returnItem(replace, &desc);
 }
-void Machine::returnCollapseItem (itemnum replace, Item desc) {
+void ChVM::returnCollapseItem (itemnum replace, Item desc) {
   returnCollapseItem(replace, &desc);
 }
-void Machine::returnItemFrom (itemnum to, itemnum from) {
+void ChVM::returnItemFrom (itemnum to, itemnum from) {
   Item* iFrom = i(from);
   //Copy bytes
   memmove(iBytes(to), iBytes(from), itemBytesLen(iFrom));
@@ -119,7 +119,7 @@ void Machine::returnItemFrom (itemnum to, itemnum from) {
   returnItem(to, iFrom);
 }
 //Copies N items to the end of the stack
-void Machine::restackCopy (itemnum from, itemnum nItem) {
+void ChVM::restackCopy (itemnum from, itemnum nItem) {
   bytenum nByte = itemsBytesLen(from, from + nItem);
   //Copy bytes and descriptors
   memcpy(stackItem(), iBytes(from), nByte);
@@ -127,14 +127,14 @@ void Machine::restackCopy (itemnum from, itemnum nItem) {
   numItem(numItem() + nItem);
   numByte(numByte() + nByte);
 }
-void Machine::returnNil (itemnum replace) {
+void ChVM::returnNil (itemnum replace) {
   returnItem(replace, Item(0, Val_Nil));
 }
 
-void Machine::iPop () {
+void ChVM::iPop () {
   trunStack(numItem() - 1);
 }
-void Machine::collapseItems (itemnum to, itemnum nItem) {
+void ChVM::collapseItems (itemnum to, itemnum nItem) {
   itemnum from = numItem() - nItem;
   itemlen iBytesLen = itemsBytesLen(from, numItem());
   //Move item bytes and reduce number
@@ -147,16 +147,16 @@ void Machine::collapseItems (itemnum to, itemnum nItem) {
 
 
 
-void Machine::entry () {
+void ChVM::entry () {
   exeFunc(0x0000, 0);
 }
 
-bool Machine::heartbeat (prognum _pNum) {
+bool ChVM::heartbeat (prognum _pNum) {
   setPNum(_pNum);
   return exeFunc(0x0001, 0);
 }
 
-uint8_t* Machine::pFunc (funcnum fNum) {
+uint8_t* ChVM::pFunc (funcnum fNum) {
   uint8_t* r = pROM;
   uint8_t* rEnd = pBytes;
   while (r != rEnd) {
@@ -168,7 +168,7 @@ uint8_t* Machine::pFunc (funcnum fNum) {
   return nullptr;
 }
 
-bool Machine::findVar (itemnum& it, varnum vNum) {
+bool ChVM::findVar (itemnum& it, varnum vNum) {
   bool found = false;
   it = numItem() - 2; //Start -1 from last item, to permit "a= (inc a)"
   for (; ; --it) {
@@ -185,7 +185,7 @@ bool Machine::findVar (itemnum& it, varnum vNum) {
 }
 
 bool recurring = false;
-bool Machine::exeFunc (funcnum fNum, itemnum firstParam) {
+bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   uint8_t* f = pFunc(fNum);
   if (f == nullptr) return false;
   uint8_t* fEnd;
@@ -217,11 +217,11 @@ bool Machine::exeFunc (funcnum fNum, itemnum firstParam) {
 
 
 //Collapse args into params position
-void Machine::collapseArgs (itemnum firstParam, itemnum& firstArgItem) {
+void ChVM::collapseArgs (itemnum firstParam, itemnum& firstArgItem) {
   collapseItems(firstParam, numItem() - firstArgItem);
   firstArgItem = firstParam;
 }
-void Machine::tailCallOptim (IType type, uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum& firstArgItem) {
+void ChVM::tailCallOptim (IType type, uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum& firstArgItem) {
   if (f == funcEnd - constByteLen(type) - 1) //If the op is a tail call
     collapseArgs(firstParam, firstArgItem);
 }
@@ -232,7 +232,7 @@ union SpecialFormData {
   IfResult ifData = UnEvaled;
 };
 
-uint8_t* Machine::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum nParam) {
+uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum nParam) {
   IType formCode = *(IType*)f;
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
@@ -426,7 +426,7 @@ uint8_t* Machine::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, ite
   return f;
 }
 
-void Machine::nativeOp (IType op, itemnum firstParam) {
+void ChVM::nativeOp (IType op, itemnum firstParam) {
   switch (op) {
     case Op_Not:    op_Not   (firstParam); break;
     case Op_Equal: case Op_Nequal: case Op_Equit: case Op_Nequit:
@@ -459,7 +459,7 @@ void Machine::nativeOp (IType op, itemnum firstParam) {
 }
 
 
-void Machine::burstItem () {
+void ChVM::burstItem () {
   itemnum iVec = numItem() - 1;
   Item* itVec = i(iVec);
   //If nil, destroy the item
@@ -490,17 +490,17 @@ void Machine::burstItem () {
   numByte((numByte() - descsLen) - sizeof(vectlen));
 }
 
-vectlen Machine::vectLen (itemnum it) {
+vectlen ChVM::vectLen (itemnum it) {
   return readNum(iBytes(it + 1) - sizeof(vectlen), sizeof(vectlen));
 }
 
-void Machine::op_Not (itemnum firstParam) {
+void ChVM::op_Not (itemnum firstParam) {
   bool isTruthy = isTypeTruthy(i(firstParam)->type());
   returnItem(firstParam, Item(0, isTruthy ? Val_False : Val_True));
 }
 
 
-void Machine::op_Equal (itemnum firstParam, bool equality) {
+void ChVM::op_Equal (itemnum firstParam, bool equality) {
   //Find equity (==) through byte comparison, and equality (=) through item or int comparison
   itemnum it = firstParam + 1, itEnd = numItem();
   Item* a = i(firstParam);
@@ -524,7 +524,7 @@ void Machine::op_Equal (itemnum firstParam, bool equality) {
   returnItem(firstParam, Item(0, it == itEnd ? Val_True : Val_False));
 }
 
-void Machine::op_Diff (itemnum firstParam, IType op) {
+void ChVM::op_Diff (itemnum firstParam, IType op) {
   int32_t prev = (op == Op_GT || op == Op_GTE) ? INT32_MAX : INT32_MIN;
   itemnum it = firstParam, itEnd = numItem();
   for (; it < itEnd; ++it) {
@@ -539,7 +539,7 @@ void Machine::op_Diff (itemnum firstParam, IType op) {
   returnItem(firstParam, Item(0, it == itEnd ? Val_True : Val_False));
 }
 
-void Machine::op_Arith (itemnum firstParam, IType op) {
+void ChVM::op_Arith (itemnum firstParam, IType op) {
   if (firstParam == numItem()) {
     returnNil(firstParam);
     return;
@@ -567,7 +567,7 @@ void Machine::op_Arith (itemnum firstParam, IType op) {
   returnItem(firstParam, Item(len, type));
 }
 
-void Machine::op_Str (itemnum firstParam) {
+void ChVM::op_Str (itemnum firstParam) {
   uint8_t* result = stackItem();
   strilen len = 0;
   for (itemnum it = firstParam, itEnd = numItem(); it < itEnd; ++it) {
@@ -603,17 +603,17 @@ void Machine::op_Str (itemnum firstParam) {
   returnCollapseItem(firstParam, Item(len, Val_Str));
 }
 
-void Machine::op_Type (itemnum firstParam) {
+void ChVM::op_Type (itemnum firstParam) {
   *(IType*)iBytes(firstParam) = i(firstParam)->type();
   returnItem(firstParam, Item(sizeof(IType), fitInt(sizeof(IType))));
 }
 
-void Machine::op_Cast (itemnum firstParam) {
+void ChVM::op_Cast (itemnum firstParam) {
   IType to = (IType)readNum(iData(firstParam + 1), sizeof(IType));
   returnItem(firstParam, Item(constByteLen(to), to, i(firstParam)->isConst()));
 }
 
-void Machine::op_Vec (itemnum firstParam) {
+void ChVM::op_Vec (itemnum firstParam) {
   //Copy item descriptors onto the end of the byte stack
   uint8_t* descs = stackItem();
   vectlen nItems = numItem() - firstParam;
@@ -626,7 +626,7 @@ void Machine::op_Vec (itemnum firstParam) {
   returnItem(firstParam, Item(bytesLen, Val_Vec));
 }
 
-void Machine::op_Nth (itemnum firstParam) {
+void ChVM::op_Nth (itemnum firstParam) {
   int32_t nth = iInt(firstParam + 1);
   Item* it = i(firstParam);
   //Return nil on negative nth or non-str/vec
@@ -660,7 +660,7 @@ void Machine::op_Nth (itemnum firstParam) {
   returnItem(firstParam, nthItem);
 }
 
-void Machine::op_Len (itemnum firstParam) {
+void ChVM::op_Len (itemnum firstParam) {
   Item* item = i(firstParam);
   itemlen len = item->len;
   switch (item->type()) {
@@ -671,7 +671,7 @@ void Machine::op_Len (itemnum firstParam) {
   returnItem(firstParam, Item(sizeof(itemlen), fitInt(sizeof(itemlen))));
 }
 
-void Machine::op_Sect (itemnum firstParam, bool isBurst) {
+void ChVM::op_Sect (itemnum firstParam, bool isBurst) {
   IType type = i(firstParam)->type();
   bool isStr = type == Val_Str;
   //Return nil if not a vector or string
@@ -727,7 +727,7 @@ void Machine::op_Sect (itemnum firstParam, bool isBurst) {
   }
 }
 
-void Machine::op_Reduce (itemnum firstParam) {
+void ChVM::op_Reduce (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
   funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
@@ -754,7 +754,7 @@ void Machine::op_Reduce (itemnum firstParam) {
   returnCollapseLast(firstParam);
 }
 
-void Machine::op_Map (itemnum firstParam) {
+void ChVM::op_Map (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
   funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
@@ -792,7 +792,7 @@ void Machine::op_Map (itemnum firstParam) {
   returnCollapseLast(firstParam);
 }
 
-void Machine::op_For (itemnum firstParam) {
+void ChVM::op_For (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
   funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
@@ -862,7 +862,7 @@ void Machine::op_For (itemnum firstParam) {
   returnCollapseLast(firstParam);
 }
 
-void Machine::op_Val (itemnum firstParam) {
+void ChVM::op_Val (itemnum firstParam) {
   //Truncate the stack to the first item
   trunStack(firstParam + 1);
   //If it's const, copy as value
@@ -873,17 +873,17 @@ void Machine::op_Val (itemnum firstParam) {
   }
 }
 
-void Machine::op_Do (itemnum firstParam) {
+void ChVM::op_Do (itemnum firstParam) {
   //Collapse the stack to the last item
   returnCollapseLast(firstParam);
 }
 
-void Machine::op_MsNow (itemnum firstParam) {
+void ChVM::op_MsNow (itemnum firstParam) {
   *(int32_t*)iBytes(firstParam) = harness->msNow();
   returnItem(firstParam, Item(sizeof(int32_t), Val_I32));
 }
 
-void Machine::op_Print (itemnum firstParam) {
+void ChVM::op_Print (itemnum firstParam) {
   op_Str(firstParam);
   harness->print((const char*)iData(firstParam));
   returnNil(firstParam);

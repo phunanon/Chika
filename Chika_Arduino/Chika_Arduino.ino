@@ -1,23 +1,12 @@
 #include <SPI.h>
 #include <SD.h>
-#include "Machine.hpp"
+#include "ChVM.hpp"
 
-class ArduinoHarness : IMachineHarness {
-public:
-  virtual void     print      (const char*);
-  virtual void     debugger   (const char*, bool, uint32_t);
-  virtual void     printMem   (uint8_t*, uint8_t);
-  virtual void     printItems (uint8_t*, itemnum);
-  virtual uint8_t  loadProg   (const char*);
-  virtual uint8_t  unloadProg (const char*);
-  virtual uint32_t msNow      ();
-};
-
-void ArduinoHarness::print (const char* output) {
+void ChVM_Harness::print (const char* output) {
   Serial.println(output);
 }
 
-void ArduinoHarness::debugger (const char* output, bool showNum = false, uint32_t number = 0) {
+void ChVM_Harness::debugger (const char* output, bool showNum = false, uint32_t number = 0) {
   if (showNum) {
     Serial.print(output);
     Serial.print(" ");
@@ -28,7 +17,7 @@ void ArduinoHarness::debugger (const char* output, bool showNum = false, uint32_
   }
 }
 
-void ArduinoHarness::printMem (uint8_t* mem, uint8_t by) {
+void ChVM_Harness::printMem (uint8_t* mem, uint8_t by) {
   uint8_t* mEnd = mem + by;
   for (uint8_t* m = mem - by; m < mEnd; ++m) {
     if (*m < 16) Serial.print("0");
@@ -40,7 +29,7 @@ void ArduinoHarness::printMem (uint8_t* mem, uint8_t by) {
   Serial.println("^");
 }
 
-void ArduinoHarness::printItems (uint8_t* pItems, uint16_t n) {
+void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   Serial.print("Items: ");
   for (uint8_t it = 0; it < n; ++it) {
     Item* item = (Item*)(pItems - ((it+1) * sizeof(Item)));
@@ -55,15 +44,15 @@ void ArduinoHarness::printItems (uint8_t* pItems, uint16_t n) {
   printf("\n");
 }
 
-uint32_t ArduinoHarness::msNow () {
+uint32_t ChVM_Harness::msNow () {
   return millis();
 }
 
-Machine machine = Machine();
+ChVM machine = ChVM();
 uint8_t mem[CHIKA_SIZE];
 uint8_t pNum = 0;
 
-uint8_t ArduinoHarness::loadProg (const char* path) {
+uint8_t ChVM_Harness::loadProg (const char* path) {
   File prog = SD.open(path);
   if (!prog) {
     Serial.println("Program not found");
@@ -83,7 +72,7 @@ uint8_t ArduinoHarness::loadProg (const char* path) {
   return pNum++;
 }
 
-uint8_t ArduinoHarness::unloadProg (const char* path) {
+uint8_t ChVM_Harness::unloadProg (const char* path) {
   return --pNum;
 }
 
@@ -97,10 +86,10 @@ void setup() {
     while (1);
   }
   Serial.println("successful.");
-  
-  ArduinoHarness harness = ArduinoHarness();
+
+  ChVM_Harness harness = ChVM_Harness();
   machine.mem = mem;
-  machine.harness = (IMachineHarness*)(&harness);
+  machine.harness = &harness;
 
   harness.loadProg("init.kua");
 }
@@ -109,5 +98,4 @@ void loop () {
   //Round-robin the heartbeats
   for (uint8_t p = 0; p < pNum; ++p)
     machine.heartbeat(p);
-  delay(4000);
 }

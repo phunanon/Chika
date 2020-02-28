@@ -3,17 +3,7 @@
 #include "config.hpp"
 #include "utils.hpp"
 #include "Item.hpp"
-
-class IMachineHarness {
-public:
-  virtual void     print      (const char*) = 0;
-  virtual void     debugger   (const char*, bool, uint32_t) = 0;
-  virtual void     printMem   (uint8_t*, uint8_t)           = 0;
-  virtual void     printItems (uint8_t*, itemnum)           = 0;
-  virtual uint8_t  loadProg   (const char*)                 = 0;
-  virtual uint8_t  unloadProg (const char*)                 = 0;
-  virtual uint32_t msNow      ()                            = 0;
-};
+#include "ChVM_Harness.hpp"
 
 struct ProgInfo {
   proglen romLen;
@@ -27,7 +17,7 @@ struct ProgInfo {
 
 extern ProgInfo progs[];
 
-class Machine {
+class ChVM {
   prognum   pNum;
   uint8_t*  pBytes;
   uint8_t*  pFirstItem;
@@ -94,7 +84,7 @@ class Machine {
   void     op_Print  (itemnum);
 
 public:
-  Machine ();
+  ChVM ();
   void entry ();
   bool heartbeat (prognum);
 
@@ -104,5 +94,5 @@ public:
   void     romLen (proglen);            //Set length of program ROM
   void     setPNum (prognum);
 
-  IMachineHarness* harness;
+  ChVM_Harness* harness;
 };
