@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
-#include "Machine.cpp"
+#include "ChVM.cpp"
 
 class PCHarness : IMachineHarness {
 public:

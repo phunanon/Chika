@@ -1,4 +1,4 @@
-#include "Machine.hpp"
+#include "ChVM.hpp"
 
 ProgInfo progs[NUM_PROG];
 

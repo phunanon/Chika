@@ -1,13 +1,13 @@
 mkdir -p bin
 
-cd Chika
-nodejs compiler.js programs/init.chi
-mv programs/init.kua ../bin
-cd ..
+cd corpus/programs
+nodejs ../../compilers/JavaScript/compiler.js init.chi
+mv init.kua ../../bin
+cd ../..
 
-cp MachineHarness.cpp msgOS
-cd msgOS
-g++ -o ../bin/mOS MachineHarness.cpp Item.cpp utils.cpp config.cpp -g
-rm MachineHarness.cpp
+cp Chika_PC.cpp Chika_Arduino
+cd Chika_Arduino
+g++ -o ../bin/chika Chika_PC.cpp Item.cpp utils.cpp config.cpp -g
+rm Chika_PC.cpp
 
-echo "Compiled msgOS."
+echo "Compiled Chika VM for PC."

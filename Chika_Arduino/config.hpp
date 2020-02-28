@@ -65,6 +65,7 @@ enum IType : uint8_t {
   Op_If     = 0x23,
   Op_Or     = 0x24,
   Op_And    = 0x25,
+  Op_Not    = 0x26,
   Op_Var    = 0x2A,
   Op_Param  = 0x2B,
   Op_Recur  = 0x2F,

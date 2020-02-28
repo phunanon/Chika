@@ -32,3 +32,5 @@
 *.app
 mOS
 bin
+*.7z
+*.zip
