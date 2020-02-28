@@ -55,7 +55,7 @@ uint8_t* ChVM::iBytes (itemnum iNum) {
 uint8_t* ChVM::iData (itemnum iNum) {
   uint8_t* bPtr = iBytes(iNum);
   if (i(iNum)->isConst())
-    return pROM + *(proglen*)bPtr;
+    return pROM + (proglen)readUNum(bPtr, sizeof(proglen));
   else
     return bPtr;
 }
@@ -160,10 +160,10 @@ uint8_t* ChVM::pFunc (funcnum fNum) {
   uint8_t* r = pROM;
   uint8_t* rEnd = pBytes;
   while (r != rEnd) {
-    if (*(funcnum*)r == fNum)
+    if (readUNum(r, sizeof(funcnum)) == fNum)
       return r;
     r += sizeof(funcnum);
-    r += *(proglen*)r + sizeof(proglen);
+    r += readUNum(r, sizeof(proglen)) + sizeof(proglen);
   }
   return nullptr;
 }
@@ -174,7 +174,7 @@ bool ChVM::findVar (itemnum& it, varnum vNum) {
   for (; ; --it) {
     if (i(it)->type() != Bind_Var) continue;
     //Test if this bind is the correct number
-    if (*(varnum*)iData(it) == vNum) {
+    if (readUNum(iData(it), sizeof(varnum)) == vNum) {
       found = true;
       break;
     }
@@ -191,7 +191,7 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   uint8_t* fEnd;
   f += sizeof(funcnum);
   {
-    funclen fLen = *(funclen*)f;
+    funclen fLen = readUNum(f, sizeof(funclen));
     if (!fLen) return false;
     f += sizeof(funclen);
     fEnd = f + fLen;
@@ -327,7 +327,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
     else
     //If a parameter
     if (type == Param_Val) {
-      itemnum paramNum = *(argnum*)(++f);
+      itemnum paramNum = readUNum(++f, sizeof(argnum));
       f += sizeof(argnum);
       //If parameter is outside bounds, stack nil
       if (paramNum >= nParam) {
@@ -349,7 +349,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
     } else
     //If a variable
     if (type == Var_Val) {
-      varnum vNum = *(varnum*)(++f);
+      varnum vNum = readUNum(++f, sizeof(varnum));
       f += sizeof(varnum);
       itemnum it;
       //If the variable is found
@@ -366,7 +366,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
     //If a constant
     if (type < OPS_START) {
       Item item = Item(constByteLen(type, ++f), type, true);
-      *(proglen*)stackItem() = f - pROM;
+      writeUNum(stackItem(), f - pROM, sizeof(proglen));
       stackItem(item);
       f += constByteLen(type, f);
     } else
@@ -379,7 +379,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
     //If a program function
     if (type == Op_Func) {
       tailCallOptim(type, f, funcEnd, firstParam, firstArgItem);
-      funcnum fNum = *(funcnum*)(++f);
+      funcnum fNum = readUNum(++f, sizeof(funcnum));
       exeFunc(fNum, firstArgItem);
       f += sizeof(funcnum);
       break;
@@ -390,10 +390,10 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
       bool found = true;
 
       if (type == Op_Var) {
-        found = findVar(it, *(varnum*)(++f));
+        found = findVar(it, readUNum(++f, sizeof(varnum)));
         f += sizeof(varnum);
       } else {
-        it = firstParam + *(argnum*)(++f);
+        it = firstParam + readUNum(++f, sizeof(argnum));
         f += sizeof(argnum);
       }
       
@@ -409,7 +409,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
         //If a program function
         if (type == Var_Func) {
           tailCallOptim(type, f, funcEnd, firstParam, firstArgItem);
-          exeFunc(*(funcnum*)iData(it), firstArgItem);
+          exeFunc(readUNum(iData(it), sizeof(funcnum)), firstArgItem);
         } else
         //Variable wasn't of Var_Op/Var_Func type
           returnNil(firstArgItem);
@@ -604,7 +604,7 @@ void ChVM::op_Str (itemnum firstParam) {
 }
 
 void ChVM::op_Type (itemnum firstParam) {
-  *(IType*)iBytes(firstParam) = i(firstParam)->type();
+  *(IType*)iBytes(firstParam) = i(firstParam)->type(); //TODO: Arduino test
   returnItem(firstParam, Item(sizeof(IType), fitInt(sizeof(IType))));
 }
 
@@ -620,7 +620,7 @@ void ChVM::op_Vec (itemnum firstParam) {
   bytenum itemsLen = sizeof(Item) * nItems;
   memcpy(descs, iLast(), itemsLen);
   //Append number of items
-  *(vectlen*)(descs + itemsLen) = nItems;
+  writeNum(descs + itemsLen, nItems, sizeof(vectlen));
   //Return umbrella item descriptor
   bytenum bytesLen = itemsBytesLen(firstParam, numItem()) + itemsLen + sizeof(vectlen);
   returnItem(firstParam, Item(bytesLen, Val_Vec));
@@ -667,7 +667,7 @@ void ChVM::op_Len (itemnum firstParam) {
     case Val_Vec: len = vectLen(firstParam); break;
     case Val_Str: --len; break;
   }
-  *(itemlen*)iBytes(firstParam) = len;
+  writeUNum(iBytes(firstParam), len, sizeof(itemlen));
   returnItem(firstParam, Item(sizeof(itemlen), fitInt(sizeof(itemlen))));
 }
 
@@ -696,7 +696,7 @@ void ChVM::op_Sect (itemnum firstParam, bool isBurst) {
       *(char*)stackItem() = 0;
       stackItem(Item(1, Val_Str));
     } else {
-      *(vectlen*)stackItem() = 0;
+      writeUNum(stackItem(), 0, sizeof(vectlen));
       stackItem(Item(sizeof(vectlen), Val_Vec));
     }
     returnCollapseLast(firstParam);
@@ -775,11 +775,13 @@ void ChVM::op_Map (itemnum firstParam) {
       //Fast-fetch descriptor and bytes
       //  by using a byte offset in the cannibalised first Item
       uint8_t* vFirstDesc = pFirstVec + ((itemsBytesLen(iFirstVec, vi + 1) - sizeof(vectlen)) - sizeof(Item));
-      itemlen viBytesOffset = it ? *(itemlen*)vFirstDesc
+      itemlen viBytesOffset = it ? readUNum(vFirstDesc, sizeof(itemlen))
                                  : itemsBytesLen(iFirstVec, vi);
-      Item iDesc = *(Item*)(vFirstDesc - descOffset);
-      if (it) *(itemlen*)vFirstDesc += itemBytesLen(&iDesc);
-      else    *(itemlen*)vFirstDesc  = viBytesOffset + itemBytesLen(&iDesc);
+      Item iDesc = *(Item*)(vFirstDesc - descOffset); //TODO: Arduino test
+      if (it)
+        writeUNum(vFirstDesc, readUNum(vFirstDesc, sizeof(itemlen)) + itemBytesLen(&iDesc), sizeof(itemlen));
+      else
+        writeUNum(vFirstDesc, viBytesOffset + itemBytesLen(&iDesc), sizeof(itemlen));
       //Copy onto stack
       memcpy(stackItem(), pFirstVec + viBytesOffset, itemBytesLen(&iDesc));
       stackItem(iDesc);
@@ -879,8 +881,9 @@ void ChVM::op_Do (itemnum firstParam) {
 }
 
 void ChVM::op_MsNow (itemnum firstParam) {
-  *(int32_t*)iBytes(firstParam) = harness->msNow();
-  returnItem(firstParam, Item(sizeof(int32_t), Val_I32));
+  auto msNow = harness->msNow();
+  writeNum(iBytes(firstParam), msNow, sizeof(msNow));
+  returnItem(firstParam, Item(sizeof(msNow), fitInt(sizeof(msNow))));
 }
 
 void ChVM::op_Print (itemnum firstParam) {

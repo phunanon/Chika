@@ -2,11 +2,6 @@
 #include <stdint.h>
 #include "string.h"
 
-//WORK_SIZE: space reserved for Arduino sketch memory
-  #define WORK_SIZE 8192 //8k
-//#define WORK_SIZE 1536 //1.5k
-//#define WORK_SIZE 1024 //1k
-
 //MEM_SIZE: Arduino SRAM size
 //#define MEM_SIZE 262144 //256k
 //#define MEM_SIZE 131072 //128k
@@ -18,10 +13,10 @@
 //#define MEM_SIZE 512    //512
 
 //CHIKA_SIZE: all Chika programs' memory
-#define CHIKA_SIZE (MEM_SIZE - WORK_SIZE)
+#define CHIKA_SIZE (MEM_SIZE / 2)
 
 #define NUM_PROG     4
-#define MAX_PROG_RAM 8192
+#define MAX_PROG_RAM CHIKA_SIZE / NUM_PROG
 
 
 typedef uint32_t memolen;

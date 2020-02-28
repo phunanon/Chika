@@ -39,8 +39,22 @@ uint8_t _log10 (uint32_t v) {
          (v >= 10) ? 1         : 0; 
 }
 
+//All required because the Arduino doesn't like `*(type*)something`
 int32_t readNum (uint8_t* b, uint8_t len) {
-  return *(int32_t*)b & ((uint32_t)-1 >> ((4 - len) * 8));
+  int32_t n = 0;
+  memcpy(&n, b, sizeof(int32_t));
+  return n & ((uint32_t)-1 >> ((4 - len) * 8));
+}
+uint32_t readUNum  (uint8_t* b, uint8_t len) {
+  uint32_t n = 0;
+  memcpy(&n, b, len);
+  return n;
+}
+void writeNum (uint8_t* b, int32_t i, uint8_t len) {
+  memcpy(b, &i, len);
+}
+void writeUNum (uint8_t* b, uint32_t i, uint8_t len) {
+  memcpy(b, &i, len);
 }
 
 //Provide at least 11 bytes; returns length

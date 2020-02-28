@@ -32,16 +32,15 @@ void ChVM_Harness::printMem (uint8_t* mem, uint8_t by) {
 void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   Serial.print("Items: ");
   for (uint8_t it = 0; it < n; ++it) {
-    Item* item = (Item*)(pItems - ((it+1) * sizeof(Item)));
+    Item* item = (Item*)(pItems - (it * sizeof(Item)));
     Serial.print("l");
     Serial.print(item->len);
     Serial.print("t");
-    Serial.print(item->type());
-    Serial.print(" ");
+    Serial.print(item->type(), HEX);
     Serial.print(item->isConst() ? 'c' : ' ');
     Serial.print("; ");
   }
-  printf("\n");
+  Serial.println();
 }
 
 uint32_t ChVM_Harness::msNow () {
@@ -58,17 +57,21 @@ uint8_t ChVM_Harness::loadProg (const char* path) {
     Serial.println("Program not found");
     return 0;
   }
-  machine.setPNum(pNum);
-  uint8_t* rom = machine.pROM;
   bytenum ramLen;
-  for (uint8_t b = 0; b < sizeof(ramLen); ++b)
-    *(char*)&ramLen = prog.read();
+  {
+    char ramRequest[4];
+    for (uint8_t b = 0; b < sizeof(ramLen); ++b)
+      ramRequest[b] = prog.read();
+    memcpy(&ramLen, ramRequest, sizeof(ramLen));
+  }
   progs[pNum].ramLen = ramLen <= MAX_PROG_RAM ? ramLen : MAX_PROG_RAM;
+  machine.setPNum(pNum);
   uint16_t pByte = 0;
   while (prog.available())
-    rom[pByte++] = prog.read();
-  machine.romLen(pByte);
+    machine.pROM[pByte++] = prog.read();
   prog.close();
+  machine.romLen(pByte);
+  machine.entry();
   return pNum++;
 }
 
@@ -95,7 +98,18 @@ void setup() {
 }
 
 void loop () {
+  //Beat all hearts once, check if all are dead for early exit
+  {
+    bool allDead = true;
+    for (uint8_t p = 0; p < pNum; ++p)
+      if (machine.heartbeat(p))
+        allDead = false;
+    if (allDead)
+      while (true);
+  }
+
   //Round-robin the heartbeats
-  for (uint8_t p = 0; p < pNum; ++p)
-    machine.heartbeat(p);
+  while (true)
+    for (uint8_t p = 0; p < pNum; ++p)
+      machine.heartbeat(p);
 }

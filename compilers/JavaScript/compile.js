@@ -249,6 +249,8 @@ function compile (source, ramRequest) {
     return insert(f, 1, {n: itemsLen(f.slice(1)), b: 2, info: "func len"});
   });
 
+  //console.log(funcs);
+
   //assembly to image
   const image =
     numToLEHex(ramRequest, 4) + //Prepend program RAM request
