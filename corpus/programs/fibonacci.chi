@@ -1,0 +1,10 @@
+(fn fib n
+  (if (< n 3) 1i
+    (+ (fib (- n 1i)) (fib (- n 2i)))))
+
+(do
+  term=  23i
+  (print "calculating fib...")
+  start= (ms-now)
+  (print "(fib " term "i) => " (fib term))
+  (print "  took " (- (ms-now) start) "ms"))

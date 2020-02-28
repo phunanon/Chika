@@ -1,0 +1,13 @@
+(fn tak x y z
+  (if (<= x y)
+    z
+    (tak
+     (tak (- x 1i) y z)
+     (tak (- y 1i) z x)
+     (tak (- z 1i) x y))))
+
+(do
+  (print "calculating tak...")
+  start= (ms-now)
+  (print "(tak 18 12 6) => " (tak 18i 12i 6i))
+  (print "took " (- (ms-now) start) "ms"))
