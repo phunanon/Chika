@@ -50,7 +50,7 @@ Item* Machine::i (itemnum iNum) {
   return (Item*)(pFirstItem - (iNum * sizeof(Item)));
 }
 uint8_t* Machine::iBytes (itemnum iNum) {
-  return pBytes + itemsBytesLen(0, iNum);
+  return (pBytes + numByte()) - itemsBytesLen(iNum, numItem());
 }
 uint8_t* Machine::iData (itemnum iNum) {
   uint8_t* bPtr = iBytes(iNum);
