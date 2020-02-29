@@ -609,8 +609,17 @@ void ChVM::op_Type (itemnum firstParam) {
 }
 
 void ChVM::op_Cast (itemnum firstParam) {
+  //Get IType parameter
   IType to = (IType)readNum(iData(firstParam + 1), sizeof(IType));
-  returnItem(firstParam, Item(constByteLen(to), to, i(firstParam)->isConst()));
+  //Enure it's a value
+  op_Val(firstParam);
+  //Zero out new memory
+  uint8_t oldNByte = constByteLen(i(firstParam)->type());
+  uint8_t newNByte = constByteLen(to);
+  if (newNByte > oldNByte)
+    memset(iBytes(firstParam) + oldNByte, 0, newNByte - oldNByte);
+  //Return new item descriptor
+  returnItem(firstParam, Item(newNByte, to, i(firstParam)->isConst()));
 }
 
 void ChVM::op_Vec (itemnum firstParam) {
