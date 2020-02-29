@@ -73,6 +73,7 @@ enum IType : uint8_t {
   Op_Mult   = 0x3A,
   Op_Div    = 0x3B,
   Op_Mod    = 0x3C,
+  Op_Pow    = 0x3D,
   Op_BNot   = 0x40,
   Op_BAnd   = 0x41,
   Op_BOr    = 0x42,

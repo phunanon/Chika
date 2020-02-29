@@ -435,7 +435,7 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
       break;
     case Op_GT: case Op_GTE: case Op_LT: case Op_LTE:
       op_Diff(firstParam, op); break;
-    case Op_Add: case Op_Sub: case Op_Mult: case Op_Div: case Op_Mod:
+    case Op_Add: case Op_Sub: case Op_Mult: case Op_Div: case Op_Mod: case Op_Pow:
     case Op_BNot: case Op_BAnd: case Op_BOr: case Op_BXor: case Op_LShift: case Op_RShift:
       op_Arith(firstParam, op); break;
     case Op_Str:    op_Str   (firstParam); break;
@@ -556,6 +556,8 @@ void ChVM::op_Arith (itemnum firstParam, IType op) {
       case Op_Mult:   result *=  num; break;
       case Op_Div:    result /=  num; break;
       case Op_Mod:    result %=  num; break;
+      case Op_Pow:
+        result = _pow(result, num);   break;
       case Op_BAnd:   result &=  num; break;
       case Op_BOr:    result |=  num; break;
       case Op_BXor:   result ^=  num; break;

@@ -12,6 +12,7 @@ void skipArg (uint8_t** f);
 #endif
 
 uint8_t _log10 (uint32_t);
+int32_t _pow   (int32_t n, uint8_t p);
 
 //Provide at least 11 bytes; returns length
 uint8_t int2chars (uint8_t*, int32_t);

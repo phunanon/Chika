@@ -39,6 +39,13 @@ uint8_t _log10 (uint32_t v) {
          (v >= 10) ? 1         : 0; 
 }
 
+int32_t _pow (int32_t n, uint8_t p) {
+  int32_t sum = 1;
+  for(uint8_t i = 0; i < p; ++i)
+    sum = sum * n;
+  return sum;
+}
+
 //All required because the Arduino doesn't like `*(type*)something`
 int32_t readNum (uint8_t* b, uint8_t len) {
   int32_t n = 0;

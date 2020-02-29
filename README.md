@@ -201,8 +201,10 @@ Functions must end in a form - to return a value use `val`.
 
 `!`: negates argument.
 
-`+` / `-` / `*` / `/` / `mod` / `&` / `|` / `^` / `<<` / `>>` N arg:  
-returns sum / subtraction / multiplication / division / modulus / AND / OR / XOR / left shift / right shift of N integers.  
+`+` / `-` / `*` / `/` / `mod` / `pow` /  
+`&` / `|` / `^` / `<<` / `>>` N arg:  
+returns sum / subtraction / multiplication / division / modulus / raise-to-the-power /  
+AND / OR / XOR / left shift / right shift of N integers.  
 Zero args returns nil. Will cast all parameters as the type of the first argument.  
 `~` 1 arg: returns NOT.  
 Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
