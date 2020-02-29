@@ -46,7 +46,9 @@ const walkItems = (arr, pred, func) =>
   arr.map(i => Array.isArray(i) ? walkItems(i, pred, func) : (pred(i) ? func(i) : i));
 
 const walkArrays = (arr, pred, func) =>
-  arr.map(i => Array.isArray(i) ? walkArrays((pred(i) ? func(i) : i), pred, func) : i);
+  Array.isArray(arr)
+    ? arr.map(i => Array.isArray(i) ? walkArrays((pred(i) ? func(i) : i), pred, func) : i)
+    : arr;
 
 function extractStrings (source) {
   const strings = [];
@@ -62,11 +64,12 @@ const formise = s =>
     "["+
     s.replace(/\s*\n\s*/g, " ")
      .trim()
-     .replace(/\/"/g, "/\\\"")
-     .replace(/ /g, "\", \"")
-     .replace(/\(/g, "\", [\"")
-     .replace(/\)/g, "\"], \"")
-     .replace(/(^\", |, \"$|, \"\")/g, "")
+     .replace(/\/"/g,  "/\\'")
+     .replace(/ /g,    "', '")
+     .replace(/\(/g,   "', ['")
+     .replace(/{/g,    "', ['*fn*', '")
+     .replace(/[)}]/g, "'], '")
+     .replace(/(^', |, '$|, '')/g, "")
     +"]");
 
 function funcise (forms) {
@@ -89,22 +92,34 @@ function compile (source, ramRequest) {
   const strings = extractedStrings.strings;
   source = extractedStrings.source;
   
-  //Remove all comments and commas
-  //Harden char literals with \
-  //Comma newline space is treated as one whitespace
+  //Source-specific modifications, some applicable only to this implementation
   source = source.replace(/\/\*[\s\S]+\*\//g, "") //Multiline comments
                  .replace(/\/\/.+\n/g, "\n")      //Single line comments
                  .replace(/\/\/.+$/g, "")         //Document-final comment
                  .replace(/\\/g, "/")             //Replace slashes to protect from eval
                  .replace(/;/g, "")               //Semicolon whitespace
-                 .replace(/,\s*/g, "");           //Comma whitespace
+                 .replace(/,\s*/g, "")            //Comma whitespace
+                 .replace(/#(?!\d)/g, "#0");      //# -> #0
   
   //Replace all vectors with (vec ...) form
   source = source.replace(/\[/g, "(vec ").replace(/\]/g, ")");
 
   //Make forms into nested arrays
-  const forms = formise(source);
+  let forms = formise(source);
 
+  //Collect inline functions
+  let inlineFuncs = [];
+  forms = walkArrays(forms, a => a[0] == "*fn*",
+    a => {
+      fn = "fn" + inlineFuncs.length;
+      const body = a.slice(1);
+      let nParam = 0;
+      walkItems(a, s => s.startsWith("#"), s => nParam = Math.max(num(s), nParam));
+      a = ["fn", fn].concat([...Array(nParam + 1).keys()].map(n => `#${n}`)).concat([body]);
+      inlineFuncs.push(a);
+      return fn;
+    });
+  forms = forms.concat(inlineFuncs);
   //Collect entry function forms, and user functions
   let funcs = funcise(forms);
 

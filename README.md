@@ -53,6 +53,9 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
               filtered)))))
     (filter [0 1 2 3] odd?) => [1 3]
 
+    //Returns [15 9], using an inline-function with one argument - `#`
+    (map {# 12 3} [+ -])
+
 
 ### Compilation and running
 
@@ -164,6 +167,11 @@ Names can include (almost) any characters excluding whitespace.
 `(func[ N args])`: a form, with a function in the head position, and 0-N arguments separated by spaces. Arguments can be forms.
 
 `(fn func-name[ N params] [1-N forms])`: a function definition, with 0-N parameter symbols separated by spaces, and 1-N forms.
+
+`{form}`: an inline-function, comprised as one form.
+
+`#`: first argument reference within an inline-function.  
+`#num`: positional argument reference within an inline-function, e.g. `#3`.
 
 `//...`: a comment, which can be suitated on a new line or at the end of one.
 
