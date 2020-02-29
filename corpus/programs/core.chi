@@ -29,7 +29,7 @@
     (if (pred (1st vec))
       (1st vec)
       (recur (sect vec) pred))))
-(fn filter v pred, filtered
+(fn filter v pred; filtered
   (if (= (len v) 0)
     filtered
     (do f= (1st v)
@@ -45,4 +45,29 @@
       (1st from)
       (recur (sect select) (sect from)))
     nil))
+
+//e.g. (range 0 10 2) => [0 2 4 6 8]
+//e.g. (range 10 0 -2i) => [10 8 6 4 2]
+(fn range from to step v
+  (if (!= from to)
+    (recur (+ from step) to step
+      (append v from))
+    v))
+
+//e.g. (str->int "123") => 123i
+(fn n*10^p-1 n p
+  (if (== p 1) n
+    (* n (pow 10i (- p 1)))))
+(fn digit->int c (cast (- c 48) 18))
+(fn str->int s
+  (reduce +
+    (map n*10^p-1
+      (map digit->int (vec (burst s)))
+      (range (len s) 0 -1i))))
+
+//e.g. (juxt [+ -] 12 3) => [15 9]
+(fn exe-paras f (f (burst paras)))
+(fn juxt funcs //args
+  (do paras= (sect args)
+    (map exe-paras funcs)))
 
