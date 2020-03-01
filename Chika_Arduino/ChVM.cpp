@@ -665,7 +665,7 @@ void ChVM::op_Nth (itemnum firstParam) {
     return;
   }
   //Collate vector info
-  uint8_t* vBytes = iData(firstParam);
+  uint8_t* vBytes = iBytes(firstParam);
   uint8_t* vEnd = (vBytes + it->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
   Item* vItems = &((Item*)vEnd)[-vNumItem];
@@ -674,7 +674,7 @@ void ChVM::op_Nth (itemnum firstParam) {
   //Copy bytes into return position
   uint8_t* itemBytes = vBytes;
   for (itemnum vi = 0; vi < nth; ++vi)
-    itemBytes += itemBytesLen(&vItems[vi]);
+    itemBytes += itemBytesLen(&vItems[(vNumItem - 1) - vi]);
   memmove(iBytes(firstParam), itemBytes, itemBytesLen(nthItem));
   //Return nth item descriptor
   returnItem(firstParam, nthItem);
