@@ -181,7 +181,7 @@ Names can include (almost) any characters excluding whitespace.
 
 `,`: a comma, treated as whitespace, and spaces after it are erased.
 
-`..=`: binding, whereby `..` is a symbol name.
+`..=`: binding, whereby `..` is a symbol name. Note: parameters take precedent over bindings. 
 
 Parameters override variables.
 
@@ -197,7 +197,7 @@ Functions must end in a form - to return a value use `val`.
 
 `0i`: 32-bit signed integer.
 
-`\c`: ASCII character. Extended: \nl newline.
+`\c`: ASCII character. Extended: \nl newline, \sp space, \bs backslash, \dq double-quotations.
 
 `[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty.
 

@@ -41,7 +41,7 @@ uint8_t _log10 (uint32_t v) {
 
 int32_t _pow (int32_t n, uint8_t p) {
   int32_t sum = 1;
-  for(uint8_t i = 0; i < p; ++i)
+  for (uint8_t i = 0; i < p; ++i)
     sum = sum * n;
   return sum;
 }

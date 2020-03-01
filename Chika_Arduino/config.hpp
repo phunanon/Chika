@@ -44,7 +44,7 @@ enum IType : uint8_t {
   Param_Val = 0x07,
   Bind_Var  = 0x08,
   Var_Val   = 0x09,
-  Val_Vec   = 0x0A, Val_Dict  = 0x0B,
+  Val_Vec   = 0x0A,
   Val_Blob  = 0x0F,
   Val_U08   = 0x10,
   Val_U16   = 0x11,

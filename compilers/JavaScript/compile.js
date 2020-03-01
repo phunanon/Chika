@@ -156,7 +156,7 @@ function compile (source, ramRequest) {
 
   //Serialise chars
   function serialiseChar (s) {
-    let complex = {"/nl": '\n'}[s];
+    let complex = {"/nl": '\n', "/sp": ' ', "/bs": '\\', "/dq": '"'}[s];
     return (complex ? complex : s[1]).charCodeAt(0);
   }
   const charise = s => (
