@@ -130,6 +130,9 @@ void ChVM::restackCopy (itemnum from, itemnum nItem) {
 void ChVM::returnNil (itemnum replace) {
   returnItem(replace, Item(0, Val_Nil));
 }
+void ChVM::stackNil () {
+  stackItem(Item(0, Val_Nil));
+}
 
 void ChVM::iPop () {
   trunStack(numItem() - 1);
@@ -331,7 +334,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
       f += sizeof(argnum);
       //If parameter is outside bounds, stack nil
       if (paramNum >= nParam) {
-        stackItem(Item(sizeof(Val_Nil), Val_Nil));
+        stackNil();
         continue;
       }
       paramNum += firstParam;
@@ -361,7 +364,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
         stackItem(vItem);
       } else
       //No variable found - return nil
-        stackItem(Item(0, Val_Nil));
+        stackNil();
     } else
     //If a constant
     if (type < OPS_START) {
@@ -718,7 +721,7 @@ void ChVM::op_Sect (itemnum firstParam, bool isBurst) {
   if (isStr) {
     //Copy subsection of memory to start of the string, add terminator
     memcpy(iBytes(firstParam), iData(firstParam) + skip, take);
-    iBytes(firstParam)[take + 1] = 0;
+    iBytes(firstParam)[take] = 0;
     //Either return burst characters (b-sect) or a string (sect)
     returnItem(firstParam, Item(take + 1, Val_Str));
     if (isBurst) burstItem();

@@ -50,6 +50,7 @@ class ChVM {
   void     returnItemFrom     (itemnum, itemnum);
   void     restackCopy        (itemnum, itemnum);
   void     returnNil  (itemnum);
+  void     stackNil   ();
   void     iPop       ();                   //Pop item
   void     collapseItems (itemnum, itemnum);
 
