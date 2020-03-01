@@ -588,6 +588,12 @@ void ChVM::op_Str (itemnum firstParam) {
         memcpy(target, iData(it), item->len - 1);
         len += item->len - 1;
         break;
+      case Val_Vec: {
+        target[0] = '[';
+        uint8_t nLen = int2chars(target + 1, vectLen(it));
+        target[nLen + 1] = ']';
+        len += nLen + 2;
+        break; }
       case Val_U08:
       case Val_U16:
       case Val_I32:
@@ -597,11 +603,11 @@ void ChVM::op_Str (itemnum firstParam) {
         *target = *iData(it);
         ++len;
         break;
-      case Val_Nil:
+      case Val_Nil: {
         const char* sNil = "nil";
         memcpy(target, sNil, 3);
         len += 3;
-        break;
+        break; }
     }
   }
   result[len++] = 0;
