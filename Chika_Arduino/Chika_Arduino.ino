@@ -6,15 +6,12 @@ void ChVM_Harness::print (const char* output) {
   Serial.println(output);
 }
 
-void ChVM_Harness::debugger (const char* output, bool showNum = false, uint32_t number = 0) {
-  if (showNum) {
-    Serial.print(output);
-    Serial.print(" ");
-    if (number < 16) Serial.print("0");
-    Serial.println(number, HEX);
-  } else {
-    Serial.println(output);
-  }
+void ChVM_Harness::printInt (const char* output, uint32_t number) {
+  Serial.print(output);
+  Serial.print(" 0x");
+  Serial.print(number, HEX);
+  Serial.print(" ; ");
+  Serial.println(number);
 }
 
 void ChVM_Harness::printMem (uint8_t* mem, uint8_t by) {
@@ -26,7 +23,7 @@ void ChVM_Harness::printMem (uint8_t* mem, uint8_t by) {
   Serial.println();
   for (uint8_t i = 0; i < by; ++i)
     Serial.print("  ");
-  Serial.println("^");
+  Serial.println("^^");
 }
 
 void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {

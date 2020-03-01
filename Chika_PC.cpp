@@ -8,25 +8,19 @@ void ChVM_Harness::print (const char* output) {
   printf("%s\n", output);
 }
 
-void ChVM_Harness::debugger (const char* output, bool showNum = false, uint32_t number = 0) {
-  if (showNum) {
-    printf("%s", output);
-    printf("%s", " ");
-    if (number < 16) printf("0");
-    printf("%X\n", number);
-  } else {
-    printf("%s\n", output);
-  }
+void ChVM_Harness::printInt (const char* output, uint32_t number) {
+  printf("%s 0x%X ; %d\n", output, number, number);
 }
 
 void ChVM_Harness::printMem (uint8_t* mem, uint8_t by) {
-  uint8_t margin = by * .5;
-  uint8_t left = by - margin;
-  uint8_t right = by + margin;
+  uint8_t left = by / 2;
   for (uint8_t i = 0; i < left; ++i)
-    printf("  ");
-  printf("v\n");
-  uint8_t* mEnd = mem + right;
+    printf(". ");
+  printf("V ");
+  for (uint8_t i = 1; i < by; ++i)
+    printf(". ");
+  printf("\n");
+  uint8_t* mEnd = mem + by;
   for (uint8_t* m = mem - left; m < mEnd; ++m) {
     if (*m < 16) printf("0");
     printf("%X", *m);
