@@ -1,0 +1,83 @@
+
+//From core.chi
+(fn inc n (+ n 1))
+(fn dec n (- n 1))
+(fn 1st  i (nth i 0))
+(fn 2nd  i (nth i 1))
+(fn last i (nth i (dec (len i))))
+(fn append  v i (vec (burst v) i))
+(fn empty? i (= (len i) 0))
+(fn !empty? i (!= (len i) 0))
+(fn min a b (if (< a b) a b))
+
+//Scans for first index of vec, str, or char `sub` within `coll`
+(fn index-of
+  coll sub; i len
+  (if (!empty? coll)
+    (if (= (str sub) (sect coll 0 (len sub)))
+      i
+      (recur (sect coll) sub (inc (or i 0i))))))
+
+
+(fn shrink-space
+  in; out
+  (if (empty? in)
+    out
+    (do
+      prev= (last out)
+      next= (1st in)
+      (recur (sect in)
+            (str (or out "") (if (= prev next \sp) "" next))))))
+
+
+//TODO: champion `case` special form
+//Stage 1 parsing - comment removal, string extraction, space shrinking
+//Preserves character literals
+//Supply `out` as an empty string
+(fn stage1
+  in out; strings
+  (if (empty? in)
+    out
+    (do
+      //Find the next instance of a char literal, string, multi-line or single-line comment
+      until-char= (index-of in \bs)
+      until-str=  (index-of in \dq)
+      until-m-c=  (index-of in "/*")
+      until-s-c=  (index-of in "//")
+      minimum=    (reduce min [until-char until-str until-m-c until-s-c])
+      //Was an instance found?
+      (if (! minimum)
+        //Return with a final space shrinking to catch spaces around comments
+        [(shrink-space (str out in)) strings]
+        //Otherwise, handle the instance
+        (do
+          //Compose string up until the instance
+          next-out= (str out (shrink-space (sect in 0 minimum)))
+          //If a char literal, preserve it
+          (if (= minimum until-char)
+            (do
+              lit-len=  (index-of (sect in minimum) " ")
+              char-lit= (sect in minimum lit-len)
+              (recur (sect in lit-len)
+                     (str next-out char-lit)
+                     strings)))
+          //If a string, append it to the strings list, and substitute for `n`
+          (if (= minimum until-str)
+            (do
+              str-len= (index-of (sect in (inc minimum)) \dq)
+              string=  (sect in (inc minimum) str-len)
+              (recur (sect in (+ minimum str-len 2))
+                     (str next-out \` (len strings) \`)
+                     (append strings string))))
+          //If a single or multi-line comment, ignore until its termination
+          is-m-c= (= minimum until-m-c)
+          is-s-c= (= minimum until-s-c)
+          (if (or is-m-c is-s-c)
+            (do
+              termination= (if is-m-c "*/" \nl)
+              num-skip=    (if is-m-c 3 1)
+              comment-len= (index-of (sect in minimum) termination)
+              (if comment-len
+                (recur (sect in (+ minimum comment-len num-skip)) next-out strings)
+                (recur "" next-out strings)))))))))
+

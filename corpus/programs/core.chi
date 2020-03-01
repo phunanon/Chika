@@ -7,7 +7,8 @@
 (fn pos? n (<= 0 n))
 (fn neg? n (< n 0))
 (fn neg n (- 0i n))
-(fn abs n (if (pos? n) (neg n) n))
+(fn min a b (if (< a b) a b))
+(fn abs n (if (pos? n) n (neg n)))
 
 (fn 1st  i (nth i 0))
 (fn 2nd  i (nth i 1))
@@ -15,6 +16,8 @@
 (fn prepend v i (vec i (burst v)))
 (fn append  v i (vec (burst v) i))
 (fn concat v1 v2 (vec (burst v1) (burst v2)))
+(fn ex-last i (sect i 0 (dec (len i))))
+(fn empty? i (= (len i) 0))
 (fn !empty? i (!= (len i) 0))
 
 (fn every? vec pred
@@ -23,12 +26,14 @@
     (if (pred (1st vec))
       (recur (sect vec) pred)
       false)))
+
 (fn some vec pred
   (if (= (len vec) 0)
     nil
     (if (pred (1st vec))
       (1st vec)
       (recur (sect vec) pred))))
+
 (fn filter v pred; filtered
   (if (= (len v) 0)
     filtered
@@ -37,6 +42,15 @@
         (if (pred f)
           (append filtered f)
           filtered)))))
+
+//Scans for first index of vec, str, or char `sub` within `coll`, else nil
+//e.g. (index-of "hello" "ll") => 2
+(fn index-of
+  coll sub; i len
+  (if (!empty? coll)
+    (if (= (str sub) (sect coll 0 (len sub)))
+      i
+      (recur (sect coll) sub (inc (or i 0i))))))
 
 //e.g. (zip-select [false true false] [\a \b \c]) => \b
 (fn zip-select select from

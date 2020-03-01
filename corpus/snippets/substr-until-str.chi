@@ -1,0 +1,10 @@
+
+//Takes sub-string of `s` until string `delim`
+(fn substr-until
+  s delim; sub
+  (if (empty? s)
+    nil
+    (do next= (sect s 0 (len delim))
+      (if (= next delim)
+        sub
+        (recur (sect s) delim (str (or sub "") (1st s)))))))
