@@ -1,18 +1,13 @@
 # Chika
 
-| ![Chika Logo](media/Chika-badge.svg) | Experimental s-expression programming language for both PC and Arduino. |
+| ![Chika Logo](docs/media/chika.svg) | Experimental s-expression programming language for both PC and Arduino. |
 | -- | -- |
 
 *Chika* is a programming language targeting both Arduino as firmware or Linux as an executable. It facilitates high-level round-robin multi-tasking, loading programs from either an SD card or Linux filesystem.  
-Its goal is to lean toward agility over both speed and memory footprint, with a unique stack memory model, LISP-inspired syntax, and MQTT-style internal messaging.  
+Its goal is to lean toward agility over both speed and memory footprint, with a unique stack memory model, Lisp-inspired syntax, and MQTT-style internal messaging.  
 Its spirit is: decouple everything through inter-task communication.
 
-### Similar projects
-
-- https://github.com/technoblogy/ulisp
-- https://github.com/phunanon/FlintOS
-- https://github.com/zooxo/aos
-- https://github.com/sau412/Arduino_Basic
+**[Visit the website](https://phunanon.github.io/Chika) for more information**, including rationale, comparisons to other projects, idomatic recommendations, and more.
 
 ### Examples
 
@@ -59,79 +54,22 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
 
 ### Compilation and running
 
-#### Arduino
+#### Chika VM target: Arduino
 
 Open `Chika_Arduino.ino` in Arduino IDE, upload to your Arduino.  
 Ensure there is an SD card inserted with the file `init.kua`.  
 Suitable devices:
 - MKRZero
 
-#### Linux
+#### Chika VM target: Linux
 
 In terminal run `sh compile.sh && ./bin/mOS bin/init.kua`. This also recompiles `corpus/programs/init.chi`, a basic shell.
 
-### Rationale
-
-#### The vision...
-
-This is the philosophy. Both I and [Dylan Eddies](https://github.com/thelazurite) are keen on our own pocket PC's, built from scratch (within reason).  
-Its capabilities should enable a user to, unless there's a major update, never need to reflash their device with new firmware. Instead, be able to write, compile, and run programs on the device.  
-It doesn't have to be performant, rather agile and comfortable to develop on. Inter-task comms should be available to help compose complex, uncoupled systems.  
-It should be able to fit onto something as small as a watch to anything larger, be headless, or support multiple peripherals.  
-It should be able to interact with peripherals through its native programs, rather than compiled support with the OS itself.
-
-#### Why are speed and memory not a priority?
-
-I prefer to work toward its stability, agility, and ecosystem before giving any further serious consideration on its data-handling. At the moment I'm not being bashful using frequent abstractions to manage memory.  
-I *think* I'm doing okay in managing stack memory right now...
-
-#### Why not real-time scheduling?
-
-Real-time scheduling has been [done to death](https://github.com/search?q=Arduino+RTOS&type=Repositories), and they supply *compile-time* kernels.  
-The vision calls for the ability to write, compile, and execute programs without the need of a second device. A simple, run-time-managed language achieves this.  
-Also, the vision does *not* call for real-time applications - just applications that eventually do magic.
-
-#### Why use MQTT-style messaging?
-
-[MQTT](https://en.wikipedia.org/wiki/MQTT) is predominant in the IoT world for directing and monitoring devices, and I find programs on a computer to be no less important. This will hopefully facilitate drop-in, many-to-many relationships of logic and data, being easier to monitor, secure, and compose.
-
-#### Why no REPL, drivers, compiler, &c?
-
-I've chosen to have the REPL, any peripheral drivers, and a compiler written in Chika, rather than a feature of the VM.  
-Composition of programs at runtime is its strength, and I much prefer it to messy, baked-in drivers (e.g. "this Arduino OS works with X display and pretty much only that!").  
-A really nice example is [SSD1306 support in uLisp](http://library.ulisp.com/show?2TMA).  
-Essentially, other than the SD card, serial, and I/O pins, I want no other firmware-level abstractions.
-
-### Chika Compilers
+#### Chika compilers
 
 Using a web-browser: open `compile.html`, convert the hex output into a binary image. For Linux use `xxd -r -p chika.hex init.kua`.  
 Using NodeJS: `nodejs compiler.js source.chi` => source.kua  
 Using Chika: a work in progress!
-
-### Rationale
-
-#### Why not heap or linked-list memory?
-
-With the 1-dimensional mind I have I realised Chika's memory can be implemented as a stack. Cheaper so leaning on C's stack, using recursion when Chika enters a function.  
-Using this method, global variables are not practical to implement, with immutability guaranteed.  
-Futhermore, heap memory on the Arduino platform is cautioned against, due to code size and memory fragmentation.  
-However, the lack of garbage collection and dynamic memory management means items must be duplicated on the stack before processing.  
-uLisp uses a linked-list for managing memory, following the traditional implementation of cells. This approach was not used to avoid re-inventing the wheel, and the vision of a leaner memory management model through stack memory. It does pay off in most cases, but operating with big data items - regularly duplicated for processing - means more RAM is required.
-
-#### Why separate program memories?
-
-[*uLisp*](https://github.com/technoblogy/ulisp), again for an example, seems to just allow saving "images" and composing them all together at start-up, sharing memory. I like it, but I like the opportunity of sandboxed areas of memory, with inter-process communication, more.  
-Decoupling logic through 0-to-many relationships with other programs has its benefits, especially in avoiding recompilation to accommodate new logic. Rather, programs can just assume there will be a program implementing the logic, by emitting messages.
-
-#### Why a LISP?
-
-I like it. I've been very happy learning Clojure coming from the C++ and C# world. I feel its syntax strikes the perfect balance between person and machine.  
-I know other languages are more suitable for microcontrollers (e.g. Forth), and appreciate C *et al* more for what they *don't* compile into an image.
-Chika doesn't include homoiconicity, native reader/compiler, macros, laziness, arity, &c., but it succeeds in abstracting away memory management and static typing.
-
-#### Why dynamic variables?
-
-Well, it's a LISP, and I also want to keep the compilation stage simple so it can eventually self-host. It's not too much overhead (3 bytes per item), and most functions expect only certain types.
 
 ### Chika Virtual Machine (ChVM) implementation
 
