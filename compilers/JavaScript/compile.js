@@ -189,8 +189,8 @@ function compile (source, ramRequest) {
     const param = funcRegister[fi].paras.indexOf(sym);
     if (param != -1)
       return {hex: bytesToHex([Param_Val, param]), info: `param: ${sym}`};
-    //Check if variable or bind
-    let bind = sym.endsWith("=");
+    //Check between variable reference or binding
+    let bind = sym.endsWith("=") && !["!=", "="].includes(sym);
     if (bind) sym = sym.slice(0, -1);
     //Check if op, function, or variable
     let variHex;
