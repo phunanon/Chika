@@ -26,7 +26,7 @@ const
   Val_Args = 0x19, Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x1E,
   Op_Func = 0x22, Op_Var = 0x2A, Op_Param = 0x2B;
 const strOps =
-  {"if":    0x23, "or":     0x24, "and":    0x25, "!":     0x26,
+  {"if":    0x23, "or":     0x24, "and":    0x25, "not":   0x26,
    "recur": 0x2F,
    "=":     0x30, "==":     0x31, "!=":     0x32, "!==":   0x33,
    "<":     0x34, "<=":     0x35, ">":      0x36, ">=":    0x37,
@@ -156,7 +156,7 @@ function compile (source, ramRequest) {
 
   //Serialise chars
   function serialiseChar (s) {
-    let complex = {"/nl": '\n', "/sp": ' ', "/bs": '\\', "/dq": '"'}[s];
+    let complex = {"/nl": '\n', "/sp": ' ', "/bs": '\\', "/dq": '"', "/cm": ',', "/sc": ';'}[s];
     return (complex ? complex : s[1]).charCodeAt(0);
   }
   const charise = s => (

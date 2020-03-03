@@ -117,9 +117,11 @@ Names can include (almost) any characters excluding whitespace.
 
 `;`: a semicolon, treated as whitespace.
 
-`,`: a comma, treated as whitespace, and spaces after it are erased.
+`,`: a comma, treated as whitespace, and whitespace after it is erased.
 
-`..=`: binding, whereby `..` is a symbol name. Note: parameters take precedent over bindings. 
+`..=`: binding, whereby `..` is a label.  
+Note: parameters take precedent over bindings.  
+Note: when *redefining* bindings, the binding **must** be the very first argument mentioned after the binding declaration. E.g. `a= (+ a 1)` works, but `a= (+ 1 a)` will not as `1` would be the next item on the ChVM stack after the binding. Consider instead using a different binding label.
 
 Parameters override variables.
 
@@ -127,7 +129,8 @@ Functions must end in a form - to return a value use `val`.
 
 #### Data types
 
-`".."`: string, whereby `..` are 0 to 2^16 ASCII characters, or `""` for empty.
+`".."`: string, whereby `..` are 0 to 2^16 ASCII characters, or `""` for empty.  
+Use `\dq` and `str` for double-quotations, as strings provide no escaped characters.
 
 `0`: 8-bit unsigned integer.
 
@@ -135,7 +138,8 @@ Functions must end in a form - to return a value use `val`.
 
 `0i`: 32-bit signed integer.
 
-`\c`: ASCII character. Extended: \nl newline, \sp space, \bs backslash, \dq double-quotations.
+`\c`: ASCII character.  
+Extended: \nl newline, \sp space, \bs backslash, \dq double-quotations, \cm comma, \sc semicolon.
 
 `[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty.
 
@@ -144,8 +148,6 @@ Functions must end in a form - to return a value use `val`.
 `args`: emits a vector of function arguments.
 
 #### Native functions
-
-`!`: negates argument.
 
 `+` / `-` / `*` / `/` / `mod` / `pow` /  
 `&` / `|` / `^` / `<<` / `>>` N arg:  
@@ -157,6 +159,8 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `if` 2 arg: returns second arg if first arg is truthy, else nil.  
 `if` 3 arg: returns second arg if first arg is truthy, else third arg.
+
+`not` 1 arg: negates argument.
 
 `or` N arg: returns first truthy arg.
 
