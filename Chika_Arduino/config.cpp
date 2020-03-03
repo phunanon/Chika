@@ -6,7 +6,7 @@ funclen constByteLen (IType t, uint8_t* body) {
     case Val_True: case Val_False: return 0;
     case Val_Str:  return body ? strlen((const char*)body) + 1 : 0;
     case Param_Val: return sizeof(argnum);
-    case Bind_Var: case Var_Val: return sizeof(varnum);
+    case Bind_Mark: case Bind_Val: return sizeof(bindnum);
     case Val_U08: return 1;
     case Val_U16: return 2;
     case Val_I32: return 4;
@@ -15,7 +15,7 @@ funclen constByteLen (IType t, uint8_t* body) {
     case Var_Func: return sizeof(funcnum);
     case Val_Nil: return 0;
     case Op_Func: return sizeof(funcnum);
-    case Op_Var: return sizeof(varnum);
+    case Op_Bind: return sizeof(bindnum);
     case Op_Param: return sizeof(argnum);
   }
   return 0;

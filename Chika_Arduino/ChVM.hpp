@@ -55,7 +55,7 @@ class ChVM {
   void     collapseItems (itemnum, itemnum);
 
   uint8_t* pFunc     (funcnum);
-  bool     findVar   (itemnum&, varnum);
+  bool     findBind  (itemnum&, bindnum);
 
   void     collapseArgs  (itemnum, itemnum&);
   void     tailCallOptim (IType, uint8_t*, uint8_t*, itemnum, itemnum&);

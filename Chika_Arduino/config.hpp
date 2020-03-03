@@ -28,7 +28,7 @@ typedef uint32_t bytenum;
 typedef uint16_t funcnum;
 typedef uint16_t funclen;
 typedef uint8_t  argnum;
-typedef uint16_t varnum;
+typedef uint16_t bindnum;
 typedef uint16_t strilen;
 typedef uint16_t vectlen;
 
@@ -42,8 +42,8 @@ enum IType : uint8_t {
   Val_True  = 0x04, Val_False = 0x05,
   Val_Str   = 0x06,
   Param_Val = 0x07,
-  Bind_Var  = 0x08,
-  Var_Val   = 0x09,
+  Bind_Mark = 0x08, //e.g. test=
+  Bind_Val  = 0x09, //     test
   Val_Vec   = 0x0A,
   Val_Blob  = 0x0F,
   Val_U08   = 0x10,
@@ -61,7 +61,7 @@ enum IType : uint8_t {
   Op_Or     = 0x24,
   Op_And    = 0x25,
   Op_Not    = 0x26,
-  Op_Var    = 0x2A,
+  Op_Bind   = 0x2A,
   Op_Param  = 0x2B,
   Op_Recur  = 0x2F,
   Op_Equal  = 0x30, Op_Equit  = 0x31,

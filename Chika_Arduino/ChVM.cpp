@@ -171,13 +171,13 @@ uint8_t* ChVM::pFunc (funcnum fNum) {
   return nullptr;
 }
 
-bool ChVM::findVar (itemnum& it, varnum vNum) {
+bool ChVM::findBind (itemnum& it, bindnum vNum) {
   bool found = false;
   it = numItem() - 2; //Start -1 from last item, to permit "a= (inc a)"
   for (; ; --it) {
-    if (i(it)->type() != Bind_Var) continue;
+    if (i(it)->type() != Bind_Mark) continue;
     //Test if this bind is the correct number
-    if (readUNum(iData(it), sizeof(varnum)) == vNum) {
+    if (readUNum(iData(it), sizeof(bindnum)) == vNum) {
       found = true;
       break;
     }
@@ -235,7 +235,7 @@ union SpecialFormData {
   IfResult ifData = UnEvaled;
 };
 
-uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum nParam) {
+uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum nArg) {
   IType formCode = *(IType*)f;
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
@@ -326,14 +326,14 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
     IType type = (IType)*f;
     //If a form
     if (type <= FORMS_END)
-      f = exeForm(f, funcEnd, firstParam, nParam);
+      f = exeForm(f, funcEnd, firstParam, nArg);
     else
     //If a parameter
     if (type == Param_Val) {
       itemnum paramNum = readUNum(++f, sizeof(argnum));
       f += sizeof(argnum);
       //If parameter is outside bounds, stack nil
-      if (paramNum >= nParam) {
+      if (paramNum >= nArg) {
         stackNil();
         continue;
       }
@@ -346,24 +346,24 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
     } else
     //If a vector of the function arguments
     if (type == Val_Args) {
-      restackCopy(firstParam, nParam);
+      restackCopy(firstParam, nArg);
       op_Vec(firstArgItem);
       ++f; //Skip const code
     } else
-    //If a variable
-    if (type == Var_Val) {
-      varnum vNum = readUNum(++f, sizeof(varnum));
-      f += sizeof(varnum);
+    //If a binding reference
+    if (type == Bind_Val) {
+      bindnum bNum = readUNum(++f, sizeof(bindnum));
+      f += sizeof(bindnum);
       itemnum it;
-      //If the variable is found
-      if (findVar(it, vNum)) {
-        Item* vItem = i(it);
+      //If the binding was found
+      if (findBind(it, bNum)) {
+        Item* bItem = i(it);
         //Copy the bytes to the stack top
-        memcpy(stackItem(), iBytes(it), itemBytesLen(vItem));
+        memcpy(stackItem(), iBytes(it), itemBytesLen(bItem));
         //Copy its item descriptor too
-        stackItem(vItem);
+        stackItem(bItem);
       } else
-      //No variable found - return nil
+      //No binding found - return nil
         stackNil();
     } else
     //If a constant
@@ -387,14 +387,14 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
       f += sizeof(funcnum);
       break;
     } else
-    //If a native op or function through a variable or parameter
-    if (type == Op_Var || type == Op_Param) {
+    //If a native op or function through a binding or parameter
+    if (type == Op_Bind || type == Op_Param) {
       itemnum it;
       bool found = true;
 
-      if (type == Op_Var) {
-        found = findVar(it, readUNum(++f, sizeof(varnum)));
-        f += sizeof(varnum);
+      if (type == Op_Bind) {
+        found = findBind(it, readUNum(++f, sizeof(bindnum)));
+        f += sizeof(bindnum);
       } else {
         it = firstParam + readUNum(++f, sizeof(argnum));
         f += sizeof(argnum);
