@@ -8,76 +8,119 @@
 (fn append  v i (vec (burst v) i))
 (fn empty? i (= (len i) 0))
 (fn !empty? i (!= (len i) 0))
-(fn min a b (if (< a b) a b))
 
-//Scans for first index of vec, str, or char `sub` within `coll`
+//Scans for first index of item, str, or char `sub` within `coll`, before index `until`
+//Accepts optional is-negative boolean to find the next index that is not `sub`
+(fn index-of-until
+  coll sub until; is-negative; i len
+  (if (!= i until)
+    (if (!empty? coll)
+      (do comp-op= (if is-negative != =)
+        (if (comp-op (str sub) (sect coll 0 (len sub)))
+          (or i 0i)
+          (recur (sect coll) sub until is-negative (inc (or i 0i))))))))
+
+//Scans for first index of item, str, or char `sub` within `coll`
 (fn index-of
-  coll sub; i len
-  (if (!empty? coll)
-    (if (= (str sub) (sect coll 0 (len sub)))
-      i
-      (recur (sect coll) sub (inc (or i 0i))))))
+  coll sub
+  (index-of-until coll sub (len coll) false))
 
+//Finds the next index of item, str, or char in `finds`, in `coll` as a vec or str
+//Returns [the next find; index], with the find as nil if nothing was found
+(fn next-index-of
+  string finds ;; m win
+  (if (empty? finds)
+    [win m]
+    (do
+      minimum= (or m (len string))
+      find=    (1st finds)
+      index=   (index-of-until string find minimum)
+      (burst
+        (if (< index minimum)
+          [minimum= index winner= find]
+          [winner= win]))
+      (recur string (sect finds) minimum winner))))
 
+//Retruns the next index of item, str, or char not in `anti-finds`, in `coll` as a vec or str
+(fn next-index-of-not
+  string anti-finds ;; i
+  (if (empty? string)
+    nil
+    (do string2= string
+      (if (or (burst (map {= (str #) (sect string2 0 (len #))} anti-finds)))
+        (recur (sect string) anti-finds (+ (or i 0i) 1i))
+        (or i 0i)))))
+
+//Replaces contiguous spaces with one space
 (fn shrink-space
-  in; out
+  in ;; out
   (if (empty? in)
     out
     (do
       prev= (last out)
       next= (1st in)
       (recur (sect in)
-            (str (or out "") (if (= prev next \sp) "" next))))))
+             (str (or out "") (if (= prev next \sp) "" next))))))
 
-
-//TODO: champion `case` special form
-//Stage 1 parsing - comment removal, string extraction, space shrinking
+//TODO: use `case` special form
+//Stage 1 parsing - comment and whitespace scrubbing, string extraction
 //Preserves character literals
 //Supply `out` as an empty string
 (fn stage1
-  in out; strings
+  in out ;; strings
   (if (empty? in)
     out
     (do
-      //Find the next instance of a char literal, string, multi-line or single-line comment
-      until-char= (index-of in \bs)
-      until-str=  (index-of in \dq)
-      until-m-c=  (index-of in "/*")
-      until-s-c=  (index-of in "//")
-      minimum=    (reduce min [until-char until-str until-m-c until-s-c])
-      //Was an instance found?
-      (if (! minimum)
+      //Find the next instance of...
+      //a char literal, string, multi-line or single-line comment, comma, semicolon
+      next-index= (next-index-of in [\bs \dq "/*" "//" \cm \sc])
+      found=      (1st next-index)
+      at=         (2nd next-index)
+
+      //Was an instance not found?
+      (if (not found)
         //Return with a final space shrinking to catch spaces around comments
         [(shrink-space (str out in)) strings]
         //Otherwise, handle the instance
         (do
           //Compose string up until the instance
-          next-out= (str out (shrink-space (sect in 0 minimum)))
+          next-out= (str out (shrink-space (sect in 0 at)))
+
           //If a char literal, preserve it
-          (if (= minimum until-char)
+          (if (= found \bs)
             (do
-              lit-len=  (index-of (sect in minimum) " ")
-              char-lit= (sect in minimum lit-len)
+              lit-len=  (index-of (sect in at) " ")
+              char-lit= (sect in at lit-len)
               (recur (sect in lit-len)
                      (str next-out char-lit)
                      strings)))
+
           //If a string, append it to the strings list, and substitute for `n`
-          (if (= minimum until-str)
+          (if (= found \dq)
             (do
-              str-len= (index-of (sect in (inc minimum)) \dq)
-              string=  (sect in (inc minimum) str-len)
-              (recur (sect in (+ minimum str-len 2))
+              str-len= (index-of (sect in (inc at)) \dq)
+              string=  (sect in (inc at) str-len)
+              (recur (sect in (+ at str-len 2))
                      (str next-out \` (len strings) \`)
                      (append strings string))))
-          //If a single or multi-line comment, ignore until its termination
-          is-m-c= (= minimum until-m-c)
-          is-s-c= (= minimum until-s-c)
+
+          //If a single or multi-line comment, skip until its termination
+          is-m-c= (= found "/*")
+          is-s-c= (= found "//")
           (if (or is-m-c is-s-c)
             (do
               termination= (if is-m-c "*/" \nl)
               num-skip=    (if is-m-c 3 1)
-              comment-len= (index-of (sect in minimum) termination)
+              comment-len= (index-of (sect in at) termination)
               (if comment-len
-                (recur (sect in (+ minimum comment-len num-skip)) next-out strings)
-                (recur "" next-out strings)))))))))
+                (recur (sect in (+ at comment-len num-skip)) next-out strings)
+                (recur "" next-out strings))))
 
+          //If a semicolon, skip it
+          (if (= found \sc)
+            (recur (sect in (inc at)) next-out strings))
+          
+          //If a comma, skip until a non-whitespace
+          (if (= found \cm)
+            (do next-non-wsp= (next-index-of-not (sect in at) [\sp \sc \cm])
+              (recur (sect in (+ at next-non-wsp)) next-out strings))))))))
