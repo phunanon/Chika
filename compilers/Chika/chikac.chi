@@ -80,8 +80,8 @@
     out
     (do
       //Find the next instance of...
-      //a char literal, string, multi-line or single-line comment, comma, semicolon
-      next-index= (next-index-of in [\\ \" "/*" "//" \, \;])
+      //a char literal, string, multi-line or single-line comment, comma, semicolon, vector start/end, newline
+      next-index= (next-index-of in [\\ \" "/*" "//" \, \; \[ \] \nl])
       found=      (1st next-index)
       at=         (2nd next-index)
 
@@ -92,7 +92,8 @@
         //Otherwise, handle the instance
         (do
           //Compose string up until the instance
-          next-out= (str out (shrink-space (sect in 0 at)))
+          next-out=
+          (str out (if (= at 0) "" (shrink-space (sect in 0 at))))
 
           //If a char literal, preserve it
           (if (= found \\)
@@ -127,8 +128,21 @@
           //If a semicolon, skip it
           (if (= found \;)
             (recur (sect in (inc at)) next-out strings))
-          
+
           //If a comma, skip until a non-whitespace
           (if (= found \,)
             (do next-non-wsp= (next-index-of-not (sect in at) [\sp \; \,])
-              (recur (sect in (+ at next-non-wsp)) next-out strings))))))))
+              (recur (sect in (+ at next-non-wsp)) next-out strings)))
+
+          //If a vector beginning, replace with `(vec `
+          (if (= found \[)
+            (recur (sect in (inc at)) (str next-out "(vec ") strings))
+
+          //If a vector end, replace with `)`
+          (if (= found \])
+            (recur (sect in (inc at)) (str next-out \)) strings))
+
+          //If a newline, replace with a string
+          (if (= found \nl)
+            (recur (sect in (inc at)) (str next-out \sp) strings)))))))
+

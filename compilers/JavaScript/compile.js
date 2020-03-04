@@ -70,7 +70,6 @@ const formise = s =>
     "["+
     s.replace(/\s*\n\s*/g, " ")
      .trim()
-     .replace(/\/"/g,  "/\\'")
      .replace(/ /g,    "', '")
      .replace(/\(/g,   "', ['")
      .replace(/{/g,    "', ['*fn*', '")
