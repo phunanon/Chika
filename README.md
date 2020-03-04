@@ -106,7 +106,7 @@ Names can include (almost) any characters excluding whitespace.
 
 `(fn func-name[ N params] [1-N forms])`: a function definition, with 0-N parameter symbols separated by spaces, and 1-N forms.
 
-`{form}`: an inline-function, comprised as one form.
+`{form}`: an inline-function, comprised as one form. Note: parameters of surrounding functions cannot be referenced within inline-functions. Consider instead using a binding.
 
 `#`: first argument reference within an inline-function.  
 `#num`: positional argument reference within an inline-function, e.g. `#3`.

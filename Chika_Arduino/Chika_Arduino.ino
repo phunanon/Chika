@@ -30,12 +30,13 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   Serial.print("Items: ");
   for (uint8_t it = 0; it < n; ++it) {
     Item* item = (Item*)(pItems - (it * sizeof(Item)));
-    Serial.print("l");
+    Serial.print(it);
+    Serial.print("#l");
     Serial.print(item->len);
     Serial.print("t");
     Serial.print(item->type(), HEX);
     Serial.print(item->isConst() ? 'c' : ' ');
-    Serial.print("; ");
+    Serial.print(" ");
   }
   Serial.println();
 }
