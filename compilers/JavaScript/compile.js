@@ -37,7 +37,8 @@ const strOps =
    "burst": 0xBA, "reduce": 0xBB, "map":    0xBC, "for":   0xBD,
    "val":   0xCD, "do":     0xCE, "ms-now": 0xE0, "print": 0xEE};
 const literals =
-  {"nil": Val_Nil, "true": Val_True, "false": Val_False};
+  {"nil": Val_Nil, "true": Val_True, "false": Val_False,
+   "nl": '\n', "sp": ' '};
 const formCodes =
   {"if": Form_If, "or": Form_Or, "and": Form_And};
 
@@ -57,6 +58,11 @@ function extractStrings (source) {
   source = source.replace(/"(.*?)"/g, m => { strings.push(m.slice(1,-1)); return "`"+(numStr++)+"`"; });
   source = source.replace(/\/quotes/g, "\\\"");
   return {source, strings};
+}
+
+function replaceCharacters (source) {
+  return source.replace(/(\\(\w{2}|.))/g,
+    c => "`c" + (c.length == 2 ? c[1] : literals[c.slice(1)]).charCodeAt(0) + "`");
 }
 
 const formise = s =>
@@ -91,12 +97,14 @@ function compile (source, ramRequest) {
   const extractedStrings = extractStrings(source);
   const strings = extractedStrings.strings;
   source = extractedStrings.source;
+
+  //Replace all characters, and replace them with "`c[charcode]`"
+  source = replaceCharacters(source);
   
   //Source-specific modifications, some applicable only to this implementation
   source = source.replace(/\/\*[\s\S]+\*\//g, "") //Multiline comments
                  .replace(/\/\/.+\n/g, "\n")      //Single line comments
                  .replace(/\/\/.+$/g, "")         //Document-final comment
-                 .replace(/\\/g, "/")             //Replace slashes to protect from eval
                  .replace(/;/g, "")               //Semicolon whitespace
                  .replace(/,\s*/g, "")            //Comma whitespace
                  .replace(/#(?!\d)/g, "#0");      //# -> #0
@@ -154,25 +162,20 @@ function compile (source, ramRequest) {
   }
   funcs = walkItems(funcs, isChikaNum, serialiseNum);
 
-  //Serialise chars
-  function serialiseChar (s) {
-    let complex = {"/nl": '\n', "/sp": ' ', "/bs": '\\', "/dq": '"', "/cm": ',', "/sc": ';'}[s];
-    return (complex ? complex : s[1]).charCodeAt(0);
+  //Serialise strings back in, and characters
+  function serialiseStrChar (s) {
+    const isChar = s[1] == 'c';
+    let hex = "";
+    hex += numToHex(isChar ? Val_Char : Val_Str, 1);
+    hex += isChar
+      ? numToHex(num(s), 1)
+      : Array.from(strings[num(s)])
+             .map(c => numToHex(c.charCodeAt(0), 1))
+             .join("")
+             + "00";
+    return {hex: hex, info: (isChar ? "char" : "string")};
   }
-  const charise = s => (
-    {hex: bytesToHex([Val_Char, serialiseChar(s)]),
-     info: `char: ${s.substr(1)}`});
-  funcs = walkItems(funcs, s => s[0] == "/", charise);
-
-  //Serialise strings back in
-  const serialiseString = s =>
-    ({hex: (numToHex(Val_Str, 1)
-            +Array.from(strings[num(s)])
-                  .map(c => numToHex(c.charCodeAt(0), 1))
-                  .join("")
-            +"00"),
-      info: "string"});
-  funcs = walkItems(funcs, i => i[0] == "`", serialiseString);
+  funcs = walkItems(funcs, i => i[0] == "`", serialiseStrChar);
 
   //Replace symbol literals
   function replaceLiteral (l) {

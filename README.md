@@ -138,8 +138,7 @@ Use `\dq` and `str` for double-quotations, as strings provide no escaped charact
 
 `0i`: 32-bit signed integer.
 
-`\c`: ASCII character.  
-Extended: \nl newline, \sp space, \bs backslash, \dq double-quotations, \cm comma, \sc semicolon.
+`\c`: ASCII character. Extended: \nl newline, \sp space.
 
 `[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty.
 

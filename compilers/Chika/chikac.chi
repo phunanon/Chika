@@ -73,7 +73,7 @@
     (do
       //Find the next instance of...
       //a char literal, string, multi-line or single-line comment, comma, semicolon
-      next-index= (next-index-of in [\bs \dq "/*" "//" \cm \sc])
+      next-index= (next-index-of in [\\ \" "/*" "//" \, \;])
       found=      (1st next-index)
       at=         (2nd next-index)
 
@@ -87,7 +87,7 @@
           next-out= (str out (shrink-space (sect in 0 at)))
 
           //If a char literal, preserve it
-          (if (= found \bs)
+          (if (= found \\)
             (do
               lit-len=  (index-of (sect in at) " ")
               char-lit= (sect in at lit-len)
@@ -96,9 +96,9 @@
                      strings)))
 
           //If a string, append it to the strings list, and substitute for `n`
-          (if (= found \dq)
+          (if (= found \")
             (do
-              str-len= (index-of (sect in (inc at)) \dq)
+              str-len= (index-of (sect in (inc at)) \")
               string=  (sect in (inc at) str-len)
               (recur (sect in (+ at str-len 2))
                      (str next-out \` (len strings) \`)
@@ -117,10 +117,10 @@
                 (recur "" next-out strings))))
 
           //If a semicolon, skip it
-          (if (= found \sc)
+          (if (= found \;)
             (recur (sect in (inc at)) next-out strings))
           
           //If a comma, skip until a non-whitespace
-          (if (= found \cm)
-            (do next-non-wsp= (next-index-of-not (sect in at) [\sp \sc \cm])
+          (if (= found \,)
+            (do next-non-wsp= (next-index-of-not (sect in at) [\sp \; \,])
               (recur (sect in (+ at next-non-wsp)) next-out strings))))))))
