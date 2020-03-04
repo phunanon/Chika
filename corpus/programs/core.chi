@@ -19,6 +19,8 @@
 (fn ex-last i (sect i 0 (dec (len i))))
 (fn empty? i (= (len i) 0))
 (fn !empty? i (!= (len i) 0))
+(fn includes? coll i
+  (do find= i (or (burst (map {= find #} coll)))))
 
 (fn every? vec pred
   (if (= (len vec) 0)

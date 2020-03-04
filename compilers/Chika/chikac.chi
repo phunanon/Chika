@@ -6,8 +6,11 @@
 (fn 2nd  i (nth i 1))
 (fn last i (nth i (dec (len i))))
 (fn append  v i (vec (burst v) i))
+(fn ex-last i (sect i 0 (dec (len i))))
 (fn empty? i (= (len i) 0))
 (fn !empty? i (!= (len i) 0))
+(fn includes? coll i
+  (do find= i (or (burst (map {= find #} coll)))))
 
 //Scans for first index of item, str, or char `sub` within `coll`, before index `until`
 //Accepts optional is-negative boolean to find the next index that is not `sub`
@@ -31,10 +34,9 @@
   string finds ;; m win
   (if (empty? finds)
     [win m]
-    (do
-      minimum= (or m (len string))
-      find=    (1st finds)
-      index=   (index-of-until string find minimum)
+    (do minimum= (or m (len string))
+        find=    (1st finds)
+        index=   (index-of-until string find minimum)
       (burst
         (if (< index minimum)
           [minimum= index winner= find]
@@ -56,11 +58,17 @@
   in ;; out
   (if (empty? in)
     out
-    (do
-      prev= (last out)
-      next= (1st in)
-      (recur (sect in)
-             (str (or out "") (if (= prev next \sp) "" next))))))
+    (do prev= (last out)
+        next= (1st in)
+      (recur (sect in) (str (or out "") (if (= prev next \sp) "" next))))))
+
+(fn trim s
+  (do wsp= [\sp \; \, \nl]
+    (if (includes? wsp (1st s))
+      (recur (sect s)))
+    (if (includes? wsp (last s))
+      (recur (ex-last s))
+    s)))
 
 //TODO: use `case` special form
 //Stage 1 parsing - comment and whitespace scrubbing, string extraction
@@ -79,8 +87,8 @@
 
       //Was an instance not found?
       (if (not found)
-        //Return with a final space shrinking to catch spaces around comments
-        [(shrink-space (str out in)) strings]
+        //Return with final space shrinking for spaces around comments, and trimmed
+        [(trim (shrink-space (str out in))) strings]
         //Otherwise, handle the instance
         (do
           //Compose string up until the instance
