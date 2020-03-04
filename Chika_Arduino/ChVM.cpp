@@ -137,6 +137,7 @@ void ChVM::stackNil () {
 void ChVM::iPop () {
   trunStack(numItem() - 1);
 }
+//Copies last `nItem` items to `to`
 void ChVM::collapseItems (itemnum to, itemnum nItem) {
   itemnum from = numItem() - nItem;
   itemlen iBytesLen = itemsBytesLen(from, numItem());
@@ -281,16 +282,21 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
 
         case Form_Or:
           if (firstArgItem == numItem()) break; //Nothing evaluted yet
-          //If previous eval was false
-          if (!isTypeTruthy(iLast()->type()))
-            iPop(); //Forget condition item
-          //Previous eval was true
-          else {
-            //Skip all args until Op_Or
-            while (*f != Op_Or)
-              skipArg(&f);
-            return ++f;
-          }
+          //Exhaust current stack of arguments - in the case of (or (burst [1 2 3]) 1)
+          do {
+            //If falsey, shift the stack left by 1 to forget this condition item
+            if (!isTypeTruthy(i(firstArgItem)->type()))
+              collapseItems(firstArgItem, (numItem() - firstArgItem) - 1);
+            //Previous item was true
+            else {
+              //Truncate the stack to this condition
+              trunStack(firstArgItem + 1);
+              //Skip all args until Op_Or
+              while (*f != Op_Or)
+                skipArg(&f);
+              return ++f;
+            }
+          } while (numItem() != firstArgItem);
           //Did or-form end without truthy value?
           if (*f == Op_Or) {
             returnNil(firstArgItem);
@@ -301,9 +307,13 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
         case Form_And:
           bool evaled = firstArgItem != numItem();
           if (evaled) {
-            //Test previous eval
-            bool isTruthy = isTypeTruthy(iLast()->type());
-            iPop(); //Forget condition item
+            //Exhaust current stack of arguments - in the case of (and (burst [1 2 3]) 1)
+            bool isTruthy = true;
+            do {
+              isTruthy = isTypeTruthy(i(firstArgItem)->type());
+              //If falsey, shift the stack left by 1 to forget this condition item
+              collapseItems(firstArgItem, (numItem() - firstArgItem) - 1);
+            } while (isTruthy && numItem() != firstArgItem);
             //If falsey
             if (!isTruthy) {
               //Skip all args until Op_And
