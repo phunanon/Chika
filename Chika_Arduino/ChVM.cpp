@@ -451,6 +451,7 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_Add: case Op_Sub: case Op_Mult: case Op_Div: case Op_Mod: case Op_Pow:
     case Op_BNot: case Op_BAnd: case Op_BOr: case Op_BXor: case Op_LShift: case Op_RShift:
       op_Arith(firstParam, op); break;
+    case Op_Read:   op_Read  (firstParam); break;
     case Op_Str:    op_Str   (firstParam); break;
     case Op_Type:   op_Type  (firstParam); break;
     case Op_Cast:   op_Cast  (firstParam); break;
@@ -582,6 +583,23 @@ void ChVM::op_Arith (itemnum firstParam, IType op) {
   returnItem(firstParam, Item(len, type));
 }
 
+void ChVM::op_Read (itemnum firstParam) {
+  //Copy the path string
+  uint8_t pathLen = i(firstParam)->len;
+  char path[pathLen];
+  memcpy(path, iData(firstParam), sizeof(char) * pathLen);
+  //Read file into first parameter memory
+  //TODO: use calculated RAM remaining
+  int32_t fLen = harness->fileRead(path, iBytes(firstParam), pInfo->ramLen);
+  //If the file could not be opened return nil
+  if (fLen < 0) {
+    returnNil(firstParam);
+    return;
+  }
+  //Return blob descriptor
+  returnItem(firstParam, Item(fLen, Val_Blob));
+}
+
 void ChVM::op_Str (itemnum firstParam) {
   uint8_t* result = stackItem();
   strilen len = 0;
@@ -604,6 +622,10 @@ void ChVM::op_Str (itemnum firstParam) {
         target[nLen + 1] = ']';
         len += nLen + 2;
         break; }
+      case Val_Blob:
+        memcpy(target, iData(it), item->len);
+        len += item->len;
+        break;
       case Val_U08:
       case Val_U16:
       case Val_I32:

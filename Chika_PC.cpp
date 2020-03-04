@@ -37,6 +37,18 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   printf("\n");
 }
 
+int32_t ChVM_Harness::fileRead (const char* path, uint8_t* blob, uint32_t limit) {
+  std::ifstream fs (path, std::ios::in | std::ios::binary);
+  fs.seekg(0, std::ios::end);
+  size_t fLen = fs.tellg();
+  if (fLen > limit)
+    return -1;
+  fs.seekg(0, std::ios::beg);
+  fs.read((char*)blob, sizeof(char) * fLen);
+  fs.close();
+  return fLen;
+}
+
 auto start_time = std::chrono::high_resolution_clock::now();
 uint32_t ChVM_Harness::msNow () {
   auto current_time = std::chrono::high_resolution_clock::now();

@@ -70,6 +70,7 @@ class ChVM {
   void     op_Equal  (itemnum, bool);
   void     op_Diff   (itemnum, IType);
   void     op_Arith  (itemnum, IType);
+  void     op_Read   (itemnum);
   void     op_Str    (itemnum);
   void     op_Type   (itemnum);
   void     op_Cast   (itemnum);
