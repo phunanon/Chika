@@ -689,17 +689,20 @@ void ChVM::op_Type (itemnum firstParam) {
 }
 
 void ChVM::op_Cast (itemnum firstParam) {
-  //Get IType parameter
-  IType to = (IType)readNum(iData(firstParam + 1), sizeof(IType));
-  //Enure it's a value
+  //Get IType parameters
+  IType from = i(firstParam)->type();
+  IType to   = (IType)readNum(iData(firstParam + 1), sizeof(IType));
+  //Ensure it's a value
   op_Val(firstParam);
-  //Zero out new memory
-  uint8_t oldNByte = constByteLen(i(firstParam)->type());
+  //Zero out new memory, and ensure strings/blobs are cast correctly
+  uint8_t oldNByte = i(firstParam)->len;
   uint8_t newNByte = constByteLen(to);
+  if (to == Val_Blob) newNByte = oldNByte;
+  if (to == Val_Str) newNByte = oldNByte + 1;
   if (newNByte > oldNByte)
     memset(iBytes(firstParam) + oldNByte, 0, newNByte - oldNByte);
   //Return new item descriptor
-  returnItem(firstParam, Item(newNByte, to, i(firstParam)->isConst()));
+  returnItem(firstParam, Item(newNByte, to));
 }
 
 void ChVM::op_Vec (itemnum firstParam) {
