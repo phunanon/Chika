@@ -172,13 +172,13 @@ uint8_t* ChVM::pFunc (funcnum fNum) {
   return nullptr;
 }
 
-bool ChVM::findBind (itemnum& it, bindnum vNum) {
+bool ChVM::findBind (itemnum& it, bindnum bNum) {
   bool found = false;
   it = numItem() - 2; //Start -1 from last item, to permit "a= (inc a)"
   for (; ; --it) {
     if (i(it)->type() != Bind_Mark) continue;
     //Test if this bind is the correct number
-    if (readUNum(iData(it), sizeof(bindnum)) == vNum) {
+    if (readUNum(iData(it), sizeof(bindnum)) == bNum) {
       found = true;
       break;
     }

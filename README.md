@@ -156,10 +156,10 @@ Zero args returns nil. Will cast all parameters as the type of the first argumen
 `~` 1 arg: returns NOT.  
 Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
-`if` 2 arg: returns second arg if first arg is truthy, else nil.  
-`if` 3 arg: returns second arg if first arg is truthy, else third arg.
+`if cond if-true`: evaluates and returns `if-true` if `cond` is truthy, else nil.  
+`if cond if-true if-false`: evaluates and returns `if-true` if `cond` is truthy, else `if-false`.
 
-`not` 1 arg: negates argument.
+`not i`: negates item `i`.
 
 `or` N arg: returns first truthy arg.
 
@@ -179,15 +179,15 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `nth i N`: returns item or character `N` of vector or string `i`, or `nil` if `N` is in an improper range.
 
-(unimplemented) `pin-mode` 2 arg: returns `nil`; sets the mode of the first argument pin number to the second argument boolean - truthy as INPUT, falsey as OUTPUT.
+(unimplemented) `pin-mode pin mode`: sets the mode of  pin number `pin` to the boolean `mode` - truthy as INPUT, falsey as OUTPUT; returns nil.
 
-(unimplemented) `dig-out` 2 arg: returns `nil`; sets the digital output state of the first argument pin number to the second argument boolean - truthy as HIGH, falsey as LOW.
+(unimplemented) `dig-out pin val`: sets the digital output state of pin number `pin` to the boolean `val` - truthy as HIGH, falsey as LOW; returns nil.
 
-(unimplemented) `dig-in` 1 arg: returns digital input state of the first argument pin number.
+(unimplemented) `dig-in pin`: returns digital input state of pin number `pin`.
 
-(unimplemented) `ana-out` 2 arg: returns `nil`; sets the analog/PWM output state of the first argument pin number to the second argument word.
+(unimplemented) `ana-out pin val`: sets the analog/PWM output state of pin number `pin` to the word `val`; returns nil.
 
-(unimplemented) `ana-in` 1 arg: returns analog input state of the first argument pin number.
+(unimplemented) `ana-in pin`: returns analog input state of pin number `pin`.
 
 `file-r path`: returns blob of whole file contents.  
 `file-r path offset`: returns blob of file content between offset bytes and EOF.  
@@ -198,11 +198,13 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 Note: strings are written without null terminator.
 
 `str` 0 arg: returns empty string.  
-`str` N arg: returns concatenation of N args as a string.
+`str` N arg: returns concatenation of N arguments as a string.
 
-`type` 1 arg: returns type code of argument.
+`type i`: returns type code of item `i`.
 
-`cast` 2 arg: returns first argument as the second argument type code.
+`cast i t`: returns item `i` cast as type code `t`.  
+Note: wider to thinner will be truncated, thinner to wider will be zeroed out;  
+string to blob will lack null termination; casts to strings will be appended with null termination.
 
 `len i`: returns either vector, string, or internal item length.
 
@@ -225,9 +227,9 @@ Example: `(for str [\a \b \c] [1 2 3]) => [a1 a2 a3 b1 b2 b3 c1 c2 c3]`
 
 `do` 1-N arg: returns its final argument.
 
-`ms-now` 0 arg: returns milliseconds since Machine initialisation.
+`ms-now`: returns milliseconds since ChVM initialisation.
 
-`print` 0-N arg: returns `nil`; prints new line of result of `str` of N args.
+`print` 0-N arg: prints new line of result of `str` of N args; returns nil.
 
 ### Binary structure
 
