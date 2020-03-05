@@ -119,7 +119,7 @@ void ChVM::returnItemFrom (itemnum to, itemnum from) {
   returnItem(to, iFrom);
 }
 //Copies N items to the end of the stack
-void ChVM::restackCopy (itemnum from, itemnum nItem) {
+void ChVM::restackCopy (itemnum from, itemnum nItem = 1) {
   bytenum nByte = itemsBytesLen(from, from + nItem);
   //Copy bytes and descriptors
   memcpy(stackItem(), iBytes(from), nByte);
@@ -230,17 +230,13 @@ void ChVM::tailCallOptim (IType type, uint8_t* f, uint8_t* funcEnd, itemnum firs
     collapseArgs(firstParam, firstArgItem);
 }
 
-enum IfResult : uint8_t { UnEvaled = 0, WasTrue, WasFalse };
-
-union SpecialFormData {
-  IfResult ifData = UnEvaled;
-};
+enum SpecialFormData : uint8_t { UnEvaled = 0, WasTrue, WasFalse };
 
 uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum nArg) {
   IType formCode = *(IType*)f;
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
-  SpecialFormData formData;
+  SpecialFormData formData = UnEvaled;
   while (!recurring) {
 
     //If we're in a special form
@@ -253,14 +249,14 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
           if (firstArgItem == numItem()) break; //Nothing evaluted yet
           //(if true if-true[ if-false])
           //                ^
-          if (formData.ifData == WasTrue) {
+          if (formData == WasTrue) {
             //Was true: skip the if-false arg if present
             if (*f != Op_If) skipArg(&f);
             return ++f; //Skip if op
           } else
           //(if false if-true if-false)
           //                          ^
-          if (formData.ifData == WasFalse) {
+          if (formData == WasFalse) {
             return ++f; //Skip if op
           } else
           //(if cond if-true[ if-false])
@@ -274,8 +270,8 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
                 returnNil(firstArgItem);
                 return ++f;
               }
-              formData.ifData = WasFalse;
-            } else formData.ifData = WasTrue;
+              formData = WasFalse;
+            } else formData = WasTrue;
             iPop(); //Forget condition item
           }
           break;
@@ -304,7 +300,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
           }
           break;
 
-        case Form_And:
+        case Form_And: {
           bool evaled = firstArgItem != numItem();
           if (evaled) {
             //Exhaust current stack of arguments - in the case of (and (burst [1 2 3]) 1)
@@ -327,6 +323,40 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
           if (*f == Op_And) {
             returnItem(firstArgItem, Item(0, evaled ? Val_True : Val_False));
             return ++f;
+          }
+        } break;
+        
+        case Form_Case:
+          //(case val ...)
+          //     ^
+          if (firstArgItem == numItem()) break; //Nothing evaluted yet
+          //When the previous case matched
+          if (formData == WasTrue) {
+            //Return evaluated case by skipping all args until Op_Case
+            while (*f != Op_Case)
+              skipArg(&f);
+            returnCollapseLast(firstArgItem);
+            return ++f;
+          }
+          //(case val ...)
+          //         \>>>
+          if (firstArgItem + 1 < numItem()) {
+            //If there's no matching cases return the default case
+            if (*f == Op_Case) {
+              returnCollapseLast(firstArgItem);
+              return ++f;
+            }
+            //Copy the match value to the top of the stack and compare
+            restackCopy(firstArgItem);
+            op_Equal(numItem() - 2, Op_Equal);
+            //If comparison was successful, flag as evaluated
+            //  else skip value to next case
+            if (isTypeTruthy(iLast()->type()))
+              formData = WasTrue;
+            else
+              skipArg(&f);
+            //Forget case comparison
+            iPop();
           }
           break;
       }
@@ -441,6 +471,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
 
 void ChVM::nativeOp (IType op, itemnum firstParam) {
   switch (op) {
+    case Op_Case:   returnNil(firstParam); break; //No default case supplied
     case Op_Not:    op_Not   (firstParam); break;
     case Op_Equal: case Op_Nequal: case Op_Equit: case Op_Nequit:
       op_Equal(firstParam, op == Op_Equal || op == Op_Nequal);

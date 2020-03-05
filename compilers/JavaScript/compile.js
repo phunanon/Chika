@@ -19,15 +19,16 @@ const num = s => parseInt(s.match(/-?\d+/g).join(""));
 
 
 const
-  Form_Eval = 0x00, Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03,
-  Val_True = 0x04, Val_False = 0x05, Val_Str = 0x06, Param_Val = 0x07,
-  Bind_Mark = 0x08, Bind_Val = 0x09,
+  Form_Eval = 0x00,
+  Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03, Form_Case = 0x04,
+  Val_True = 0x05, Val_False = 0x06, Val_Str = 0x07, Param_Val = 0x08,
+  Bind_Mark = 0x09, Bind_Val = 0x0A,
   Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, Val_Char = 0x13,
   Val_Args = 0x19, Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x1E,
   Op_Func = 0x22, Op_Var = 0x2A, Op_Param = 0x2B;
 const strOps =
-  {"if":     0x23, "or":     0x24, "and":    0x25, "not":   0x26,
-   "recur":  0x2F,
+  {"if":     0x23, "or":     0x24, "and":    0x25, "case":  0x26,
+   "not":    0x27, "recur":  0x2F,
    "=":      0x30, "==":     0x31, "!=":     0x32, "!==":   0x33,
    "<":      0x34, "<=":     0x35, ">":      0x36, ">=":    0x37,
    "+":      0x38, "-":      0x39, "*":      0x3A, "/":     0x3B, "mod":    0x3C, "pow": 0x3D,
@@ -41,7 +42,7 @@ const literals =
   {"nil": Val_Nil, "true": Val_True, "false": Val_False,
    "nl": '\n', "sp": ' '};
 const formCodes =
-  {"if": Form_If, "or": Form_Or, "and": Form_And};
+  {"if": Form_If, "or": Form_Or, "and": Form_And, "case": Form_Case};
 
 
 const walkItems = (arr, pred, func) =>
@@ -143,7 +144,7 @@ function compile (source, ramRequest) {
   function appendFormCode (form) {
     const op = last(form);
     const formCode = formCodes[op.op];
-    const fCode = formCode != undefined ? formCode : Form_Eval;
+    const fCode = formCode ? formCode : Form_Eval;
     return [{n: fCode, b: 1, info: `form: ${op.op}`}].concat(form);
   }
   funcs = funcs.map(f => walkArrays(f, a => a, appendFormCode));

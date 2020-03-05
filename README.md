@@ -159,6 +159,8 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 `if cond if-true`: evaluates and returns `if-true` if `cond` is truthy, else nil.  
 `if cond if-true if-false`: evaluates and returns `if-true` if `cond` is truthy, else `if-false`.
 
+`case match ... N pairs ... [default]`: evaluates `match` then compares against the 1st of each pair of arguments, returning the 2nd if the 1st matches; if no matches are made `default` or nil is returned.
+
 `not i`: negates item `i`.
 
 `or` N arg: returns first truthy arg.
