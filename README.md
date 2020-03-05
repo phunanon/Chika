@@ -189,6 +189,14 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 (unimplemented) `ana-in` 1 arg: returns analog input state of the first argument pin number.
 
+`file-r path`: returns blob of whole file contents.  
+`file-r path offset`: returns blob of file content between offset bytes and EOF.  
+`file-r path offset count`: returns blob of file content between offset and count bytes.
+
+`file-a path content`: appends a blob or item as string to file.
+`file-w path content[ offset]`: writes a blob or item as string to a file, optionally with a byte offset (otherwise its 0).  
+Note: strings are written without null terminator.
+
 `str` 0 arg: returns empty string.  
 `str` N arg: returns concatenation of N args as a string.
 

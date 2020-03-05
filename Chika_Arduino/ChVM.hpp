@@ -71,6 +71,8 @@ class ChVM {
   void     op_Diff   (itemnum, IType);
   void     op_Arith  (itemnum, IType);
   void     op_Read   (itemnum);
+  void     op_Write  (itemnum);
+  void     op_Append (itemnum);
   void     op_Str    (itemnum);
   void     op_Type   (itemnum);
   void     op_Cast   (itemnum);

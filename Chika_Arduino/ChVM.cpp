@@ -452,6 +452,8 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_BNot: case Op_BAnd: case Op_BOr: case Op_BXor: case Op_LShift: case Op_RShift:
       op_Arith(firstParam, op); break;
     case Op_Read:   op_Read  (firstParam); break;
+    case Op_Write:  op_Write (firstParam); break;
+    case Op_Append: op_Append(firstParam); break;
     case Op_Str:    op_Str   (firstParam); break;
     case Op_Type:   op_Type  (firstParam); break;
     case Op_Cast:   op_Cast  (firstParam); break;
@@ -584,20 +586,55 @@ void ChVM::op_Arith (itemnum firstParam, IType op) {
 }
 
 void ChVM::op_Read (itemnum firstParam) {
-  //Copy the path string
-  uint8_t pathLen = i(firstParam)->len;
-  char path[pathLen];
-  memcpy(path, iData(firstParam), sizeof(char) * pathLen);
+  //Collect arguments
+  uint32_t offset = 0, count = 0;
+  argnum nArg = numItem() - firstParam;
+  if (nArg > 1) offset = iInt(firstParam + 1);
+  if (nArg > 2) count  = iInt(firstParam + 2);
   //Read file into first parameter memory
-  //TODO: use calculated RAM remaining
-  int32_t fLen = harness->fileRead(path, iBytes(firstParam), pInfo->ramLen);
-  //If the file could not be opened return nil
-  if (fLen < 0) {
+  //TODO: crash if above RAM limit
+  int32_t rLen =
+    harness->fileRead((const char*)iData(firstParam),
+                      iBytes(firstParam), offset, count);
+  //If the file could not be opened, or read was out-of-bounds, return nil
+  if (rLen < 0) {
     returnNil(firstParam);
     return;
   }
   //Return blob descriptor
-  returnItem(firstParam, Item(fLen, Val_Blob));
+  returnItem(firstParam, Item(rLen, Val_Blob));
+}
+
+void ChVM::op_Write (itemnum firstParam) {
+  //Collect arguments
+  uint32_t offset = 0, count = i(firstParam + 1)->len;
+  argnum nArg = numItem() - firstParam;
+  if (nArg > 1) offset = iInt(firstParam + 2);
+  //Ensure item is etiher a blob or converted to string
+  IType type = i(firstParam + 1)->type();
+  if (type != Val_Blob) {
+    if (type != Val_Str) op_Str(firstParam + 1);
+    returnItem(firstParam + 1, Item(i(firstParam + 1)->len - 1,
+               Val_Blob, i(firstParam + 1)->isConst()));
+  }
+  bool success =
+    harness->fileWrite((const char*)iData(firstParam),
+                       iData(firstParam + 1), offset, i(firstParam + 1)->len);
+  returnItem(firstParam, Item(0, success ? Val_True : Val_False));
+}
+
+void ChVM::op_Append (itemnum firstParam) {
+  //Ensure item is etiher a blob or converted to string
+  IType type = i(firstParam + 1)->type();
+  if (type != Val_Blob) {
+    op_Str(firstParam + 1);
+    returnItem(firstParam + 1, Item(i(firstParam + 1)->len - 1,
+               Val_Blob, i(firstParam + 1)->isConst()));
+  }
+  bool success =
+    harness->fileAppend((const char*)iData(firstParam),
+                        iData(firstParam + 1), i(firstParam + 1)->len);
+  returnItem(firstParam, Item(0, success ? Val_True : Val_False));
 }
 
 void ChVM::op_Str (itemnum firstParam) {

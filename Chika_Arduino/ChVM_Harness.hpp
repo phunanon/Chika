@@ -9,13 +9,13 @@ public:
   void     printItems (uint8_t*, uint32_t);
 
   //File and General-Purpose IO
-  int32_t  fileRead   (const char*, uint8_t*, uint32_t);
-  bool     fileWrite  (const char*, uint8_t*, uint32_t);
+  int32_t  fileRead   (const char*, uint8_t*, uint32_t, uint32_t);
+  bool     fileWrite  (const char*, uint8_t*, uint32_t, uint32_t);
   bool     fileAppend (const char*, uint8_t*, uint32_t);
 
   //Program control
-  uint8_t  loadProg   (const char*);
-  uint8_t  unloadProg (const char*);
+  void     loadProg   (const char*);
+  void     unloadProg (const char*);
 
   //System information
   uint32_t msNow      ();

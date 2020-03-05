@@ -1,6 +1,4 @@
 #include <cstdio>
-#include <iostream>
-#include <fstream>
 #include <chrono>
 #include "ChVM.hpp"
 
@@ -37,16 +35,45 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   printf("\n");
 }
 
-int32_t ChVM_Harness::fileRead (const char* path, uint8_t* blob, uint32_t limit) {
-  std::ifstream fs (path, std::ios::in | std::ios::binary);
-  fs.seekg(0, std::ios::end);
-  size_t fLen = fs.tellg();
-  if (fLen > limit)
-    return -1;
-  fs.seekg(0, std::ios::beg);
-  fs.read((char*)blob, sizeof(char) * fLen);
-  fs.close();
-  return fLen;
+int fsize (FILE *fp) {
+    int prev = ftell(fp);
+    fseek(fp, 0L, SEEK_END);
+    int sz = ftell(fp);
+    fseek(fp, prev, SEEK_SET);
+    return sz;
+}
+
+//Reads from `offset` in the file for `count` bytes
+//If `count` is 0 the rest of the file is read
+int32_t ChVM_Harness::fileRead (const char* path, uint8_t* blob, uint32_t offset, uint32_t count) {
+  FILE* fp = fopen(path, "rb");
+  size_t fLen = fsize(fp);
+  if (offset + count > fLen) {
+    if (offset > fLen) return 0;
+    count = 0;
+  }
+  if (!count) count = fLen - offset;
+  fseek(fp, offset, SEEK_SET);
+  fread(blob, sizeof(uint8_t), count, fp);
+  fclose(fp);
+  return count;
+}
+
+bool ChVM_Harness::fileWrite (const char* path, uint8_t* blob, uint32_t offset, uint32_t count) {
+  FILE* fp = fopen(path, "wb");
+  if (!fp) return false;
+  fseek(fp, offset, SEEK_SET);
+  fwrite(blob, sizeof(uint8_t), count, fp);
+  fclose(fp);
+  return true;
+}
+
+bool ChVM_Harness::fileAppend (const char* path, uint8_t* blob, uint32_t count) {
+  FILE* fp = fopen(path, "ab");
+  if (!fp) return false;
+  fwrite(blob, sizeof(uint8_t), count, fp);
+  fclose(fp);
+  return true;
 }
 
 auto start_time = std::chrono::high_resolution_clock::now();
@@ -60,24 +87,23 @@ ChVM machine = ChVM();
 uint8_t mem[CHIKA_SIZE];
 uint8_t pNum = 0;
 
-uint8_t ChVM_Harness::loadProg (const char* path) {
-  std::ifstream fl(path, std::ios::in | std::ios::binary);
-  fl.seekg(0, std::ios::end);
-  size_t fLen = fl.tellg();
-  fl.seekg(0, std::ios::beg);
+void ChVM_Harness::loadProg (const char* path) {
+  FILE* fp = fopen(path, "rb");
+  size_t fLen = fsize(fp);
   bytenum ramLen;
-  fl.read((char*)&ramLen, sizeof(bytenum));
+  fread((char*)&ramLen, sizeof(bytenum), 1, fp);
   progs[pNum].ramLen = ramLen <= MAX_PROG_RAM ? ramLen : MAX_PROG_RAM;
   machine.setPNum(pNum);
-  fl.read((char*)machine.pROM, fLen - sizeof(bytenum));
-  fl.close();
+  fread((char*)machine.pROM, sizeof(bytenum), fLen, fp);
+  fclose(fp);
   machine.romLen(fLen - sizeof(bytenum));
   machine.entry();
-  return pNum++;
+  ++pNum;
 }
 
-uint8_t ChVM_Harness::unloadProg (const char* path) {
-  return --pNum;
+void ChVM_Harness::unloadProg (const char* path) {
+  //TODO
+  --pNum;
 }
 
 int main (int argc, char* argv[]) {
