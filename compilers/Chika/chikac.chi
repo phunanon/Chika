@@ -16,12 +16,11 @@
 //Accepts optional is-negative boolean to find the next index that is not `sub`
 (fn index-of-until
   coll sub until; is-negative; i len
-  (if (!= i until)
-    (if (!empty? coll)
-      (do comp-op= (if is-negative != =)
-        (if (comp-op (str sub) (sect coll 0 (len sub)))
-          (or i 0i)
-          (recur (sect coll) sub until is-negative (inc (or i 0i))))))))
+  (if (or (= i until) (empty? coll)) (return nil))
+  (do comp-op= (if is-negative != =)
+    (if (comp-op (str sub) (sect coll 0 (len sub)))
+      (or i 0i)
+      (recur (sect coll) sub until is-negative (inc (or i 0i))))))
 
 //Scans for first index of item, str, or char `sub` within `coll`
 (fn index-of
@@ -32,117 +31,107 @@
 //Returns [the next find; index], with the find as nil if nothing was found
 (fn next-index-of
   string finds ;; m win
-  (if (empty? finds)
-    [win m]
-    (do minimum= (or m (len string))
-        find=    (1st finds)
-        index=   (index-of-until string find minimum)
-      (burst
-        (if (< index minimum)
-          [minimum= index winner= find]
-          [winner= win]))
-      (recur string (sect finds) minimum winner))))
+  (if (empty? finds) (return [win m]))
+  (do minimum= (or m (len string))
+      find=    (1st finds)
+      index=   (index-of-until string find minimum)
+    (burst
+      (if (< index minimum)
+        [minimum= index winner= find]
+        [winner= win]))
+    (recur string (sect finds) minimum winner)))
 
-//Retruns the next index of item, str, or char not in `anti-finds`, in `coll` as a vec or str
+//Returns the next index of item, str, or char not in `anti-finds`, in `coll` as a vec or str
 (fn next-index-of-not
   string anti-finds ;; i
-  (if (empty? string)
-    nil
-    (do string2= string
-      (if (or (burst (map {= (str #) (sect string2 0 (len #))} anti-finds)))
-        (recur (sect string) anti-finds (+ (or i 0i) 1i))
-        (or i 0i)))))
+  (if (empty? string) (return nil))
+  (do string2= string
+    (if (or (burst (map {= (str #) (sect string2 0 (len #))} anti-finds)))
+      (recur (sect string) anti-finds (+ (or i 0i) 1i))
+      (or i 0i))))
 
 //Replaces contiguous spaces with one space
 (fn shrink-space
   in ;; out
-  (if (empty? in)
-    out
-    (do prev= (last out)
-        next= (1st in)
-      (recur (sect in) (str (or out "") (if (= prev next \sp) "" next))))))
+  (if (empty? in) (return out))
+  (do prev= (last out)
+      next= (1st in)
+    (recur (sect in) (str (or out "") (if (= prev next \sp) "" next)))))
 
-(fn trim s
-  (do wsp= [\sp \; \, \nl]
-    (if (includes? wsp (1st s))
-      (recur (sect s)))
-    (if (includes? wsp (last s))
-      (recur (ex-last s))
-    s)))
 
-//TODO: use `case` special form
-//Stage 1 parsing - comment and whitespace scrubbing, string extraction
-//Preserves character literals
-//Supply `out` as an empty string
-(fn stage1
-  in out ;; strings
-  (if (empty? in)
-    out
+
+//Returns instance length
+(fn stage1-process
+  str-in found path-out num-str
+  (case found
+    \\   //If a char literal, preserve it
     (do
-      //Find the next instance of...
-      //a char literal, string, multi-line or single-line comment, comma, semicolon, vector start/end, newline
-      next-index= (next-index-of in [\\ \" "/*" "//" \, \; \[ \] \nl])
+      lit-len=  (2nd (next-index-of str-in [\sp \nl \) \]]))
+      char-lit= (str \\ (sect str-in 0 lit-len))
+      (file-a path-out char-lit)
+      lit-len)
+    \"   //If a string, output to the string file, and substitute for `n`
+    (do
+      str-len= (index-of str-in \")
+      string=  (sect str-in 0 str-len)
+      (file-a path-out (str \` num-str \`))
+      (file-a (str path-out ".s") string)
+      (file-a (str path-out ".sl") (cast (+ 0w str-len) 12))
+      (inc str-len))
+    "//"  //If a single-line comment, skip until a newline
+    (index-of str-in \nl)
+    "/*"  //If a multi-line comment, skip until "*/"
+    (+ (index-of str-in "*/") 2)
+    \;    //If a semicolon, output a space
+    (do (file-a path-out \sp) 0)
+    \,    //If a comma, skip until not whitespace
+    (next-index-of-not str-in [\sp \; \, \nl])
+    \nl   //If a newline, output a space
+    (do (file-a path-out \sp) 0)
+    \[    //If a vector open, output `(vec `
+    (do (file-a path-out "(vec ") 0)
+    \]    //If a vector close, output a close parenthesis
+    (do (file-a path-out \)) 0)))
+
+//Finds an instance of...
+//  a char literal, string, multi-line or single-line comment,
+//  comma, semicolon, vector start/end, newline
+(fn stage1-seek
+  path-in path-out offset num-str
+  (do chunk-size= 128
+      str-in=     (str (file-r path-in offset chunk-size))
+      next-index= (next-index-of str-in [\" "//" "/*" \\ \; \, \nl \[ \]])
       found=      (1st next-index)
       at=         (2nd next-index)
+    (if (empty? str-in) (return))
+    (if found
+      (do
+        //Output up until the instance
+        (if (!= at 0)
+          (file-a path-out (sect str-in 0 at)))
+        //Process the instance
+        offset2=      (+ offset at (len found))
+        str-in=       (str (file-r path-in offset2 chunk-size))
+        instance-len= (stage1-process str-in found path-out num-str)
+        new-num-str=  (if (= found \") (inc num-str) num-str)
+        //Recur onward
+        (recur path-in path-out (+ offset2 instance-len) new-num-str))
+      (do
+        //Transparent pass-through
+        (file-a path-out str-in)
+        //Recur onward
+        (recur path-in path-out (+ offset chunk-size) num-str)))))
 
-      //Was an instance not found?
-      (if (not found)
-        //Return with final space shrinking for spaces around comments, and trimmed
-        [(trim (shrink-space (str out in))) strings]
-        //Otherwise, handle the instance
-        (do
-          //Compose string up until the instance
-          next-out=
-          (str out (if (= at 0) "" (shrink-space (sect in 0 at))))
 
-          //If a char literal, preserve it
-          (if (= found \\)
-            (do
-              lit-len=  (index-of (sect in at) " ")
-              char-lit= (sect in at lit-len)
-              (recur (sect in lit-len)
-                     (str next-out char-lit)
-                     strings)))
 
-          //If a string, append it to the strings list, and substitute for `n`
-          (if (= found \")
-            (do
-              str-len= (index-of (sect in (inc at)) \")
-              string=  (sect in (inc at) str-len)
-              (recur (sect in (+ at str-len 2))
-                     (str next-out \` (len strings) \`)
-                     (append strings string))))
+(do path= "init.chi"
+  //Empty all cache files
+  (map {file-w (str path #) "" 0} [".0" ".0.s" ".0.sl"])
+  //Begin stage 1
+  (stage1-seek path (str path ".0") 0i 0i)
+  //Finished
+  (print "Compilation of `" path "` complete in " (ms-now) "ms"))
 
-          //If a single or multi-line comment, skip until its termination
-          is-m-c= (= found "/*")
-          is-s-c= (= found "//")
-          (if (or is-m-c is-s-c)
-            (do
-              termination= (if is-m-c "*/" \nl)
-              num-skip=    (if is-m-c 3 1)
-              comment-len= (index-of (sect in at) termination)
-              (if comment-len
-                (recur (sect in (+ at comment-len num-skip)) next-out strings)
-                (recur "" next-out strings))))
-
-          //If a semicolon, skip it
-          (if (= found \;)
-            (recur (sect in (inc at)) next-out strings))
-
-          //If a comma, skip until a non-whitespace
-          (if (= found \,)
-            (do next-non-wsp= (next-index-of-not (sect in at) [\sp \; \,])
-              (recur (sect in (+ at next-non-wsp)) next-out strings)))
-
-          //If a vector beginning, replace with `(vec `
-          (if (= found \[)
-            (recur (sect in (inc at)) (str next-out "(vec ") strings))
-
-          //If a vector end, replace with `)`
-          (if (= found \])
-            (recur (sect in (inc at)) (str next-out \)) strings))
-
-          //If a newline, replace with a string
-          (if (= found \nl)
-            (recur (sect in (inc at)) (str next-out \sp) strings)))))))
-
+//cd .. && sh compile.sh && cd bin && ./chika
+//p harness->printItems(pFirstItem, numItem())
+//x/8b ptr
