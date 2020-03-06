@@ -1,3 +1,4 @@
+const startTime = new Date();
 String.prototype.rp = function(pad, len) { while (pad.length < len) { pad += pad; } return this + pad.substr(0, len-this.length); }
 String.prototype.lp = function(pad, len) { while (pad.length < len) { pad += pad; } return pad.substr(0, len-this.length) + this; }
 Array.prototype.remove = function (fn) { return this.filter(it => !fn(it)); }
@@ -28,7 +29,7 @@ const
   Op_Func = 0x22, Op_Var = 0x2A, Op_Param = 0x2B;
 const strOps =
   {"if":     0x23, "or":     0x24, "and":    0x25, "case":  0x26,
-   "not":    0x27, "recur":  0x2F,
+   "not":    0x27, "return": 0x2E, "recur":  0x2F,
    "=":      0x30, "==":     0x31, "!=":     0x32, "!==":   0x33,
    "<":      0x34, "<=":     0x35, ">":      0x36, ">=":    0x37,
    "+":      0x38, "-":      0x39, "*":      0x3A, "/":     0x3B, "mod":    0x3C, "pow": 0x3D,
@@ -277,7 +278,7 @@ function compile (source, ramRequest) {
       .map(n => n.hex == undefined ? numToLEHex(n.n, n.b) : n.hex)
       .join("");
 
-  console.log((image.length / 2) + "B");
+  console.log(`${(image.length / 2)} B in ${((new Date()) - startTime)}ms`);
   return {assembly: JSON.stringify(funcs, null, ' '), image};
 }
 

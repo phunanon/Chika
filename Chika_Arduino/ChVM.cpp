@@ -188,7 +188,9 @@ bool ChVM::findBind (itemnum& it, bindnum bNum) {
   return found ? ++it : false;
 }
 
-bool recurring = false;
+enum FuncState { FuncContinue, FuncRecur, FuncReturn };
+
+FuncState funcState = FuncContinue;
 bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   uint8_t* f = pFunc(fNum);
   if (f == nullptr) return false;
@@ -204,11 +206,15 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   itemnum nParam = numItem() - firstParam;
   while (f != fEnd) {
     f = exeForm(f, fEnd, firstParam, nParam);
-    if (recurring) {
+    if (funcState == FuncRecur) {
       nParam = numItem() - firstParam;
-      recurring = false;
+      funcState = FuncContinue;
       f = fStart;
       continue;
+    }
+    if (funcState == FuncReturn) {
+      funcState = FuncContinue;
+      break;
     }
     if (f != fEnd)
       iPop();
@@ -230,14 +236,14 @@ void ChVM::tailCallOptim (IType type, uint8_t* f, uint8_t* funcEnd, itemnum firs
     collapseArgs(firstParam, firstArgItem);
 }
 
-enum SpecialFormData : uint8_t { UnEvaled = 0, WasTrue, WasFalse };
+enum SpecialFormData { UnEvaled = 0, WasTrue, WasFalse };
 
 uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum nArg) {
   IType formCode = *(IType*)f;
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
   SpecialFormData formData = UnEvaled;
-  while (!recurring) {
+  while (funcState == FuncContinue) {
 
     //If we're in a special form
     if (formCode != Form_Eval) {
@@ -417,7 +423,15 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
     if (type == Op_Recur) {
       //Treat as if tail-call and set recur flag
       collapseArgs(firstParam, firstArgItem);
-      recurring = true;
+      funcState = FuncRecur;
+    } else
+    //If an explicit function return
+    if (type == Op_Return) {
+      if (firstArgItem == numItem())
+        returnNil(firstArgItem);
+      else returnCollapseLast(firstArgItem);
+      f = funcEnd;
+      funcState = FuncReturn;
     } else
     //If a program function
     if (type == Op_Func) {
@@ -541,11 +555,11 @@ vectlen ChVM::vectLen (itemnum it) {
   return readNum(iBytes(it + 1) - sizeof(vectlen), sizeof(vectlen));
 }
 
+
 void ChVM::op_Not (itemnum firstParam) {
   bool isTruthy = isTypeTruthy(i(firstParam)->type());
   returnItem(firstParam, Item(0, isTruthy ? Val_False : Val_True));
 }
-
 
 void ChVM::op_Equal (itemnum firstParam, bool equality) {
   //Find equity (==) through byte comparison, and equality (=) through item or int comparison

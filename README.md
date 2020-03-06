@@ -37,8 +37,8 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
 
     //Filter function, found in core.chi
     //Note: `1st`, `append`, and `odd?` are all implemented in Chika in core.chi
-    //Note: `filtered` is an optional argument - `append` accepts nil as a vector
-    (fn filter v pred; filtered
+    //Note: `filtered` is an optional argument, as `append` accepts nil as a vector
+    (fn filter v pred ;; filtered
       (if (= (len v) 0)
         filtered
         (do f= (1st v)
@@ -113,7 +113,7 @@ Names can include (almost) any characters excluding whitespace.
 
 `//...`: a comment, which can be suitated on a new line or at the end of one.
 
-`/*...*/`: a multiline comment.
+`/*...*/`: a multiline comment. Note: an instance of `*/` will terminate a comment immediately, and cannot be contained within a multiline comment itself
 
 `;`: a semicolon, treated as whitespace.
 
@@ -148,6 +148,8 @@ Use `\dq` and `str` for double-quotations, as strings provide no escaped charact
 
 #### Native functions
 
+Note: `[square brackets]` indicate optional arguments.
+
 `+` / `-` / `*` / `/` / `mod` / `pow` /  
 `&` / `|` / `^` / `<<` / `>>` N arg:  
 returns sum / subtraction / multiplication / division / modulus / raise-to-the-power /  
@@ -166,6 +168,8 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 `or` N arg: returns first truthy arg.
 
 `and` N arg: returns true if all args truthy.
+
+`return[ val]`: exit the function early, evaluating to either nil or `val`.
 
 `recur` N arg: on the stack replace the parameters with N arguments and recall the function.
 

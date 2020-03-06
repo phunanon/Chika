@@ -54,7 +54,7 @@ int32_t ChVM_Harness::fileRead (const char* path, uint8_t* blob, uint32_t offset
   }
   if (!count) count = fLen - offset;
   fseek(fp, offset, SEEK_SET);
-  fread(blob, sizeof(uint8_t), count, fp);
+  count = fread(blob, sizeof(uint8_t), count, fp);
   fclose(fp);
   return count;
 }
