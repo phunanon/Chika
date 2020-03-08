@@ -81,6 +81,6 @@ uint8_t int2chars (uint8_t* str, int32_t n) {
   do {
     str[c - 1] = (n % 10) + 48;
     n /= 10;
-  } while(--c > offset);
+  } while (--c > offset);
   return numDigits + offset;
 }

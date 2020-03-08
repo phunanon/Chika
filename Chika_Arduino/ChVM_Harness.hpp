@@ -14,7 +14,7 @@ public:
   bool     fileAppend (const char*, uint8_t*, uint32_t);
 
   //Program control
-  void     loadProg   (const char*);
+  bool     loadProg   (const char*);
   void     unloadProg (const char*);
 
   //System information

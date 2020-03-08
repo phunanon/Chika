@@ -47,6 +47,7 @@ int fsize (FILE *fp) {
 //If `count` is 0 the rest of the file is read
 int32_t ChVM_Harness::fileRead (const char* path, uint8_t* blob, uint32_t offset, uint32_t count) {
   FILE* fp = fopen(path, "rb");
+  if (!fp) return 0;
   size_t fLen = fsize(fp);
   if (offset + count > fLen) {
     if (offset > fLen) return 0;
@@ -87,8 +88,9 @@ ChVM machine = ChVM();
 uint8_t mem[CHIKA_SIZE];
 uint8_t pNum = 0;
 
-void ChVM_Harness::loadProg (const char* path) {
+bool ChVM_Harness::loadProg (const char* path) {
   FILE* fp = fopen(path, "rb");
+  if (!fp) return false;
   size_t fLen = fsize(fp);
   bytenum ramLen;
   fread((char*)&ramLen, sizeof(bytenum), 1, fp);
@@ -98,7 +100,7 @@ void ChVM_Harness::loadProg (const char* path) {
   fclose(fp);
   machine.romLen(fLen - sizeof(bytenum));
   machine.entry();
-  ++pNum;
+  return ++pNum;
 }
 
 void ChVM_Harness::unloadProg (const char* path) {

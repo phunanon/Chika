@@ -41,6 +41,40 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   Serial.println();
 }
 
+//Reads from `offset` in the file for `count` bytes
+//If `count` is 0 the rest of the file is read
+int32_t ChVM_Harness::fileRead (const char* path, uint8_t* blob, uint32_t offset, uint32_t count) {
+  File fp = SD.open(path, FILE_READ);
+  if (!fp) return 0;
+  auto fLen = fp.size();
+  if (offset + count > fLen) {
+    if (offset > fLen) return 0;
+    count = 0;
+  }
+  if (!count) count = fLen - offset;
+  fp.seek(offset);
+  fp.read(blob, count);
+  fp.close();
+  return count;
+}
+
+bool ChVM_Harness::fileWrite (const char* path, uint8_t* blob, uint32_t offset, uint32_t count) {
+  File fp = SD.open(path, FILE_WRITE);
+  if (!fp) return false;
+  fp.seek(offset);
+  fp.write(blob, count);
+  fp.close();
+  return true;
+}
+
+bool ChVM_Harness::fileAppend (const char* path, uint8_t* blob, uint32_t count) {
+  File fp = SD.open(path, FILE_WRITE | O_APPEND);
+  if (!fp) return false;
+  fp.write(blob, count);
+  fp.close();
+  return true;
+}
+
 uint32_t ChVM_Harness::msNow () {
   return millis();
 }
@@ -49,11 +83,11 @@ ChVM machine = ChVM();
 uint8_t mem[CHIKA_SIZE];
 uint8_t pNum = 0;
 
-uint8_t ChVM_Harness::loadProg (const char* path) {
+bool ChVM_Harness::loadProg (const char* path) {
   File prog = SD.open(path);
   if (!prog) {
     Serial.println("Program not found");
-    return 0;
+    return false;
   }
   bytenum ramLen;
   {
@@ -70,11 +104,11 @@ uint8_t ChVM_Harness::loadProg (const char* path) {
   prog.close();
   machine.romLen(pByte);
   machine.entry();
-  return pNum++;
+  return ++pNum;
 }
 
-uint8_t ChVM_Harness::unloadProg (const char* path) {
-  return --pNum;
+void ChVM_Harness::unloadProg (const char* path) {
+  --pNum;
 }
 
 void setup() {
