@@ -57,13 +57,13 @@ class ChVM {
   uint8_t* pFunc     (funcnum);
   bool     findBind  (itemnum&, bindnum);
 
-  void     collapseArgs  (itemnum, itemnum&);
-  void     tailCallOptim (IType, uint8_t*, uint8_t*, itemnum, itemnum&);
+  void     collapseArgs  (itemnum&);
+  void     tailCallOptim (IType, itemnum&);
   void     burstItem ();
   void     op_Sect   (itemnum, bool);
   //All leave one V item on the stack
   bool     exeFunc   (funcnum, itemnum);
-  uint8_t* exeForm   (uint8_t*, uint8_t*, itemnum, itemnum);
+  void     exeForm   ();
   void     nativeOp  (IType, itemnum);
   vectlen  vectLen   (itemnum);
   void     op_Not    (itemnum);

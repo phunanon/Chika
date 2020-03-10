@@ -190,24 +190,48 @@ bool ChVM::findBind (itemnum& it, bindnum bNum) {
 
 enum FuncState { FuncContinue, FuncRecur, FuncReturn };
 
+
+//These globals are set and restored per function call by ChVM::exeFunc,
+//  and used extensively by ChVM::exeForm, providing per-function context
+uint8_t* f;
+uint8_t* funcEnd;
+itemnum firstParam;
+itemnum nArg;
 FuncState funcState = FuncContinue;
-bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
-  uint8_t* f = pFunc(fNum);
-  if (f == nullptr) return false;
+
+bool ChVM::exeFunc (funcnum fNum, itemnum firstPara) {
+  //Cache previous function attribute
+  uint8_t* prev_f = f;
+
+  f = pFunc(fNum);
+  if (f == nullptr) {
+    f = prev_f;
+    return false;
+  }
   uint8_t* fEnd;
   f += sizeof(funcnum);
   {
     funclen fLen = readUNum(f, sizeof(funclen));
-    if (!fLen) return false;
+    if (!fLen) {
+      f = prev_f;
+      return false;
+    }
     f += sizeof(funclen);
     fEnd = f + fLen;
   }
+
+  //Cache previous function attributes
+  uint8_t* prev_funcEnd = funcEnd;
+  itemnum prev_firstParam = firstParam;
+  itemnum prev_nArg = nArg;
+
+  firstParam = firstPara;
   uint8_t* fStart = f;
-  itemnum nParam = numItem() - firstParam;
+  nArg = numItem() - firstParam;
   while (f != fEnd) {
-    f = exeForm(f, fEnd, firstParam, nParam);
+    exeForm();
     if (funcState == FuncRecur) {
-      nParam = numItem() - firstParam;
+      nArg = numItem() - firstParam;
       funcState = FuncContinue;
       f = fStart;
       continue;
@@ -222,23 +246,30 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   //Move last item into return position
   if (numItem() > 0)
     returnCollapseLast(firstParam);
+
+  //Restore previous function attributes
+  f = prev_f;
+  funcEnd = prev_funcEnd;
+  firstParam = prev_firstParam;
+  nArg = prev_nArg;
+
   return true;
 }
 
 
 //Collapse args into params position
-void ChVM::collapseArgs (itemnum firstParam, itemnum& firstArgItem) {
+void ChVM::collapseArgs (itemnum& firstArgItem) {
   collapseItems(firstParam, numItem() - firstArgItem);
   firstArgItem = firstParam;
 }
-void ChVM::tailCallOptim (IType type, uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum& firstArgItem) {
+void ChVM::tailCallOptim (IType type, itemnum& firstArgItem) {
   if (f == funcEnd - constByteLen(type) - 1) //If the op is a tail call
-    collapseArgs(firstParam, firstArgItem);
+    collapseArgs(firstArgItem);
 }
 
 enum SpecialFormData { UnEvaled = 0, WasTrue, WasFalse };
 
-uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnum nArg) {
+void ChVM::exeForm () {
   IType formCode = *(IType*)f;
   ++f; //Skip form code
   itemnum firstArgItem = numItem();
@@ -258,12 +289,14 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
           if (formData == WasTrue) {
             //Was true: skip the if-false arg if present
             if (*f != Op_If) skipArg(&f);
-            return ++f; //Skip if op
+            ++f; //Skip op
+            return;
           } else
           //(if false if-true if-false)
           //                          ^
           if (formData == WasFalse) {
-            return ++f; //Skip if op
+            ++f; //Skip op
+            return;
           } else
           //(if cond if-true[ if-false])
           //        ^
@@ -274,7 +307,8 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
               //If there's no if-false, return nil
               if (*f == Op_If) {
                 returnNil(firstArgItem);
-                return ++f;
+                ++f; //Skip op
+                return;
               }
               formData = WasFalse;
             } else formData = WasTrue;
@@ -296,13 +330,15 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
               //Skip all args until Op_Or
               while (*f != Op_Or)
                 skipArg(&f);
-              return ++f;
+              ++f; //Skip op
+              return;
             }
           } while (numItem() != firstArgItem);
           //Did or-form end without truthy value?
           if (*f == Op_Or) {
             returnNil(firstArgItem);
-            return ++f;
+            ++f; //Skip op
+            return;
           }
           break;
 
@@ -322,13 +358,15 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
               while (*f != Op_And)
                 skipArg(&f);
               returnItem(firstArgItem, Item(0, Val_False));
-              return ++f;
+              ++f; //Skip op
+              return;
             }
           }
           //Did and-form end without a falsey value?
           if (*f == Op_And) {
             returnItem(firstArgItem, Item(0, evaled ? Val_True : Val_False));
-            return ++f;
+            ++f; //Skip op
+            return;
           }
         } break;
         
@@ -342,7 +380,8 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
             while (*f != Op_Case)
               skipArg(&f);
             returnCollapseLast(firstArgItem);
-            return ++f;
+            ++f; //Skip op
+            return;
           }
           //(case val ...)
           //         \>>>
@@ -350,7 +389,8 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
             //If there's no matching cases return the default case
             if (*f == Op_Case) {
               returnCollapseLast(firstArgItem);
-              return ++f;
+              ++f; //Skip op
+              return;
             }
             //Copy the match value to the top of the stack and compare
             restackCopy(firstArgItem);
@@ -372,7 +412,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
     IType type = (IType)*f;
     //If a form
     if (type <= FORMS_END)
-      f = exeForm(f, funcEnd, firstParam, nArg);
+      exeForm();
     else
     //If a parameter
     if (type == Param_Val) {
@@ -422,7 +462,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
     //If an explicit function recursion
     if (type == Op_Recur) {
       //Treat as if tail-call and set recur flag
-      collapseArgs(firstParam, firstArgItem);
+      collapseArgs(firstArgItem);
       funcState = FuncRecur;
     } else
     //If an explicit function return
@@ -435,7 +475,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
     } else
     //If a program function
     if (type == Op_Func) {
-      tailCallOptim(type, f, funcEnd, firstParam, firstArgItem);
+      tailCallOptim(type, firstArgItem);
       funcnum fNum = readUNum(++f, sizeof(funcnum));
       exeFunc(fNum, firstArgItem);
       f += sizeof(funcnum);
@@ -465,7 +505,7 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
         else
         //If a program function
         if (type == Var_Func) {
-          tailCallOptim(type, f, funcEnd, firstParam, firstArgItem);
+          tailCallOptim(type, firstArgItem);
           exeFunc(readUNum(iData(it), sizeof(funcnum)), firstArgItem);
         } else
         //Variable wasn't of Var_Op/Var_Func type
@@ -480,7 +520,6 @@ uint8_t* ChVM::exeForm (uint8_t* f, uint8_t* funcEnd, itemnum firstParam, itemnu
       break;
     }
   }
-  return f;
 }
 
 void ChVM::nativeOp (IType op, itemnum firstParam) {
