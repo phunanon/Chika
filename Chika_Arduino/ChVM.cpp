@@ -269,6 +269,7 @@ void ChVM::tailCallOptim (IType type, itemnum& firstArgItem) {
 
 enum SpecialFormData { UnEvaled = 0, WasTrue, WasFalse };
 
+IType nextEval; //Used within ChVM::exeForm()
 void ChVM::exeForm () {
   IType formCode = *(IType*)f;
   ++f; //Skip form code
@@ -409,13 +410,13 @@ void ChVM::exeForm () {
     }
 
     //Evaluate next
-    IType type = (IType)*f;
+    nextEval = (IType)*f;
     //If a form
-    if (type <= FORMS_END)
+    if (nextEval <= FORMS_END)
       exeForm();
     else
     //If a parameter
-    if (type == Param_Val) {
+    if (nextEval == Param_Val) {
       itemnum paramNum = readUNum(++f, sizeof(argnum));
       f += sizeof(argnum);
       //If parameter is outside bounds, stack nil
@@ -431,13 +432,13 @@ void ChVM::exeForm () {
       stackItem(Item(iParam->len, iParam->type()));
     } else
     //If a vector of the function arguments
-    if (type == Val_Args) {
+    if (nextEval == Val_Args) {
       restackCopy(firstParam, nArg);
       op_Vec(firstArgItem);
       ++f; //Skip const code
     } else
     //If a binding reference
-    if (type == Bind_Val) {
+    if (nextEval == Bind_Val) {
       bindnum bNum = readUNum(++f, sizeof(bindnum));
       f += sizeof(bindnum);
       itemnum it;
@@ -453,20 +454,20 @@ void ChVM::exeForm () {
         stackNil();
     } else
     //If a constant
-    if (type < OPS_START) {
-      Item item = Item(constByteLen(type, ++f), type, true);
+    if (nextEval < OPS_START) {
+      Item item = Item(constByteLen(nextEval, ++f), nextEval, true);
       writeUNum(stackItem(), f - pROM, sizeof(proglen));
       stackItem(item);
-      f += constByteLen(type, f);
+      f += constByteLen(nextEval, f);
     } else
     //If an explicit function recursion
-    if (type == Op_Recur) {
+    if (nextEval == Op_Recur) {
       //Treat as if tail-call and set recur flag
       collapseArgs(firstArgItem);
       funcState = FuncRecur;
     } else
     //If an explicit function return
-    if (type == Op_Return) {
+    if (nextEval == Op_Return) {
       if (firstArgItem == numItem())
         returnNil(firstArgItem);
       else returnCollapseLast(firstArgItem);
@@ -474,19 +475,19 @@ void ChVM::exeForm () {
       funcState = FuncReturn;
     } else
     //If a program function
-    if (type == Op_Func) {
-      tailCallOptim(type, firstArgItem);
+    if (nextEval == Op_Func) {
+      tailCallOptim(nextEval, firstArgItem);
       funcnum fNum = readUNum(++f, sizeof(funcnum));
       exeFunc(fNum, firstArgItem);
       f += sizeof(funcnum);
       break;
     } else
     //If a native op or function through a binding or parameter
-    if (type == Op_Bind || type == Op_Param) {
+    if (nextEval == Op_Bind || nextEval == Op_Param) {
       itemnum it;
       bool found = true;
 
-      if (type == Op_Bind) {
+      if (nextEval == Op_Bind) {
         found = findBind(it, readUNum(++f, sizeof(bindnum)));
         f += sizeof(bindnum);
       } else {
