@@ -70,6 +70,12 @@
       (append v from))
     v))
 
+//Returns item after `k` in vector/string `v`
+(fn key v k
+  (if (empty? v) (return nil))
+  (if (= (1st v) k) (return (2nd v)))
+  (recur (sect v 2) k))
+
 //e.g. (str->int "123") => 123i
 (fn n*10^p-1 n p
   (if (== p 1) n

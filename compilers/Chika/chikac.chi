@@ -11,12 +11,23 @@
 (fn !empty? i (!= (len i) 0))
 (fn includes? coll i
   (do find= i (or (burst (map {= find #} coll)))))
+(fn key v k
+  (if (empty? v) (return nil))
+  (if (= (1st v) k) (return (2nd v)))
+  (recur (sect v 2) k))
+
+//Replace all occurences of `r` with `w` in the string `s`
+(fn replace-all s r w ;; out
+  (if (empty? s) (return out))
+  (recur (sect s) r w
+    (str (or out "")
+      (if (= (1st s) r) w (1st s)))))
 
 //Scans for first index of item, str, or char `sub` within `coll`, before index `until`
 //Accepts optional is-negative boolean to find the next index that is not `sub`
 (fn index-of-until
   coll sub until; is-negative; i len
-  (if (or (= i until) (empty? coll)) (return nil))
+  (if (or (= i until) (< (len coll) (len sub))) (return nil))
   (do comp-op= (if is-negative != =)
     (if (comp-op (str sub) (sect coll 0 (len sub)))
       (or i 0i)
@@ -36,7 +47,7 @@
       find=    (1st finds)
       index=   (index-of-until string find minimum)
     (burst
-      (if (< index minimum)
+      (if (and index (< index minimum))
         [minimum= index winner= find]
         [winner= win]))
     (recur string (sect finds) minimum winner)))
@@ -64,30 +75,29 @@
 (fn stage1-process
   str-in found path-out num-str
   (case found
-    \\   //If a char literal, preserve it
+    \\   //If a char literal, output its character code
     (do
-      lit-len=  (2nd (next-index-of str-in [\sp \nl \) \]]))
-      char-lit= (str \\ (sect str-in 0 lit-len))
-      (file-a path-out char-lit)
+      lit-len=   (if (includes? ["nl" "sp"] (sect str-in 0 2)) 2 1)
+      char-lit=  (sect str-in 0 lit-len)
+      char-code= (cast (or (key ["nl" \nl "sp" \sp] char-lit) (1st char-lit)) 16)
+      (file-a path-out (str "`c" char-code \`))
       lit-len)
     \"   //If a string, output to the string file, and substitute for `n`
     (do
       str-len= (index-of str-in \")
       string=  (sect str-in 0 str-len)
       (file-a path-out (str \` num-str \`))
-      (file-a (str path-out ".s") string)
-      (file-a (str path-out ".sl") (cast (+ 0w str-len) 12))
+      (file-a (str path-out "s") string)
+      (file-a (str path-out "sl") (cast (+ 0w str-len) 13))
       (inc str-len))
-    "//"  //If a single-line comment, skip until a newline
-    (index-of str-in \nl)
+    "//"  //If a single-line comment, skip until after a newline
+    (inc (index-of str-in \nl))
     "/*"  //If a multi-line comment, skip until "*/"
     (+ (index-of str-in "*/") 2)
     \;    //If a semicolon, output a space
     (do (file-a path-out \sp) 0)
     \,    //If a comma, skip until not whitespace
     (next-index-of-not str-in [\sp \; \, \nl])
-    \nl   //If a newline, output a space
-    (do (file-a path-out \sp) 0)
     \[    //If a vector open, output `(vec `
     (do (file-a path-out "(vec ") 0)
     \]    //If a vector close, output a close parenthesis
@@ -98,17 +108,20 @@
 //  comma, semicolon, vector start/end, newline
 (fn stage1-seek
   path-in path-out offset num-str
+  (print offset)
   (do chunk-size= 128
       str-in=     (str (file-r path-in offset chunk-size))
-      next-index= (next-index-of str-in [\" "//" "/*" \\ \; \, \nl \[ \]])
+      next-index= (next-index-of str-in [\" "//" "/*" \\ \; \, \[ \]])
       found=      (1st next-index)
-      at=         (2nd next-index)
+      at=         (or (2nd next-index) chunk-size)
     (if (empty? str-in) (return))
+    //Output up until the instance, or do transparent pass-through
+    (if (!= at 0)
+      (file-a path-out
+        //(sect str-in 0 at)))
+        (replace-all (sect str-in 0 at) \nl \sp)))
     (if found
       (do
-        //Output up until the instance
-        (if (!= at 0)
-          (file-a path-out (sect str-in 0 at)))
         //Process the instance
         offset2=      (+ offset at (len found))
         str-in=       (str (file-r path-in offset2 chunk-size))
@@ -116,21 +129,19 @@
         new-num-str=  (if (= found \") (inc num-str) num-str)
         //Recur onward
         (recur path-in path-out (+ offset2 instance-len) new-num-str))
-      (do
-        //Transparent pass-through
-        (file-a path-out str-in)
-        //Recur onward
-        (recur path-in path-out (+ offset chunk-size) num-str)))))
+      //Recur onward
+      (recur path-in path-out (+ offset chunk-size) num-str))))
 
 
 
-(do path= "init.chi"
+(do path-in=  "init.chi"
+    path-out= "init."
   //Empty all cache files
-  (map {file-w (str path #) "" 0} [".0" ".0.s" ".0.sl"])
+  (map {file-d (str path-out #) "" 0} ["0" "0s" "0sl"])
   //Begin stage 1
-  (stage1-seek path (str path ".0") 0i 0i)
+  (stage1-seek path-in (str path-out "0") 0i 0i)
   //Finished
-  (print "Compilation of `" path "` complete in " (ms-now) "ms"))
+  (print "Compilation of `" path-in "` complete in " (ms-now) "ms"))
 
 //cd .. && sh compile.sh && cd bin && ./chika
 //p harness->printItems(pFirstItem, numItem())
