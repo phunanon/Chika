@@ -539,6 +539,7 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_Read:   op_Read  (firstParam); break;
     case Op_Write:  op_Write (firstParam); break;
     case Op_Append: op_Append(firstParam); break;
+    case Op_Delete: op_Delete(firstParam); break;
     case Op_Str:    op_Str   (firstParam); break;
     case Op_Type:   op_Type  (firstParam); break;
     case Op_Cast:   op_Cast  (firstParam); break;
@@ -719,6 +720,11 @@ void ChVM::op_Append (itemnum firstParam) {
   bool success =
     harness->fileAppend((const char*)iData(firstParam),
                         iData(firstParam + 1), i(firstParam + 1)->len);
+  returnItem(firstParam, Item(0, success ? Val_True : Val_False));
+}
+
+void ChVM::op_Delete (itemnum firstParam) {
+  bool success = harness->fileDelete((const char*)iData(firstParam));
   returnItem(firstParam, Item(0, success ? Val_True : Val_False));
 }
 

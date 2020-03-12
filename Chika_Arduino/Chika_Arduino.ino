@@ -75,6 +75,10 @@ bool ChVM_Harness::fileAppend (const char* path, uint8_t* blob, uint32_t count) 
   return true;
 }
 
+bool ChVM_Harness::fileDelete (const char* path) {
+  return SD.remove(path);
+}
+
 uint32_t ChVM_Harness::msNow () {
   return millis();
 }

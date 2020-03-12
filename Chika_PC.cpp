@@ -77,6 +77,10 @@ bool ChVM_Harness::fileAppend (const char* path, uint8_t* blob, uint32_t count) 
   return true;
 }
 
+bool ChVM_Harness::fileDelete (const char* path) {
+  return remove(path);
+}
+
 auto start_time = std::chrono::high_resolution_clock::now();
 uint32_t ChVM_Harness::msNow () {
   auto current_time = std::chrono::high_resolution_clock::now();

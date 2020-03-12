@@ -125,6 +125,8 @@ Note: when *redefining* bindings, the binding **must** be the very first argumen
 
 Parameters override variables.
 
+The functions `if`, `and`, `or`, and `case` cannot be represented in a binding or parameter.
+
 Functions must end in a form - to return a value use `val`.
 
 #### Data types
@@ -197,11 +199,15 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `file-r path`: returns blob of whole file contents.  
 `file-r path offset`: returns blob of file content between offset bytes and EOF.  
-`file-r path offset count`: returns blob of file content between offset and count bytes.
+`file-r path offset count`: returns blob of file content between offset and count bytes.  
+All return nil upon failure.
 
-`file-a path content`: appends a blob or item as string to file.
-`file-w path content[ offset]`: writes a blob or item as string to a file, optionally with a byte offset (otherwise its 0).  
+`file-a path content`: appends a blob or item as string to file.  
+`file-w path content[ offset]`: writes a blob or item as string to a file, optionally with a byte offset (otherwise its 0); returns success as boolean.  
+Both return success as boolean.  
 Note: strings are written without null terminator.
+
+`file-d path`: deletes file at `path`; returns success as boolean.
 
 `str` 0 arg: returns empty string.  
 `str` N arg: returns concatenation of N arguments as a string.

@@ -12,6 +12,7 @@ public:
   int32_t  fileRead   (const char*, uint8_t*, uint32_t, uint32_t);
   bool     fileWrite  (const char*, uint8_t*, uint32_t, uint32_t);
   bool     fileAppend (const char*, uint8_t*, uint32_t);
+  bool     fileDelete (const char*);
 
   //Program control
   bool     loadProg   (const char*);
