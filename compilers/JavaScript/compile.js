@@ -20,10 +20,10 @@ const num = s => parseInt(s.match(/-?\d+/g).join(""));
 
 
 const
-  Form_Eval = 0x00,
-  Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03, Form_Case = 0x04,
-  Val_True = 0x05, Val_False = 0x06, Val_Str = 0x07, Param_Val = 0x08,
-  Bind_Mark = 0x09, Bind_Val = 0x0A,
+  Form_Eval = 0x00, Form_Refs = 0x01,
+  Form_If = 0x02, Form_Or = 0x03, Form_And = 0x04, Form_Case = 0x05,
+  Val_True = 0x06, Val_False = 0x07, Val_Str = 0x08, Param_Val = 0x09,
+  Bind_Mark = 0x0A, Bind_Val = 0x0B,
   Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, Val_Char = 0x13,
   Val_Args = 0x19, Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x1E,
   Op_Func = 0x22, Op_Var = 0x2A, Op_Param = 0x2B;
@@ -43,7 +43,10 @@ const literals =
   {"nil": Val_Nil, "true": Val_True, "false": Val_False,
    "nl": '\n', "sp": ' '};
 const formCodes =
-  {"if": Form_If, "or": Form_Or, "and": Form_And, "case": Form_Case};
+  {"if": Form_If, "or": Form_Or, "and": Form_And, "case": Form_Case,
+   "=": Form_Refs, "==": Form_Refs, "!=": Form_Refs, "!==": Form_Refs,
+   "file-w": Form_Refs, "file-a": Form_Refs, "str": Form_Refs, "type": Form_Refs,
+   "len": Form_Refs, "nth": Form_Refs};
 
 
 const walkItems = (arr, pred, func) =>

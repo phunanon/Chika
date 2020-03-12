@@ -426,10 +426,14 @@ void ChVM::exeForm () {
       }
       paramNum += firstParam;
       Item* iParam = i(paramNum);
-      //Copy the referenced value to the stack top
-      memcpy(stackItem(), iData(paramNum), iParam->len);
-      //Copy its item descriptor too, as value
-      stackItem(Item(iParam->len, iParam->type()));
+      //If in a refs s-form, and data is larger than a const ref, leave a const ref, otherwise memcpy the data
+      if (formCode == Form_Refs && (itemBytesLen(iParam) > sizeof(proglen))) {
+        writeUNum(stackItem(), iData(paramNum) - pROM, sizeof(proglen));
+        stackItem(Item(iParam->len, iParam->type(), true));
+      } else {
+        memcpy(stackItem(), iData(paramNum), iParam->len);
+        stackItem(Item(iParam->len, iParam->type()));
+      }
     } else
     //If a vector of the function arguments
     if (nextEval == Val_Args) {
@@ -445,10 +449,14 @@ void ChVM::exeForm () {
       //If the binding was found
       if (findBind(it, bNum)) {
         Item* bItem = i(it);
-        //Copy the bytes to the stack top
-        memcpy(stackItem(), iBytes(it), itemBytesLen(bItem));
-        //Copy its item descriptor too
-        stackItem(bItem);
+        //If in a refs s-form, and data is larger than a const ref, leave a const ref, otherwise memcpy the data
+        if (formCode == Form_Refs && (itemBytesLen(bItem) > sizeof(proglen))) {
+          writeUNum(stackItem(), iData(it) - pROM, sizeof(proglen));
+          stackItem(Item(bItem->len, bItem->type(), true));
+        } else {
+          memcpy(stackItem(), iBytes(it), itemBytesLen(bItem));
+          stackItem(bItem);
+        }
       } else
       //No binding found - return nil
         stackNil();
@@ -594,7 +602,7 @@ void ChVM::burstItem () {
 }
 
 vectlen ChVM::vectLen (itemnum it) {
-  return readNum(iBytes(it + 1) - sizeof(vectlen), sizeof(vectlen));
+  return readNum((iData(it) + i(it)->len) - sizeof(vectlen), sizeof(vectlen));
 }
 
 
@@ -829,7 +837,7 @@ void ChVM::op_Nth (itemnum firstParam) {
     return;
   }
   //Collate vector info
-  uint8_t* vBytes = iBytes(firstParam);
+  uint8_t* vBytes = iData(firstParam);
   uint8_t* vEnd = (vBytes + it->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
   Item* vItems = &((Item*)vEnd)[-vNumItem];
