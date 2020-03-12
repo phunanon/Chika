@@ -145,7 +145,7 @@ void ChVM::collapseItems (itemnum to, itemnum nItem) {
   memcpy(iBytes(to), stackItem() - iBytesLen, iBytesLen);
   numByte(numByte() - itemsBytesLen(to, from));
   //Move item descriptors and reduce number
-  memcpy(i((to + nItem) - 1), iLast(), sizeof(Item) * nItem);
+  memmove(i((to + nItem) - 1), iLast(), sizeof(Item) * nItem);
   numItem(to + nItem);
 }
 
@@ -174,15 +174,17 @@ uint8_t* ChVM::pFunc (funcnum fNum) {
 
 bool ChVM::findBind (itemnum& it, bindnum bNum) {
   bool found = false;
-  it = numItem() - 2; //Start -1 from last item, to permit "a= (inc a)"
-  for (; ; --it) {
-    if (i(it)->type() != Bind_Mark) continue;
-    //Test if this bind is the correct number
-    if (readUNum(iData(it), sizeof(bindnum)) == bNum) {
-      found = true;
-      break;
+  if (numItem() > 2) {
+    it = numItem() - 2; //Start -1 from last item, to permit "a= (inc a)"
+    for (; ; --it) {
+      if (i(it)->type() != Bind_Mark) continue;
+      //Test if this bind is the correct number
+      if (readUNum(iData(it), sizeof(bindnum)) == bNum) {
+        found = true;
+        break;
+      }
+      if (!it) break;
     }
-    if (!it) break;
   }
   //The item after the bind is the variable
   return found ? ++it : false;
@@ -573,11 +575,6 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
 void ChVM::burstItem () {
   itemnum iVec = numItem() - 1;
   Item* itVec = i(iVec);
-  //If nil, destroy the item
-  if (itVec->type() == Val_Nil) {
-    trunStack(iVec);
-    return;
-  }
   //If a string, burst as characters
   if (itVec->type() == Val_Str) {
     //Ensure it is copied as value
@@ -587,6 +584,11 @@ void ChVM::burstItem () {
     //Generate an Item for each character
     for (itemlen s = 0, sLen = itVec->len - 1; s < sLen; ++s)
       stackItem(Item(1, Val_Char));
+    return;
+  }
+  //If not a string or vector, destroy the item
+  if (itVec->type() != Val_Vec) {
+    trunStack(iVec);
     return;
   }
   uint8_t* vBytes = iBytes(iVec);
@@ -885,13 +887,12 @@ void ChVM::op_Sect (itemnum firstParam, bool isBurst) {
   if (skip >= len) {
     //Return empty vector or string if skip is beyond length
     if (isStr) {
-      *(char*)stackItem() = 0;
-      stackItem(Item(1, Val_Str));
+      *(char*)iBytes(firstParam) = 0;
+      returnItem(firstParam, Item(1, Val_Str));
     } else {
-      writeUNum(stackItem(), 0, sizeof(vectlen));
-      stackItem(Item(sizeof(vectlen), Val_Vec));
+      writeUNum(iBytes(firstParam), 0, sizeof(vectlen));
+      returnItem(firstParam, Item(sizeof(vectlen), Val_Vec));
     }
-    returnCollapseLast(firstParam);
     return;
   }
   if (skip + take > len)
