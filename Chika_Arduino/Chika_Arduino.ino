@@ -15,15 +15,23 @@ void ChVM_Harness::printInt (const char* output, uint32_t number) {
 }
 
 void ChVM_Harness::printMem (uint8_t* mem, uint8_t by) {
+  uint8_t left = by / 2;
+  for (uint8_t i = 0; i < left; ++i) {
+    Serial.print((uint32_t)(intptr_t)((mem - left) + i) % 16, HEX);
+    Serial.print(" ");
+  }
+  Serial.print(". ");
+  for (uint8_t i = 1; i < by; ++i) {
+    Serial.print((uint32_t)(intptr_t)(mem + i) % 16, HEX);
+    Serial.print(" ");
+  }
+  Serial.println();
   uint8_t* mEnd = mem + by;
-  for (uint8_t* m = mem - by; m < mEnd; ++m) {
+  for (uint8_t* m = mem - left; m < mEnd; ++m) {
     if (*m < 16) Serial.print("0");
     Serial.print(*m, HEX);
   }
   Serial.println();
-  for (uint8_t i = 0; i < by; ++i)
-    Serial.print("  ");
-  Serial.println("^^");
 }
 
 void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
@@ -31,7 +39,7 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   for (uint8_t it = 0; it < n; ++it) {
     Item* item = (Item*)(pItems - (it * sizeof(Item)));
     Serial.print(it);
-    Serial.print("#l");
+    Serial.print("l");
     Serial.print(item->len);
     Serial.print("t");
     Serial.print(item->type(), HEX);

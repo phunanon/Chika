@@ -8,6 +8,7 @@ public:
   itemlen len; //Length of value or const value
   Item (itemlen, IType, bool);
   Item (itemlen, IType);
+  Item (IType);
   IType type ();
   bool isConst ();
 };

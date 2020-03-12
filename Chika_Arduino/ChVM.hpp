@@ -87,6 +87,7 @@ class ChVM {
   void     op_Do     (itemnum);
   void     op_MsNow  (itemnum);
   void     op_Print  (itemnum);
+  void     op_Debug  (itemnum);
 
 public:
   ChVM ();

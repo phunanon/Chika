@@ -36,9 +36,9 @@ const strOps =
    "~":      0x40, "&":      0x41, "|":      0x42, "^":      0x43, "<<":     0x44, ">>":  0x45,
    "file-r": 0x6A, "file-w": 0x6B, "file-a": 0x6C, "file-d": 0x6D,
    "str":    0xA0, "type":   0xAA, "cast":   0xAB,
-   "vec":    0xB0, "nth":    0xB1, "len":    0xB2, "sect":  0xB3, "b-sect": 0xB4,
-   "burst":  0xBA, "reduce": 0xBB, "map":    0xBC, "for":   0xBD,
-   "val":    0xCD, "do":     0xCE, "ms-now": 0xE0, "print": 0xEE};
+   "vec":    0xB0, "nth":    0xB1, "len":    0xB2, "sect":   0xB3, "b-sect": 0xB4,
+   "burst":  0xBA, "reduce": 0xBB, "map":    0xBC, "for":    0xBD,
+   "val":    0xCD, "do":     0xCE, "ms-now": 0xE0, "print":  0xEE, "debug":  0xEF};
 const literals =
   {"nil": Val_Nil, "true": Val_True, "false": Val_False,
    "nl": '\n', "sp": ' '};

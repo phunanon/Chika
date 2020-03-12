@@ -556,6 +556,7 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_Do:     op_Do    (firstParam); break;
     case Op_MsNow:  op_MsNow (firstParam); break;
     case Op_Print:  op_Print (firstParam); break;
+    case Op_Debug:  op_Debug (firstParam); break;
     default: break;
   }
 }
@@ -1066,11 +1067,23 @@ void ChVM::op_Do (itemnum firstParam) {
 void ChVM::op_MsNow (itemnum firstParam) {
   auto msNow = harness->msNow();
   writeNum(iBytes(firstParam), msNow, sizeof(msNow));
-  returnItem(firstParam, Item(sizeof(msNow), fitInt(sizeof(msNow))));
+  returnItem(firstParam, Item(fitInt(sizeof(msNow))));
 }
 
 void ChVM::op_Print (itemnum firstParam) {
   op_Str(firstParam);
   harness->print((const char*)iData(firstParam));
   returnNil(firstParam);
+}
+
+void ChVM::op_Debug (itemnum firstParam) {
+  uint32_t out = 0;
+  switch (iInt(firstParam)) {
+    case 0: out = numItem(); break;
+    case 1: out = numByte(); break;
+    case 2: harness->printItems(pFirstItem, numItem()); break;
+    case 3: harness->printMem(pBytes, numByte());
+  }
+  writeUNum(iBytes(firstParam), out, sizeof(out));
+  returnItem(firstParam, Item(fitInt(sizeof(out))));
 }

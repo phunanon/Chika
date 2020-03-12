@@ -7,16 +7,16 @@ void ChVM_Harness::print (const char* output) {
 }
 
 void ChVM_Harness::printInt (const char* output, uint32_t number) {
-  printf("%s 0x%X ; %d\n", output, number, number);
+  printf("%s 0x%X %d\n", output, number, number);
 }
 
 void ChVM_Harness::printMem (uint8_t* mem, uint8_t by) {
   uint8_t left = by / 2;
   for (uint8_t i = 0; i < left; ++i)
-    printf(". ");
-  printf("V ");
+    printf("%X ", (uint32_t)(intptr_t)((mem - left) + i) % 16);
+  printf(". ");
   for (uint8_t i = 1; i < by; ++i)
-    printf(". ");
+    printf("%01X ", (uint32_t)(intptr_t)(mem + i) % 16);
   printf("\n");
   uint8_t* mEnd = mem + by;
   for (uint8_t* m = mem - left; m < mEnd; ++m) {
@@ -30,7 +30,7 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   printf("Items: ");
   for (uint8_t it = 0; it < n; ++it) {
     Item* item = (Item*)(pItems - (it * sizeof(Item)));
-    printf("%d#l%dt%X%c ", it, item->len, item->type(), item->isConst() ? 'c' : ' ');
+    printf("%dl%dt%X%c ", it, item->len, item->type(), item->isConst() ? 'c' : ' ');
   }
   printf("\n");
 }
