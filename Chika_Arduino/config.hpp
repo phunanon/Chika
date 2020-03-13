@@ -13,11 +13,18 @@
 //#define MEM_SIZE 512    //512
 
 //CHIKA_SIZE: all Chika programs' memory
-#define CHIKA_SIZE (uint32_t)(MEM_SIZE * .75)
+#define CHIKA_SIZE (uint32_t)(MEM_SIZE * .5)
 
 #define NUM_PROG     4
 #define MAX_PROG_RAM CHIKA_SIZE / NUM_PROG
 
+
+#ifdef SDCARD_SS_PIN
+  #define SD_CARD_PIN SDCARD_SS_PIN
+#endif
+#ifndef SDCARD_SS_PIN
+  #define SD_CARD_PIN 4
+#endif
 
 typedef uint32_t memolen;
 typedef uint16_t proglen;

@@ -59,7 +59,9 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
 Open `Chika_Arduino.ino` in Arduino IDE, upload to your Arduino.  
 Ensure there is an SD card inserted with the file `init.kua`.  
 Suitable devices:
-- MKRZero
+- ATSAMD21
+  - Arduino MKRZero
+  - Adafruit Feather M0
 
 #### Chika VM target: Linux
 
