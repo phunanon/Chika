@@ -68,6 +68,9 @@ Item* ChVM::iLast () {
 int32_t ChVM::iInt (itemnum iNum) {
   return readNum(iData(iNum), constByteLen(i(iNum)->type()));
 }
+bool ChVM::iBool (itemnum iNum) {
+  return isTypeTruthy(i(iNum)->type());
+}
 
 void ChVM::trunStack (itemnum to) {
   numByte(numByte() - itemsBytesLen(to, numItem()));
@@ -324,7 +327,7 @@ void ChVM::exeForm () {
           //Exhaust current stack of arguments - in the case of (or (burst [1 2 3]) 1)
           do {
             //If falsey, shift the stack left by 1 to forget this condition item
-            if (!isTypeTruthy(i(firstArgItem)->type()))
+            if (!iBool(firstArgItem))
               collapseItems(firstArgItem, (numItem() - firstArgItem) - 1);
             //Previous item was true
             else {
@@ -351,7 +354,7 @@ void ChVM::exeForm () {
             //Exhaust current stack of arguments - in the case of (and (burst [1 2 3]) 1)
             bool isTruthy = true;
             do {
-              isTruthy = isTypeTruthy(i(firstArgItem)->type());
+              isTruthy = iBool(firstArgItem);
               //If falsey, shift the stack left by 1 to forget this condition item
               collapseItems(firstArgItem, (numItem() - firstArgItem) - 1);
             } while (isTruthy && numItem() != firstArgItem);
@@ -609,8 +612,7 @@ vectlen ChVM::vectLen (itemnum it) {
 
 
 void ChVM::op_Not (itemnum firstParam) {
-  bool isTruthy = isTypeTruthy(i(firstParam)->type());
-  returnItem(firstParam, Item(0, isTruthy ? Val_False : Val_True));
+  returnItem(firstParam, Item(0, iBool(firstParam) ? Val_False : Val_True));
 }
 
 void ChVM::op_Equal (itemnum firstParam, bool equality) {

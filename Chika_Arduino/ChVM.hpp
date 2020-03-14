@@ -37,6 +37,7 @@ class ChVM {
   Item*    iLast      ();         //Access last item
 
   int32_t  iInt       (itemnum);  //Item-agnostic readNum
+  bool     iBool      (itemnum);  //Item-agnostic truth test
 
   void     trunStack  (itemnum);
   uint8_t* stackItem  ();
