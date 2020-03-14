@@ -213,7 +213,7 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `burst v`: explodes vector or string `v` onto the argument stack as either vector items or Val_Char items (like Lisp `apply`).
 
-**GPIO relate**
+**GPIO related**
 
 Note: these have no effect on PC.
 

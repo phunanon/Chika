@@ -2,6 +2,7 @@
 #include <SD.h>
 #include "ChVM.hpp"
 
+#if USE_SERIAL
 void ChVM_Harness::print (const char* output) {
   Serial.println(output);
 }
@@ -48,7 +49,13 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   }
   Serial.println();
 }
-
+#endif
+#if !USE_SERIAL
+void ChVM_Harness::print (const char* output) {}
+void ChVM_Harness::printInt (const char* output, uint32_t number) {}
+void ChVM_Harness::printMem (uint8_t* mem, uint8_t by) {}
+void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {}
+#endif
 
 void ChVM_Harness::pinMod (uint8_t pin, bool mode) {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -144,15 +151,14 @@ void ChVM_Harness::unloadProg (const char* path) {
 }
 
 void setup() {
+  bool sdInited = SD.begin(SD_CARD_PIN);
+#if USE_SERIAL
   while (!Serial);
   Serial.begin(9600);
-  
-  Serial.print("Initialising SD card... ");
-  if (!SD.begin(SD_CARD_PIN)) {
-    Serial.println("failed.");
-    while (1);
-  }
-  Serial.println("successful.");
+  Serial.println(sdInited ? "SD successful" : "SD failed");
+#endif
+  while (!sdInited)
+    digitalWrite(LED_BUILTIN, (millis() / 250) % 2);
 
   ChVM_Harness harness = ChVM_Harness();
   machine.mem = mem;
@@ -162,8 +168,19 @@ void setup() {
 }
 
 void loop () {
+  //Beat all hearts once, check if all are dead for early exit
+  {
+    bool allDead = true;
+    for (uint8_t p = 0; p < pNum; ++p)
+      if (machine.heartbeat(p))
+        allDead = false;
+    if (allDead)
+      while (true);
+  }
+
   //Round-robin the heartbeats
-  while (true)
+  while (true) {
     for (uint8_t p = 0; p < pNum; ++p)
       machine.heartbeat(p);
+  }
 }
