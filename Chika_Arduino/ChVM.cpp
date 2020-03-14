@@ -68,6 +68,13 @@ Item* ChVM::iLast () {
 int32_t ChVM::iInt (itemnum iNum) {
   return readNum(iData(iNum), constByteLen(i(iNum)->type()));
 }
+bool ChVM::iBool (itemnum iNum) {
+  return isTypeTruthy(i(iNum)->type());
+}
+bool ChVM::iCBool (itemnum iNum) {
+  IType type = i(iNum)->type();
+  return type != Val_False && (type == Val_True || iInt(iNum));
+}
 
 void ChVM::trunStack (itemnum to) {
   numByte(numByte() - itemsBytesLen(to, numItem()));
@@ -324,7 +331,7 @@ void ChVM::exeForm () {
           //Exhaust current stack of arguments - in the case of (or (burst [1 2 3]) 1)
           do {
             //If falsey, shift the stack left by 1 to forget this condition item
-            if (!isTypeTruthy(i(firstArgItem)->type()))
+            if (!iBool(firstArgItem))
               collapseItems(firstArgItem, (numItem() - firstArgItem) - 1);
             //Previous item was true
             else {
@@ -351,7 +358,7 @@ void ChVM::exeForm () {
             //Exhaust current stack of arguments - in the case of (and (burst [1 2 3]) 1)
             bool isTruthy = true;
             do {
-              isTruthy = isTypeTruthy(i(firstArgItem)->type());
+              isTruthy = iBool(firstArgItem);
               //If falsey, shift the stack left by 1 to forget this condition item
               collapseItems(firstArgItem, (numItem() - firstArgItem) - 1);
             } while (isTruthy && numItem() != firstArgItem);
@@ -546,6 +553,8 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_Add: case Op_Sub: case Op_Mult: case Op_Div: case Op_Mod: case Op_Pow:
     case Op_BNot: case Op_BAnd: case Op_BOr: case Op_BXor: case Op_LShift: case Op_RShift:
       op_Arith(firstParam, op); break;
+    case Op_PinMod: case Op_DigIn: case Op_AnaIn: case Op_DigOut: case Op_AnaOut:
+      op_GPIO(firstParam, op); break;
     case Op_Read:   op_Read  (firstParam); break;
     case Op_Write:  op_Write (firstParam); break;
     case Op_Append: op_Append(firstParam); break;
@@ -609,8 +618,7 @@ vectlen ChVM::vectLen (itemnum it) {
 
 
 void ChVM::op_Not (itemnum firstParam) {
-  bool isTruthy = isTypeTruthy(i(firstParam)->type());
-  returnItem(firstParam, Item(0, isTruthy ? Val_False : Val_True));
+  returnItem(firstParam, Item(0, iBool(firstParam) ? Val_False : Val_True));
 }
 
 void ChVM::op_Equal (itemnum firstParam, bool equality) {
@@ -680,6 +688,30 @@ void ChVM::op_Arith (itemnum firstParam, IType op) {
   }
   memcpy(iBytes(firstParam), &result, len);
   returnItem(firstParam, Item(len, type));
+}
+
+void ChVM::op_GPIO (itemnum firstParam, IType op) {
+  uint8_t pin = iInt(firstParam);
+  uint16_t intParam = iInt(firstParam + 1);
+  bool boolParam = iCBool(firstParam + 1);
+  uint16_t input = 0;
+//harness->print("hey there");
+  switch (op) {
+    case Op_PinMod: harness->pinMod(pin, boolParam); break;
+    case Op_DigIn:  input = harness->digIn(pin); break;
+    case Op_AnaIn:  input = harness->anaIn(pin); break;
+    case Op_DigOut: harness->digOut(pin, boolParam); break;
+    case Op_AnaOut: harness->anaOut(pin, intParam); break;
+  }
+  if (op == Op_DigIn) {
+    returnItem(firstParam, input ? Val_True : Val_False);
+  } else
+  if (op == Op_AnaIn) {
+    writeUNum(iBytes(firstParam), input, sizeof(input));
+    returnItem(firstParam, Item(sizeof(input), fitInt(sizeof(input))));
+  } else {
+    returnNil(firstParam);
+  }
 }
 
 void ChVM::op_Read (itemnum firstParam) {

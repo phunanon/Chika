@@ -142,7 +142,3 @@
   (stage1-seek path-in (str path-out "0") 0i 0i)
   //Finished
   (print "Compilation of `" path-in "` complete in " (ms-now) "ms"))
-
-//cd .. && sh compile.sh && cd bin && ./chika
-//p harness->printItems(pFirstItem, numItem())
-//x/8b ptr

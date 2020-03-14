@@ -4,7 +4,7 @@
 
 (do
   term=  23i
-  (print "calculating fib...")
+  (print "calculating fib " term "...")
   start= (ms-now)
-  (print "(fib " term "i) => " (fib term))
+  (print (fib term))
   (print "  took " (- (ms-now) start) "ms"))

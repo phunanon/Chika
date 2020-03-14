@@ -19,10 +19,10 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
         (+ (fib (- n 1i)) (fib (- n 2i)))))
     (fib 35i) => 832040
 
-    //Returns absolute of a number
-    (fn abs n
-      (if (< n 0) (* n -1i) n))
-    (abs -1234i) => 1234
+    //LED blink program for Arduino
+    (p-mode 32 true)
+    (fn heartbeat
+      (dig-w 32 (mod (/ (ms-now) 1000i) 2)))
 
     //Prints `15`
     (print
@@ -154,6 +154,8 @@ Use `\dq` and `str` for double-quotations, as strings provide no escaped charact
 
 Note: `[square brackets]` indicate optional arguments.
 
+**Mathematical**
+
 `+` / `-` / `*` / `/` / `mod` / `pow` /  
 `&` / `|` / `^` / `<<` / `>>` N arg:  
 returns sum / subtraction / multiplication / division / modulus / raise-to-the-power /  
@@ -161,6 +163,8 @@ AND / OR / XOR / left shift / right shift of N integers.
 Zero args returns nil. Will cast all parameters as the type of the first argument.  
 `~` 1 arg: returns NOT.  
 Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
+
+**Conditional**
 
 `if cond if-true`: evaluates and returns `if-true` if `cond` is truthy, else nil.  
 `if cond if-true if-false`: evaluates and returns `if-true` if `cond` is truthy, else `if-false`.
@@ -173,10 +177,6 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `and` N arg: returns true if all args truthy.
 
-`return[ val]`: exit the function early, evaluating to either nil or `val`.
-
-`recur` N arg: on the stack replace the parameters with N arguments and recall the function.
-
 `=` N arg: equality, true if all args are of the same type, length, and byte equality. Compares ints by value.  
 `!=` N arg: negative equality.
 
@@ -185,19 +185,51 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `<` / `<=` / `>` / `>=` N arg: returns true if N items are in monotonically increasing / non-decreasing / decreasing / non-increasing order.
 
+**Function related**
+
+`return[ val]`: exit a function early, evaluating to either nil or `val`.
+
+`recur` N arg: on the stack replace the parameters with `N` arguments and recall the function.
+
+`val` 1-N arg: returns its first argument.
+
+`do` 1-N arg: returns its final argument.
+
+**String and vector related**
+
 `vec` 0-N arg: returns vector of its arguments.
 
 `nth i N`: returns item or character `N` of vector or string `i`, or `nil` if `N` is in an improper range.
 
-(unimplemented) `pin-mode pin mode`: sets the mode of  pin number `pin` to the boolean `mode` - truthy as INPUT, falsey as OUTPUT; returns nil.
+`str` 0 arg: returns empty string.  
+`str` N arg: returns concatenation of N arguments as a string.
 
-(unimplemented) `dig-out pin val`: sets the digital output state of pin number `pin` to the boolean `val` - truthy as HIGH, falsey as LOW; returns nil.
+`len i`: returns either vector, string, or internal item length.
 
-(unimplemented) `dig-in pin`: returns digital input state of pin number `pin`.
+`sect v`: returns `v` with first item omitted;  
+`sect v skip`: returns `v` with first `skip` items omitted;  
+`sect v skip take`: returns `v` with `take` length and first `skip` items omitted;  
+`b-sect`: the same as `sect` but returns items burst.
 
-(unimplemented) `ana-out pin val`: sets the analog/PWM output state of pin number `pin` to the word `val`; returns nil.
+`burst v`: explodes vector or string `v` onto the argument stack as either vector items or Val_Char items (like Lisp `apply`).
 
-(unimplemented) `ana-in pin`: returns analog input state of pin number `pin`.
+**GPIO relate**
+
+Note: these have no effect on PC.
+
+`p-mode pin mode`: sets the mode of pin number `pin` to the boolean `mode` - truthy as INPUT, falsey as OUTPUT; returns nil.
+
+`dig-r pin`: returns digital input state of pin number `pin`.
+
+`dig-w pin val`: sets the digital output state of pin number `pin` to the boolean `val` - truthy or non-zero as HIGH, else LOW; returns nil.
+
+`ana-r pin`: returns analog input state of pin number `pin`.
+
+`ana-w pin val`: sets the analog/PWM output state of pin number `pin` to the 16-bit integer `val`; returns nil.
+
+`ana-r pin`: returns analog 16-bit integer input of pin number `pin`.
+
+**File IO related**
 
 `file-r path`: returns blob of whole file contents.  
 `file-r path offset`: returns blob of file content between offset bytes and EOF.  
@@ -211,8 +243,7 @@ Note: strings are written without null terminator.
 
 `file-d path`: deletes file at `path`; returns success as boolean.
 
-`str` 0 arg: returns empty string.  
-`str` N arg: returns concatenation of N arguments as a string.
+**Types and casting**
 
 `type i`: returns type code of item `i`.
 
@@ -220,14 +251,7 @@ Note: strings are written without null terminator.
 Note: wider to thinner will be truncated, thinner to wider will be zeroed out;  
 string to blob will lack null termination; casts to strings will be appended with null termination.
 
-`len i`: returns either vector, string, or internal item length.
-
-`sect v`: returns `v` with first item omitted;  
-`sect v skip`: returns `v` with first `skip` items omitted;  
-`sect v skip take`: returns `v` with `take` length and first `skip` items omitted;  
-`b-sect`: the same as `sect` but returns items burst.
-
-`burst v`: explodes vector or string `v` onto the argument stack as either vector items or Val_Char items (like Lisp `apply`).
+**Iteration**
 
 `reduce f[ s*N] i`: returns reduction of vector or string `i` through `f`, with 0-N seeds. `f` is (item acc) => acc.
 
@@ -237,9 +261,7 @@ Example: `(map str [\a \b \c] [1 2 3]) => [a1 b2 c3]`
 `for f v*N`: returns iterative mapping of 1-N vectors through `f`, where `f` is (item*N) => mapped.  
 Example: `(for str [\a \b \c] [1 2 3]) => [a1 a2 a3 b1 b2 b3 c1 c2 c3]`
 
-`val` 1-N arg: returns its first argument.
-
-`do` 1-N arg: returns its final argument.
+**System related**
 
 `ms-now`: returns milliseconds since ChVM initialisation.
 

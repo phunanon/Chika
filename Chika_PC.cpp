@@ -35,6 +35,14 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   printf("\n");
 }
 
+
+void     ChVM_Harness::pinMod (uint8_t pin, bool mode) {}
+bool     ChVM_Harness::digIn  (uint8_t pin) {}
+void     ChVM_Harness::digOut (uint8_t pin, bool val) {}
+uint16_t ChVM_Harness::anaIn  (uint8_t pin) {}
+void     ChVM_Harness::anaOut (uint8_t pin, uint16_t val) {}
+
+
 int fsize (FILE *fp) {
     int prev = ftell(fp);
     fseek(fp, 0L, SEEK_END);
@@ -80,6 +88,7 @@ bool ChVM_Harness::fileAppend (const char* path, uint8_t* blob, uint32_t count) 
 bool ChVM_Harness::fileDelete (const char* path) {
   return remove(path);
 }
+
 
 auto start_time = std::chrono::high_resolution_clock::now();
 uint32_t ChVM_Harness::msNow () {
