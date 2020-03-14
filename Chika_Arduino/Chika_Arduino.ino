@@ -128,7 +128,7 @@ void setup() {
   Serial.begin(9600);
   
   Serial.print("Initialising SD card... ");
-  if (!SD.begin(SDCARD_SS_PIN)) {
+  if (!SD.begin(SD_CARD_PIN)) {
     Serial.println("failed.");
     while (1);
   }
