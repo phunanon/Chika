@@ -71,6 +71,10 @@ int32_t ChVM::iInt (itemnum iNum) {
 bool ChVM::iBool (itemnum iNum) {
   return isTypeTruthy(i(iNum)->type());
 }
+bool ChVM::iCBool (itemnum iNum) {
+  IType type = i(iNum)->type();
+  return type != Val_False && (type == Val_True || iInt(iNum));
+}
 
 void ChVM::trunStack (itemnum to) {
   numByte(numByte() - itemsBytesLen(to, numItem()));
@@ -549,6 +553,8 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_Add: case Op_Sub: case Op_Mult: case Op_Div: case Op_Mod: case Op_Pow:
     case Op_BNot: case Op_BAnd: case Op_BOr: case Op_BXor: case Op_LShift: case Op_RShift:
       op_Arith(firstParam, op); break;
+    case Op_PinMod: case Op_DigIn: case Op_AnaIn: case Op_DigOut: case Op_AnaOut:
+      op_GPIO(firstParam, op); break;
     case Op_Read:   op_Read  (firstParam); break;
     case Op_Write:  op_Write (firstParam); break;
     case Op_Append: op_Append(firstParam); break;
@@ -682,6 +688,30 @@ void ChVM::op_Arith (itemnum firstParam, IType op) {
   }
   memcpy(iBytes(firstParam), &result, len);
   returnItem(firstParam, Item(len, type));
+}
+
+void ChVM::op_GPIO (itemnum firstParam, IType op) {
+  uint8_t pin = iInt(firstParam);
+  uint16_t intParam = iInt(firstParam + 1);
+  bool boolParam = iCBool(firstParam + 1);
+  uint16_t input = 0;
+//harness->print("hey there");
+  switch (op) {
+    case Op_PinMod: harness->pinMod(pin, boolParam); break;
+    case Op_DigIn:  input = harness->digIn(pin); break;
+    case Op_AnaIn:  input = harness->anaIn(pin); break;
+    case Op_DigOut: harness->digOut(pin, boolParam); break;
+    case Op_AnaOut: harness->anaOut(pin, intParam); break;
+  }
+  if (op == Op_DigIn) {
+    returnItem(firstParam, input ? Val_True : Val_False);
+  } else
+  if (op == Op_AnaIn) {
+    writeUNum(iBytes(firstParam), input, sizeof(input));
+    returnItem(firstParam, Item(sizeof(input), fitInt(sizeof(input))));
+  } else {
+    returnNil(firstParam);
+  }
 }
 
 void ChVM::op_Read (itemnum firstParam) {

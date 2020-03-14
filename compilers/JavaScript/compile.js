@@ -1,4 +1,3 @@
-const startTime = new Date();
 String.prototype.rp = function(pad, len) { while (pad.length < len) { pad += pad; } return this + pad.substr(0, len-this.length); }
 String.prototype.lp = function(pad, len) { while (pad.length < len) { pad += pad; } return pad.substr(0, len-this.length) + this; }
 Array.prototype.remove = function (fn) { return this.filter(it => !fn(it)); }
@@ -34,6 +33,7 @@ const strOps =
    "<":      0x34, "<=":     0x35, ">":      0x36, ">=":     0x37,
    "+":      0x38, "-":      0x39, "*":      0x3A, "/":      0x3B, "mod":    0x3C, "pow": 0x3D,
    "~":      0x40, "&":      0x41, "|":      0x42, "^":      0x43, "<<":     0x44, ">>":  0x45,
+   "p-mode": 0x60, "dig-r":  0x61, "dig-w":  0x62, "ana-r":  0x63, "ana-w":  0x64,
    "file-r": 0x6A, "file-w": 0x6B, "file-a": 0x6C, "file-d": 0x6D,
    "str":    0xA0, "type":   0xAA, "cast":   0xAB,
    "vec":    0xB0, "nth":    0xB1, "len":    0xB2, "sect":   0xB3, "b-sect": 0xB4,
@@ -97,6 +97,8 @@ function funcise (forms) {
 }
 
 function compile (source, ramRequest) {
+
+  const startTime = new Date();
 
   //Extract all strings, and replace them with "`n`"
   const extractedStrings = extractStrings(source);

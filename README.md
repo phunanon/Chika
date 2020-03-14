@@ -19,10 +19,10 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
         (+ (fib (- n 1i)) (fib (- n 2i)))))
     (fib 35i) => 832040
 
-    //Returns absolute of a number
-    (fn abs n
-      (if (< n 0) (* n -1i) n))
-    (abs -1234i) => 1234
+    //LED blink program for Arduino
+    (p-mode 32 true)
+    (fn heartbeat
+      (dig-w 32 (mod (/ (ms-now) 1000i) 2)))
 
     //Prints `15`
     (print
@@ -189,15 +189,17 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `nth i N`: returns item or character `N` of vector or string `i`, or `nil` if `N` is in an improper range.
 
-(unimplemented) `pin-mode pin mode`: sets the mode of  pin number `pin` to the boolean `mode` - truthy as INPUT, falsey as OUTPUT; returns nil.
+`p-mode pin mode`: sets the mode of pin number `pin` to the boolean `mode` - truthy as INPUT, falsey as OUTPUT; returns nil.
 
-(unimplemented) `dig-out pin val`: sets the digital output state of pin number `pin` to the boolean `val` - truthy as HIGH, falsey as LOW; returns nil.
+`dig-r pin`: returns digital input state of pin number `pin`.
 
-(unimplemented) `dig-in pin`: returns digital input state of pin number `pin`.
+`dig-w pin val`: sets the digital output state of pin number `pin` to the boolean `val` - truthy or non-zero as HIGH, else LOW; returns nil.
 
-(unimplemented) `ana-out pin val`: sets the analog/PWM output state of pin number `pin` to the word `val`; returns nil.
+`ana-r pin`: returns analog input state of pin number `pin`.
 
-(unimplemented) `ana-in pin`: returns analog input state of pin number `pin`.
+`ana-w pin val`: sets the analog/PWM output state of pin number `pin` to the 16-bit integer `val`; returns nil.
+
+`ana-r pin`: returns analog 16-bit integer input of pin number `pin`.
 
 `file-r path`: returns blob of whole file contents.  
 `file-r path offset`: returns blob of file content between offset bytes and EOF.  

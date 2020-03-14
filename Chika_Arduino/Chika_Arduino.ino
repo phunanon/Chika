@@ -49,6 +49,24 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   Serial.println();
 }
 
+
+void ChVM_Harness::pinMod (uint8_t pin, bool mode) {
+  pinMode(LED_BUILTIN, OUTPUT);
+}
+bool ChVM_Harness::digIn (uint8_t pin) {
+  return digitalRead(pin);
+}
+void ChVM_Harness::digOut (uint8_t pin, bool val) {
+  digitalWrite(LED_BUILTIN, val ? HIGH : LOW);
+}
+uint16_t ChVM_Harness::anaIn (uint8_t pin) {
+  return analogRead(pin);
+}
+void ChVM_Harness::anaOut (uint8_t pin, uint16_t val) {
+  analogWrite(pin, val);
+}
+
+
 //Reads from `offset` in the file for `count` bytes
 //If `count` is 0 the rest of the file is read
 int32_t ChVM_Harness::fileRead (const char* path, uint8_t* blob, uint32_t offset, uint32_t count) {
@@ -87,9 +105,11 @@ bool ChVM_Harness::fileDelete (const char* path) {
   return SD.remove(path);
 }
 
+
 uint32_t ChVM_Harness::msNow () {
   return millis();
 }
+
 
 ChVM machine = ChVM();
 uint8_t mem[CHIKA_SIZE];
@@ -142,16 +162,6 @@ void setup() {
 }
 
 void loop () {
-  //Beat all hearts once, check if all are dead for early exit
-  {
-    bool allDead = true;
-    for (uint8_t p = 0; p < pNum; ++p)
-      if (machine.heartbeat(p))
-        allDead = false;
-    if (allDead)
-      while (true);
-  }
-
   //Round-robin the heartbeats
   while (true)
     for (uint8_t p = 0; p < pNum; ++p)

@@ -38,6 +38,7 @@ class ChVM {
 
   int32_t  iInt       (itemnum);  //Item-agnostic readNum
   bool     iBool      (itemnum);  //Item-agnostic truth test
+  bool     iCBool     (itemnum);  //Item-agnostic C-like truth test
 
   void     trunStack  (itemnum);
   uint8_t* stackItem  ();
@@ -71,6 +72,7 @@ class ChVM {
   void     op_Equal  (itemnum, bool);
   void     op_Diff   (itemnum, IType);
   void     op_Arith  (itemnum, IType);
+  void     op_GPIO   (itemnum, IType);
   void     op_Read   (itemnum);
   void     op_Write  (itemnum);
   void     op_Append (itemnum);

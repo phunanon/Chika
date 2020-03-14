@@ -1,0 +1,4 @@
+
+(p-mode 32 true)
+(fn heartbeat
+  (dig-w 32 (mod (/ (ms-now) 1000i) 2)))
