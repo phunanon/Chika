@@ -649,7 +649,7 @@ void ChVM::op_Diff (itemnum firstParam, IType op) {
   int32_t prev = (op == Op_GT || op == Op_GTE) ? INT32_MAX : INT32_MIN;
   itemnum it = firstParam, itEnd = numItem();
   for (; it < itEnd; ++it) {
-    int32_t num = readNum(iData(it), constByteLen(i(it)->type()));
+    int32_t num = iInt(it);
     if (op == Op_GT  && num >= prev
      || op == Op_GTE && num >  prev
      || op == Op_LT  && num <= prev
@@ -800,7 +800,7 @@ void ChVM::op_Str (itemnum firstParam) {
       case Val_U08:
       case Val_U16:
       case Val_I32:
-        len += int2chars(target, readNum(iData(it), constByteLen(type)));
+        len += int2chars(target, iInt(it));
         break;
       case Val_Char:
         *target = *iData(it);
@@ -825,7 +825,7 @@ void ChVM::op_Type (itemnum firstParam) {
 void ChVM::op_Cast (itemnum firstParam) {
   //Get IType parameters
   IType from = i(firstParam)->type();
-  IType to   = (IType)readNum(iData(firstParam + 1), sizeof(IType));
+  IType to   = (IType)iInt(firstParam + 1);
   //Ensure it's a value
   op_Val(firstParam);
   //Zero out new memory, and ensure strings/blobs are cast correctly
@@ -955,7 +955,7 @@ void ChVM::op_Sect (itemnum firstParam, bool isBurst) {
 void ChVM::op_Reduce (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
-  funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
+  funcnum fCode = iInt(firstParam);
   //Burst item in situ (the last item on the stack)
   burstItem();
   //Copy seed or first item onto stack - either (reduce f v) (reduce f s v)
@@ -982,7 +982,7 @@ void ChVM::op_Reduce (itemnum firstParam) {
 void ChVM::op_Map (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
-  funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
+  funcnum fCode = iInt(firstParam);
   //Find shortest vector
   itemnum iFirstVec = firstParam + 1;
   itemnum nVec = numItem() - iFirstVec;
@@ -1022,7 +1022,7 @@ void ChVM::op_Map (itemnum firstParam) {
 void ChVM::op_For (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
-  funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
+  funcnum fCode = iInt(firstParam);
   //Output N byte lengths and N byte counters onto stack as blob item
   itemnum iFirstVec = firstParam + 1;
   argnum nVec = numItem() - iFirstVec;
