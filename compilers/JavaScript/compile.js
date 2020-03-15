@@ -14,7 +14,7 @@ const bytesToHex = nums => nums.map(n => numToHex(n, 1)).join("");
 const last = arr => arr[arr.length - 1];
 const isObject = o => o === Object(o);
 const isString = s => typeof s === "string";
-const isChikaNum = s => isString(s) && s.search(/^-?\d+[w|i]*$/) != -1 && s.match(/-?\d+[w|i]*/g).join("") == s;
+const isChikaNum = s => isString(s) && (s.search(/^0x[\dA-F]+$/i) != -1 || s.search(/^-?\d+[w|i]*$/) != -1);
 const num = s => parseInt(s.match(/-?\d+/g).join(""));
 
 
@@ -157,14 +157,13 @@ function compile (source, ramRequest) {
 
   //Serialise integers
   function serialiseNum (s) {
-    const isU16 = s.endsWith("w");
-    const isI32 = s.endsWith("i");
-    if (isU16 || isI32)
-      s = s.slice(0, -1);
-    const type = isI32 ? Val_I32 : (isU16 ? Val_U16 : Val_U08);
-    const len = isI32 ? 4 : (isU16 ? 2 : 1);
+    let bWidth = s.endsWith("i") ? 4 : (s.endsWith("w") ? 2 : 1);
+    if (bWidth != 1) s.slice(0, -1);
+    if (s.startsWith("0x"))
+      bWidth = {3:1,4:1,5:2,6:2,7:4,8:4,9:4,10:4}[s.length];
+    const type = {1:Val_U08, 2:Val_U16, 4:Val_I32}[bWidth];
     return {hex: numToHex(type, 1)
-                 + numToLEHex(parseInt(s), len),
+                 + numToLEHex(parseInt(s), bWidth),
             info: `int: ${s}`};
   }
   funcs = walkItems(funcs, isChikaNum, serialiseNum);

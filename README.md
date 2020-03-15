@@ -133,18 +133,15 @@ Functions must end in a form - to return a value use `val`.
 
 #### Data types
 
-`".."`: string, whereby `..` are 0 to 2^16 ASCII characters, or `""` for empty.  
+Note: integers are either in decimal or big-endian hexadecimal format.
+
+- `".."`: string, whereby `..` are 0 to 2^16 ASCII characters, or `""` for empty.  
 Use `\dq` and `str` for double-quotations, as strings provide no escaped characters.
-
-`0`: 8-bit unsigned integer.
-
-`0w`: 16-bit unsigned integer.
-
-`0i`: 32-bit signed integer.
-
-`\c`: ASCII character. Extended: \nl newline, \sp space.
-
-`[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty.
+- `0` or `0x00`: 8-bit unsigned integer.
+- `0w` or `0x0000`: 16-bit unsigned integer.
+- `0i` or `0x00000000`: 32-bit signed integer.
+- `\c`: ASCII character. Extended: \nl newline, \sp space.
+- `[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty.
 
 #### Constants
 

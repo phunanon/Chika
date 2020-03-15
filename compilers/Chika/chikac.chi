@@ -79,7 +79,7 @@
     (do
       lit-len=   (if (includes? ["nl" "sp"] (sect str-in 0 2)) 2 1)
       char-lit=  (sect str-in 0 lit-len)
-      char-code= (cast (or (key ["nl" \nl "sp" \sp] char-lit) (1st char-lit)) 16)
+      char-code= (cast (or (key ["nl" \nl "sp" \sp] char-lit) (1st char-lit)) 0x10)
       (file-a path-out (str "`c" char-code \`))
       lit-len)
     \"   //If a string, output to the string file, and substitute for `n`
@@ -88,7 +88,7 @@
       string=  (sect str-in 0 str-len)
       (file-a path-out (str \` num-str \`))
       (file-a (str path-out "s") string)
-      (file-a (str path-out "sl") (cast (+ 0w str-len) 13))
+      (file-a (str path-out "sl") (cast (+ 0w str-len) 0x0D))
       (inc str-len))
     "//"  //If a single-line comment, skip until after a newline
     (inc (index-of str-in \nl))
