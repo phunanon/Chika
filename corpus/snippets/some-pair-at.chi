@@ -1,8 +1,8 @@
 (fn some-pair-at v p n
   (if (< 1 (len v))
-    (do i1= (1st v)
-        i2= (2nd v)
-        N=  (or n 0)
+    (do i1=   (1st v)
+        i2=   (2nd v)
+        here= (or n 0)
       (if (p i1 i2)
-        N
-        (recur (sect v) p (inc N))))))
+        here
+        (recur (sect v) p (inc here))))))

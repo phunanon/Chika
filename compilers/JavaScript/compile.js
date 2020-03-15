@@ -40,7 +40,7 @@ const strOps =
    "burst":  0xBA, "reduce": 0xBB, "map":    0xBC, "for":    0xBD, "loop":   0xBE,
    "val":    0xCD, "do":     0xCE, "ms-now": 0xE0, "print":  0xEE, "debug":  0xEF};
 const literals =
-  {"nil": Val_Nil, "true": Val_True, "false": Val_False,
+  {"N": Val_Nil, "T": Val_True, "F": Val_False,
    "nl": '\n', "sp": ' '};
 const formCodes =
   {"if": Form_If, "or": Form_Or, "and": Form_And, "case": Form_Case,

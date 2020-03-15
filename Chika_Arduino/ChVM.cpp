@@ -780,8 +780,8 @@ void ChVM::op_Str (itemnum firstParam) {
     uint8_t* target = result + len;
     IType type = item->type();
     switch (type) {
-      case Val_True: case Val_False:
-        *target = type == Val_True ? 'T' : 'F';
+      case Val_True: case Val_False: case Val_Nil:
+        *target = type == Val_True ? 'T' : (type == Val_False ? 'F' : 'N');
         ++len;
         break;
       case Val_Str:
@@ -807,11 +807,6 @@ void ChVM::op_Str (itemnum firstParam) {
         *target = *iData(it);
         ++len;
         break;
-      case Val_Nil: {
-        const char* sNil = "nil";
-        memcpy(target, sNil, 3);
-        len += 3;
-        break; }
     }
   }
   result[len++] = 0;

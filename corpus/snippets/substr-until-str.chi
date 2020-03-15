@@ -2,8 +2,7 @@
 //Takes sub-string of `s` until string `delim`
 (fn substr-until
   s delim; sub
-  (if (empty? s)
-    nil
+  (if (!empty? s)
     (do next= (sect s 0 (len delim))
       (if (= next delim)
         sub

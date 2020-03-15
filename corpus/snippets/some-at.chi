@@ -1,7 +1,7 @@
 (fn some-at v p n
   (if (!= (len v) 0)
-    (do f= (1st v)
-        N= (or n 0)
+    (do f=    (1st v)
+        here= (or n 0)
       (if (p f)
-        N
-        (recur (sect v) p (inc N))))))
+        here
+        (recur (sect v) p (inc here))))))

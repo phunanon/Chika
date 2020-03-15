@@ -1,4 +1,4 @@
-(fn ! x (if x false true))
+(fn ! x (if x F T))
 
 (fn inc n (+ n 1))
 (fn dec n (- n 1))
@@ -24,14 +24,14 @@
 
 (fn every? vec pred
   (if (= (len vec) 0)
-    true
+    T
     (if (pred (1st vec))
       (recur (sect vec) pred)
-      false)))
+      F)))
 
 (fn some vec pred
   (if (= (len vec) 0)
-    nil
+    N
     (if (pred (1st vec))
       (1st vec)
       (recur (sect vec) pred))))
@@ -54,13 +54,13 @@
       i
       (recur (sect coll) sub (inc (or i 0i))))))
 
-//e.g. (zip-select [false true false] [\a \b \c]) => \b
+//e.g. (zip-select [F T F] [\a \b \c]) => \b
 (fn zip-select select from
   (if (!empty? select)
     (if (1st select)
       (1st from)
       (recur (sect select) (sect from)))
-    nil))
+    N))
 
 //e.g. (range 0 10 2) => [0 2 4 6 8]
 //e.g. (range 10 0 -2i) => [10 8 6 4 2]
@@ -72,7 +72,7 @@
 
 //Returns item after `k` in vector/string `v`
 (fn key v k
-  (if (empty? v) (return nil))
+  (if (empty? v) (return N))
   (if (= (1st v) k) (return (2nd v)))
   (recur (sect v 2) k))
 

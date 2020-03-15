@@ -12,7 +12,7 @@
 (fn includes? coll i
   (do find= i (or (burst (map {= find #} coll)))))
 (fn key v k
-  (if (empty? v) (return nil))
+  (if (empty? v) (return N))
   (if (= (1st v) k) (return (2nd v)))
   (recur (sect v 2) k))
 
@@ -27,7 +27,7 @@
 //Accepts optional is-negative boolean to find the next index that is not `sub`
 (fn index-of-until
   coll sub until; is-negative; i len
-  (if (or (= i until) (< (len coll) (len sub))) (return nil))
+  (if (or (= i until) (< (len coll) (len sub))) (return N))
   (do comp-op= (if is-negative != =)
     (if (comp-op (str sub) (sect coll 0 (len sub)))
       (or i 0i)
@@ -36,7 +36,7 @@
 //Scans for first index of item, str, or char `sub` within `coll`
 (fn index-of
   coll sub
-  (index-of-until coll sub (len coll) false))
+  (index-of-until coll sub (len coll) F))
 
 //Finds the next index of item, str, or char in `finds`, in `coll` as a vec or str
 //Returns [the next find; index], with the find as nil if nothing was found
@@ -55,7 +55,7 @@
 //Returns the next index of item, str, or char not in `anti-finds`, in `coll` as a vec or str
 (fn next-index-of-not
   string anti-finds ;; i
-  (if (empty? string) (return nil))
+  (if (empty? string) (return N))
   (do string2= string
     (if (or (burst (map {= (str #) (sect string2 0 (len #))} anti-finds)))
       (recur (sect string) anti-finds (+ (or i 0i) 1i))
