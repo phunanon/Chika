@@ -571,6 +571,7 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_Reduce: op_Reduce(firstParam); break;
     case Op_Map:    op_Map   (firstParam); break;
     case Op_For:    op_For   (firstParam); break;
+    case Op_Loop:   op_Loop  (firstParam); break;
     case Op_Val:    op_Val   (firstParam); break;
     case Op_Do:     op_Do    (firstParam); break;
     case Op_MsNow:  op_MsNow (firstParam); break;
@@ -649,7 +650,7 @@ void ChVM::op_Diff (itemnum firstParam, IType op) {
   int32_t prev = (op == Op_GT || op == Op_GTE) ? INT32_MAX : INT32_MIN;
   itemnum it = firstParam, itEnd = numItem();
   for (; it < itEnd; ++it) {
-    int32_t num = readNum(iData(it), constByteLen(i(it)->type()));
+    int32_t num = iInt(it);
     if (op == Op_GT  && num >= prev
      || op == Op_GTE && num >  prev
      || op == Op_LT  && num <= prev
@@ -800,7 +801,7 @@ void ChVM::op_Str (itemnum firstParam) {
       case Val_U08:
       case Val_U16:
       case Val_I32:
-        len += int2chars(target, readNum(iData(it), constByteLen(type)));
+        len += int2chars(target, iInt(it));
         break;
       case Val_Char:
         *target = *iData(it);
@@ -825,7 +826,7 @@ void ChVM::op_Type (itemnum firstParam) {
 void ChVM::op_Cast (itemnum firstParam) {
   //Get IType parameters
   IType from = i(firstParam)->type();
-  IType to   = (IType)readNum(iData(firstParam + 1), sizeof(IType));
+  IType to   = (IType)iInt(firstParam + 1);
   //Ensure it's a value
   op_Val(firstParam);
   //Zero out new memory, and ensure strings/blobs are cast correctly
@@ -955,7 +956,7 @@ void ChVM::op_Sect (itemnum firstParam, bool isBurst) {
 void ChVM::op_Reduce (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
-  funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
+  funcnum fCode = iInt(firstParam);
   //Burst item in situ (the last item on the stack)
   burstItem();
   //Copy seed or first item onto stack - either (reduce f v) (reduce f s v)
@@ -982,7 +983,7 @@ void ChVM::op_Reduce (itemnum firstParam) {
 void ChVM::op_Map (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
-  funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
+  funcnum fCode = iInt(firstParam);
   //Find shortest vector
   itemnum iFirstVec = firstParam + 1;
   itemnum nVec = numItem() - iFirstVec;
@@ -1022,7 +1023,7 @@ void ChVM::op_Map (itemnum firstParam) {
 void ChVM::op_For (itemnum firstParam) {
   //Extract function or op number from first parameter
   bool isOp = i(firstParam)->type() == Var_Op;
-  funcnum fCode = readNum(iData(firstParam), isOp ? sizeof(IType) : sizeof(funcnum));
+  funcnum fCode = iInt(firstParam);
   //Output N byte lengths and N byte counters onto stack as blob item
   itemnum iFirstVec = firstParam + 1;
   argnum nVec = numItem() - iFirstVec;
@@ -1087,6 +1088,36 @@ void ChVM::op_For (itemnum firstParam) {
   //Vectorise and collapse return
   op_Vec(firstParam + 1 + nVec + 1);
   returnCollapseLast(firstParam);
+}
+
+void ChVM::op_Loop (itemnum firstParam) {
+  argnum nArg = numItem() - firstParam;
+  uint16_t from = 0, to;
+  bool isOp;
+  funcnum fCode;
+  //If (loop times f)
+  if (nArg == 2) {
+    to = iInt(firstParam);
+    isOp = i(firstParam + 1)->type() == Var_Op;
+    fCode = iInt(firstParam + 1);
+  }
+  //If (loop a b f)
+  else {
+    from = iInt(firstParam);
+    to = iInt(firstParam + 1);
+    isOp = i(firstParam + 2)->type() == Var_Op;
+    fCode = iInt(firstParam + 2);
+  }
+  //Prepare stack with one 16-bit int
+  for (uint16_t i = from; i < to; ++i) {
+    //Copy i to firstParam
+    returnItem(firstParam, Item(Val_U16));
+    writeUNum(iBytes(firstParam), i, sizeof(i));
+    //Execute f
+    if (isOp) nativeOp((IType)fCode, firstParam);
+    else      exeFunc(fCode, firstParam);
+  }
+  //The last item on the stack is implicitly returned
 }
 
 void ChVM::op_Val (itemnum firstParam) {

@@ -2,13 +2,15 @@
 #include <stdint.h>
 #include "string.h"
 
+#define USE_SERIAL true
+
 //MEM_SIZE: Arduino SRAM size
 //#define MEM_SIZE 262144 //256k
 //#define MEM_SIZE 131072 //128k
 //#define MEM_SIZE 65536  //64k
-  #define MEM_SIZE 32768  //32k; MKRZero
+  #define MEM_SIZE 32768  //32k; MKRZero, Feather M0
 //#define MEM_SIZE 16384  //16k
-//#define MEM_SIZE 8192   //8k
+//#define MEM_SIZE 8192   //8k;  Mega 2560
 //#define MEM_SIZE 2048   //2k
 //#define MEM_SIZE 512    //512
 
@@ -101,6 +103,7 @@ enum IType : uint8_t {
   Op_Reduce = 0xBB,
   Op_Map    = 0xBC,
   Op_For    = 0xBD,
+  Op_Loop   = 0xBE,
   Op_Val    = 0xCD, Op_Do     = 0xCE,
   Op_MsNow  = 0xE0,
   Op_Print  = 0xEE,
