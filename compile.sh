@@ -1,7 +1,8 @@
+#!/bin/sh
 mkdir -p bin
 
 cd corpus/programs
-nodejs ../../compilers/JavaScript/compiler.js init.chi
+node ../../compilers/JavaScript/compiler.js init.chi
 mv init.kua ../../bin
 cd ../..
 

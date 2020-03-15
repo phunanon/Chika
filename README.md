@@ -65,12 +65,12 @@ Suitable devices:
 
 #### Chika VM target: Linux
 
-In terminal run `sh compile.sh && ./bin/mOS bin/init.kua`. This also recompiles `corpus/programs/init.chi`, a basic shell.
+In terminal run `./compile.sh && ./bin/mOS bin/init.kua` from the repository directory. This also recompiles `corpus/programs/init.chi`, a basic shell.
 
 #### Chika compilers
 
 Using a web-browser: open `compile.html`, convert the hex output into a binary image. For Linux use `xxd -r -p chika.hex init.kua`.  
-Using NodeJS: `nodejs compiler.js source.chi` => source.kua  
+Using NodeJS: `node compiler.js source.chi` => source.kua  
 Using Chika: a work in progress!
 
 ### Chika Virtual Machine (ChVM) implementation
