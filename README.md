@@ -253,13 +253,18 @@ string to blob will lack null termination; casts to strings will be appended wit
 
 **Iteration**
 
-`reduce f[ s*N] i`: returns reduction of vector or string `i` through `f`, with 0-N seeds. `f` is (item acc) => acc.
+`reduce f[ s*N] i`: returns reduction of vector or string `i` through `f`, with 0-N seeds. `f` is `(item acc) => acc`.
 
-`map f v*N`: returns mapping of 1-N vectors through `f`, where `f` is (item*N) => mapped.  
+`map f v*N`: returns mapping of 1-N vectors through `f`, where `f` is `(item*N) => mapped`.  
 Example: `(map str [\a \b \c] [1 2 3]) => [a1 b2 c3]`
 
-`for f v*N`: returns iterative mapping of 1-N vectors through `f`, where `f` is (item*N) => mapped.  
+`for f v*N`: returns iterative mapping of 1-N vectors through `f`, where `f` is `(item*N) => mapped`.  
 Example: `(for str [\a \b \c] [1 2 3]) => [a1 a2 a3 b1 b2 b3 c1 c2 c3]`
+
+`loop n f`: repeats `n` 16-bit number of times the function `f`, where `f` is `(0..n) => any`; returns last return of `f`.  
+`loop a b f`: repeats the function `f` for 16-bit integers `a` to `b`, where `f` is `(a..b) => any`; returns last return of `f`.  
+Example: `(loop 2 {print "hello" #})` prints "hello0" and "hello1", returns `nil`.  
+Example: `(loop 3 5 print)` prints "3" and "4"; returns `nil`.
 
 **System related**
 

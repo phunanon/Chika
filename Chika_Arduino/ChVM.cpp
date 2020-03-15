@@ -571,6 +571,7 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_Reduce: op_Reduce(firstParam); break;
     case Op_Map:    op_Map   (firstParam); break;
     case Op_For:    op_For   (firstParam); break;
+    case Op_Loop:   op_Loop  (firstParam); break;
     case Op_Val:    op_Val   (firstParam); break;
     case Op_Do:     op_Do    (firstParam); break;
     case Op_MsNow:  op_MsNow (firstParam); break;
@@ -1087,6 +1088,36 @@ void ChVM::op_For (itemnum firstParam) {
   //Vectorise and collapse return
   op_Vec(firstParam + 1 + nVec + 1);
   returnCollapseLast(firstParam);
+}
+
+void ChVM::op_Loop (itemnum firstParam) {
+  argnum nArg = numItem() - firstParam;
+  uint16_t from = 0, to;
+  bool isOp;
+  funcnum fCode;
+  //If (loop times f)
+  if (nArg == 2) {
+    to = iInt(firstParam);
+    isOp = i(firstParam + 1)->type() == Var_Op;
+    fCode = iInt(firstParam + 1);
+  }
+  //If (loop a b f)
+  else {
+    from = iInt(firstParam);
+    to = iInt(firstParam + 1);
+    isOp = i(firstParam + 2)->type() == Var_Op;
+    fCode = iInt(firstParam + 2);
+  }
+  //Prepare stack with one 16-bit int
+  for (uint16_t i = from; i < to; ++i) {
+    //Copy i to firstParam
+    returnItem(firstParam, Item(Val_U16));
+    writeUNum(iBytes(firstParam), i, sizeof(i));
+    //Execute f
+    if (isOp) nativeOp((IType)fCode, firstParam);
+    else      exeFunc(fCode, firstParam);
+  }
+  //The last item on the stack is implicitly returned
 }
 
 void ChVM::op_Val (itemnum firstParam) {

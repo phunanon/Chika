@@ -103,6 +103,7 @@ enum IType : uint8_t {
   Op_Reduce = 0xBB,
   Op_Map    = 0xBC,
   Op_For    = 0xBD,
+  Op_Loop   = 0xBE,
   Op_Val    = 0xCD, Op_Do     = 0xCE,
   Op_MsNow  = 0xE0,
   Op_Print  = 0xEE,
