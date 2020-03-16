@@ -45,17 +45,17 @@ typedef uint16_t vectlen;
 //NOTE: when adding a new value type or op longer than 1B
 //  ensure its implementation in constByteLen
 enum IType : uint8_t {
-  Form_Eval = 0x00, Form_Refs = 0x01,
-  Form_If = 0x02, Form_Or = 0x03, Form_And = 0x04, Form_Case = 0x05,
-  FORMS_END = 0x05,
+  Form_Eval = 0x00,
+  Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03, Form_Case = 0x04,
+  FORMS_END = 0x04,
 
-  Val_True  = 0x06, Val_False = 0x07,
-  Val_Str   = 0x08,
-  Param_Val = 0x09,
-  Bind_Mark = 0x0A, //e.g. test=
-  Bind_Val  = 0x0B, //     test
-  Val_Vec   = 0x0C,
-  Val_Blob  = 0x0D,
+  Val_True  = 0x05, Val_False = 0x06,
+  Val_Str   = 0x07,
+  Param_Val = 0x08,
+  Bind_Mark = 0x09, //e.g. test=
+  Bind_Val  = 0x0A, //     test
+  Val_Vec   = 0x0B,
+  Val_Blob  = 0x0C,
   Val_U08   = 0x10,
   Val_U16   = 0x11,
   Val_I32   = 0x12,

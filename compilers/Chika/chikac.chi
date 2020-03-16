@@ -88,7 +88,7 @@
       string=  (sect str-in 0 str-len)
       (file-a path-out (str \` num-str \`))
       (file-a (str path-out "s") string)
-      (file-a (str path-out "sl") (cast (+ 0w str-len) 0x0D))
+      (file-a (str path-out "sl") (cast (+ 0w str-len) 0x0C))
       (inc str-len))
     "//"  //If a single-line comment, skip until after a newline
     (inc (index-of str-in \nl))
