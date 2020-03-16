@@ -20,5 +20,5 @@ IType Item::type () {
 }
 
 bool Item::isConst () {
-  return (bool)(typeAndKind >> 7);
+  return typeAndKind & 0x80;
 }

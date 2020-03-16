@@ -208,11 +208,20 @@ itemnum firstParam;
 itemnum nArg;
 FuncState funcState = FuncContinue;
 
+funcnum prevFNum = -1;
+uint8_t* prevFPtr = nullptr;
 bool ChVM::exeFunc (funcnum fNum, itemnum firstPara) {
   //Cache previous function attribute
   uint8_t* prev_f = f;
 
-  f = pFunc(fNum);
+  if (prevFNum == fNum)
+    f = prevFPtr;
+  else {
+    f = pFunc(fNum);
+    prevFNum = fNum;
+    prevFPtr = f;
+  }
+
   if (f == nullptr) {
     f = prev_f;
     return false;
