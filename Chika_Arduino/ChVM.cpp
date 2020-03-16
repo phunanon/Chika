@@ -36,14 +36,11 @@ bytenum ChVM::numByte () {
   return pInfo->numByte;
 }
 
-itemlen ChVM::itemBytesLen (Item* it) {
-  return it->isConst() ? sizeof(proglen) : it->len;
-}
 //`to` is exclusive
 itemlen ChVM::itemsBytesLen (itemnum from, itemnum to) {
   bytenum n = 0;
   for (itemnum it = from; it < to; ++it)
-    n += itemBytesLen(i(it));
+    n += i(it)->len;
   return n;
 }
 Item* ChVM::i (itemnum iNum) {
@@ -52,13 +49,6 @@ Item* ChVM::i (itemnum iNum) {
 uint8_t* ChVM::iBytes (itemnum iNum) {
   return (pBytes + numByte()) - itemsBytesLen(iNum, numItem());
 }
-uint8_t* ChVM::iData (itemnum iNum) {
-  uint8_t* bPtr = iBytes(iNum);
-  if (i(iNum)->isConst())
-    return pROM + (proglen)readUNum(bPtr, sizeof(proglen));
-  else
-    return bPtr;
-}
 Item* ChVM::iLast () {
   itemnum nItem = numItem();
   if (!nItem) return nullptr;
@@ -66,13 +56,13 @@ Item* ChVM::iLast () {
 }
 
 int32_t ChVM::iInt (itemnum iNum) {
-  return readNum(iData(iNum), constByteLen(i(iNum)->type()));
+  return readNum(iBytes(iNum), constByteLen(i(iNum)->type));
 }
 bool ChVM::iBool (itemnum iNum) {
-  return isTypeTruthy(i(iNum)->type());
+  return isTypeTruthy(i(iNum)->type);
 }
 bool ChVM::iCBool (itemnum iNum) {
-  IType type = i(iNum)->type();
+  IType type = i(iNum)->type;
   return type != Val_False && (type == Val_True || iInt(iNum));
 }
 
@@ -85,14 +75,14 @@ uint8_t* ChVM::stackItem () {
 }
 void ChVM::stackItem (Item* desc) {
   numItem(numItem() + 1);
-  numByte(numByte() + itemBytesLen(desc));
+  numByte(numByte() + desc->len);
   memcpy(iLast(), desc, sizeof(Item));
 }
 void ChVM::stackItem (Item desc) {
   stackItem(&desc);
 }
 void ChVM::returnItem (itemnum replace, Item* desc) {
-  bytenum newNumBytes = (numByte() - itemsBytesLen(replace, numItem())) + itemBytesLen(desc);
+  bytenum newNumBytes = (numByte() - itemsBytesLen(replace, numItem())) + desc->len;
   //Replace item currently in the return position
   memcpy(i(replace), desc, sizeof(Item));
   //Update number of items and bytes
@@ -100,7 +90,7 @@ void ChVM::returnItem (itemnum replace, Item* desc) {
   numByte(newNumBytes);
 }
 void ChVM::returnCollapseLast (itemnum replace) {
-  itemlen lLen = itemBytesLen(iLast());
+  itemlen lLen = iLast()->len;
   //Move item bytes
   memmove(iBytes(replace), stackItem() - lLen, lLen);
   //Set old item in return position
@@ -121,7 +111,7 @@ void ChVM::returnCollapseItem (itemnum replace, Item desc) {
 void ChVM::returnItemFrom (itemnum to, itemnum from) {
   Item* iFrom = i(from);
   //Copy bytes
-  memmove(iBytes(to), iBytes(from), itemBytesLen(iFrom));
+  memmove(iBytes(to), iBytes(from), iFrom->len);
   //Copy descriptor
   returnItem(to, iFrom);
 }
@@ -184,9 +174,9 @@ bool ChVM::findBind (itemnum& it, bindnum bNum) {
   if (numItem() > 2) {
     it = numItem() - 2; //Start -1 from last item, to permit "a= (inc a)"
     for (; ; --it) {
-      if (i(it)->type() != Bind_Mark) continue;
+      if (i(it)->type != Bind_Mark) continue;
       //Test if this bind is the correct number
-      if (readUNum(iData(it), sizeof(bindnum)) == bNum) {
+      if (readUNum(iBytes(it), sizeof(bindnum)) == bNum) {
         found = true;
         break;
       }
@@ -320,7 +310,7 @@ void ChVM::exeForm () {
           //(if cond if-true[ if-false])
           //        ^
           if (firstArgItem + 1 == numItem()) {
-            if (!isTypeTruthy(iLast()->type())) {
+            if (!isTypeTruthy(iLast()->type)) {
               //False: skip the if-true arg
               skipArg(&f);
               //If there's no if-false, return nil
@@ -416,7 +406,7 @@ void ChVM::exeForm () {
             op_Equal(numItem() - 2, Op_Equal);
             //If comparison was successful, flag as evaluated
             //  else skip value to next case
-            if (isTypeTruthy(iLast()->type()))
+            if (isTypeTruthy(iLast()->type))
               formData = WasTrue;
             else
               skipArg(&f);
@@ -444,14 +434,9 @@ void ChVM::exeForm () {
       }
       paramNum += firstParam;
       Item* iParam = i(paramNum);
-      //If in a refs s-form, and data is larger than a const ref, leave a const ref, otherwise memcpy the data
-      if (formCode == Form_Refs && (itemBytesLen(iParam) > sizeof(proglen))) {
-        writeUNum(stackItem(), iData(paramNum) - pROM, sizeof(proglen));
-        stackItem(Item(iParam->len, iParam->type(), true));
-      } else {
-        memcpy(stackItem(), iData(paramNum), iParam->len);
-        stackItem(Item(iParam->len, iParam->type()));
-      }
+      //memcpy the data onto the stack
+      memcpy(stackItem(), iBytes(paramNum), iParam->len);
+      stackItem(Item(iParam->len, iParam->type));
     } else
     //If a vector of the function arguments
     if (nextEval == Val_Args) {
@@ -467,22 +452,17 @@ void ChVM::exeForm () {
       //If the binding was found
       if (findBind(it, bNum)) {
         Item* bItem = i(it);
-        //If in a refs s-form, and data is larger than a const ref, leave a const ref, otherwise memcpy the data
-        if (formCode == Form_Refs && (itemBytesLen(bItem) > sizeof(proglen))) {
-          writeUNum(stackItem(), iData(it) - pROM, sizeof(proglen));
-          stackItem(Item(bItem->len, bItem->type(), true));
-        } else {
-          memcpy(stackItem(), iBytes(it), itemBytesLen(bItem));
-          stackItem(bItem);
-        }
+        //memcpy the data onto the stack
+        memcpy(stackItem(), iBytes(it), bItem->len);
+        stackItem(bItem);
       } else
       //No binding found - return nil
         stackNil();
     } else
     //If a constant
     if (nextEval < OPS_START) {
-      Item item = Item(constByteLen(nextEval, ++f), nextEval, true);
-      writeUNum(stackItem(), f - pROM, sizeof(proglen));
+      Item item = Item(constByteLen(nextEval, ++f), nextEval);
+      memcpy(stackItem(), f, item.len);
       stackItem(item);
       f += constByteLen(nextEval, f);
     } else
@@ -525,15 +505,15 @@ void ChVM::exeForm () {
       //Variable wasn't found
         returnNil(firstArgItem);
       else {
-        IType type = i(it)->type();
+        IType type = i(it)->type;
         //If a native op
         if (type == Var_Op)
-          nativeOp(*(IType*)iData(it), firstArgItem);
+          nativeOp(*(IType*)iBytes(it), firstArgItem);
         else
         //If a program function
         if (type == Var_Func) {
           tailCallOptim(type, firstArgItem);
-          exeFunc(readUNum(iData(it), sizeof(funcnum)), firstArgItem);
+          exeFunc(readUNum(iBytes(it), sizeof(funcnum)), firstArgItem);
         } else
         //Variable wasn't of Var_Op/Var_Func type
           returnNil(firstArgItem);
@@ -595,9 +575,7 @@ void ChVM::burstItem () {
   itemnum iVec = numItem() - 1;
   Item* itVec = i(iVec);
   //If a string, burst as characters
-  if (itVec->type() == Val_Str) {
-    //Ensure it is copied as value
-    op_Val(iVec);
+  if (itVec->type == Val_Str) {
     //Remove the original string item descriptor
     trunStack(iVec);
     //Generate an Item for each character
@@ -606,7 +584,7 @@ void ChVM::burstItem () {
     return;
   }
   //If not a string or vector, destroy the item
-  if (itVec->type() != Val_Vec) {
+  if (itVec->type != Val_Vec) {
     trunStack(iVec);
     return;
   }
@@ -623,7 +601,7 @@ void ChVM::burstItem () {
 }
 
 vectlen ChVM::vectLen (itemnum it) {
-  return readNum((iData(it) + i(it)->len) - sizeof(vectlen), sizeof(vectlen));
+  return readNum((iBytes(it) + i(it)->len) - sizeof(vectlen), sizeof(vectlen));
 }
 
 
@@ -636,7 +614,7 @@ void ChVM::op_Equal (itemnum firstParam, bool equality) {
   itemnum it = firstParam + 1, itEnd = numItem();
   Item* a = i(firstParam);
   int32_t aNum = iInt(firstParam);
-  bool isInt = isTypeInt(a->type());
+  bool isInt = isTypeInt(a->type);
   for (; it < itEnd; ++it) {
     Item* b = i(it);
     //When an int
@@ -648,9 +626,9 @@ void ChVM::op_Equal (itemnum firstParam, bool equality) {
     //Equity through byte comparison
     itemlen len = a->len;
     if (len != b->len) break;
-    if (memcmp(iData(firstParam), iData(it), len)) break;
+    if (memcmp(iBytes(firstParam), iBytes(it), len)) break;
     //Further equality through item comparison
-    if (equality && a->type() != b->type()) break;
+    if (equality && a->type != b->type) break;
   }
   returnItem(firstParam, Item(0, it == itEnd ? Val_True : Val_False));
 }
@@ -675,12 +653,12 @@ void ChVM::op_Arith (itemnum firstParam, IType op) {
     returnNil(firstParam);
     return;
   }
-  IType type = i(firstParam)->type();
+  IType type = i(firstParam)->type;
   itemlen len = constByteLen(type);
-  int32_t result = readNum(iData(firstParam), len);
+  int32_t result = readNum(iBytes(firstParam), len);
   if (op == Op_BNot) result = ~result;
   for (itemnum it = firstParam + 1, itEnd = numItem(); it < itEnd; ++it) {
-    int32_t num = readNum(iData(it), min(len, constByteLen(i(it)->type())));
+    int32_t num = readNum(iBytes(it), min(len, constByteLen(i(it)->type)));
     switch (op) {
       case Op_Add:    result +=  num; break;
       case Op_Sub:    result -=  num; break;
@@ -733,8 +711,7 @@ void ChVM::op_Read (itemnum firstParam) {
   //Read file into first parameter memory
   //TODO: crash if above RAM limit
   int32_t rLen =
-    harness->fileRead((const char*)iData(firstParam),
-                      iBytes(firstParam), offset, count);
+    harness->fileRead((const char*)iBytes(firstParam), iBytes(firstParam), offset, count);
   //If the file could not be opened, or read was out-of-bounds, return nil
   if (rLen < 0) {
     returnNil(firstParam);
@@ -750,34 +727,32 @@ void ChVM::op_Write (itemnum firstParam) {
   argnum nArg = numItem() - firstParam;
   if (nArg > 1) offset = iInt(firstParam + 2);
   //Ensure item is etiher a blob or converted to string
-  IType type = i(firstParam + 1)->type();
+  IType type = i(firstParam + 1)->type;
   if (type != Val_Blob) {
     if (type != Val_Str) op_Str(firstParam + 1);
-    returnItem(firstParam + 1, Item(i(firstParam + 1)->len - 1,
-               Val_Blob, i(firstParam + 1)->isConst()));
+    returnItem(firstParam + 1, Item(i(firstParam + 1)->len - 1, Val_Blob));
   }
   bool success =
-    harness->fileWrite((const char*)iData(firstParam),
-                       iData(firstParam + 1), offset, i(firstParam + 1)->len);
+    harness->fileWrite((const char*)iBytes(firstParam),
+                       iBytes(firstParam + 1), offset, i(firstParam + 1)->len);
   returnItem(firstParam, Item(0, success ? Val_True : Val_False));
 }
 
 void ChVM::op_Append (itemnum firstParam) {
   //Ensure item is etiher a blob or converted to string
-  IType type = i(firstParam + 1)->type();
+  IType type = i(firstParam + 1)->type;
   if (type != Val_Blob) {
     op_Str(firstParam + 1);
-    returnItem(firstParam + 1, Item(i(firstParam + 1)->len - 1,
-               Val_Blob, i(firstParam + 1)->isConst()));
+    returnItem(firstParam + 1, Item(i(firstParam + 1)->len - 1, Val_Blob));
   }
   bool success =
-    harness->fileAppend((const char*)iData(firstParam),
-                        iData(firstParam + 1), i(firstParam + 1)->len);
+    harness->fileAppend((const char*)iBytes(firstParam),
+                        iBytes(firstParam + 1), i(firstParam + 1)->len);
   returnItem(firstParam, Item(0, success ? Val_True : Val_False));
 }
 
 void ChVM::op_Delete (itemnum firstParam) {
-  bool success = harness->fileDelete((const char*)iData(firstParam));
+  bool success = harness->fileDelete((const char*)iBytes(firstParam));
   returnItem(firstParam, Item(0, success ? Val_True : Val_False));
 }
 
@@ -787,14 +762,14 @@ void ChVM::op_Str (itemnum firstParam) {
   for (itemnum it = firstParam, itEnd = numItem(); it < itEnd; ++it) {
     Item* item = i(it);
     uint8_t* target = result + len;
-    IType type = item->type();
+    IType type = item->type;
     switch (type) {
       case Val_True: case Val_False: case Val_Nil:
         *target = type == Val_True ? 'T' : (type == Val_False ? 'F' : 'N');
         ++len;
         break;
       case Val_Str:
-        memcpy(target, iData(it), item->len - 1);
+        memcpy(target, iBytes(it), item->len - 1);
         len += item->len - 1;
         break;
       case Val_Vec: {
@@ -804,7 +779,7 @@ void ChVM::op_Str (itemnum firstParam) {
         len += nLen + 2;
         break; }
       case Val_Blob:
-        memcpy(target, iData(it), item->len);
+        memcpy(target, iBytes(it), item->len);
         len += item->len;
         break;
       case Val_U08:
@@ -813,7 +788,7 @@ void ChVM::op_Str (itemnum firstParam) {
         len += int2chars(target, iInt(it));
         break;
       case Val_Char:
-        *target = *iData(it);
+        *target = *iBytes(it);
         ++len;
         break;
     }
@@ -823,16 +798,14 @@ void ChVM::op_Str (itemnum firstParam) {
 }
 
 void ChVM::op_Type (itemnum firstParam) {
-  *(IType*)iBytes(firstParam) = i(firstParam)->type(); //TODO: Arduino test
+  *(IType*)iBytes(firstParam) = i(firstParam)->type; //TODO: Arduino test
   returnItem(firstParam, Item(sizeof(IType), fitInt(sizeof(IType))));
 }
 
 void ChVM::op_Cast (itemnum firstParam) {
   //Get IType parameters
-  IType from = i(firstParam)->type();
+  IType from = i(firstParam)->type;
   IType to   = (IType)iInt(firstParam + 1);
-  //Ensure it's a value
-  op_Val(firstParam);
   //Zero out new memory, and ensure strings/blobs are cast correctly
   uint8_t oldNByte = i(firstParam)->len;
   uint8_t newNByte = constByteLen(to);
@@ -861,7 +834,7 @@ void ChVM::op_Nth (itemnum firstParam) {
   int32_t nth = iInt(firstParam + 1);
   Item* it = i(firstParam);
   //Return nil on negative nth or non-str/vec/blob
-  IType type = it->type();
+  IType type = it->type;
   if (nth < 0 || (type != Val_Vec && type != Val_Str && type != Val_Blob)) {
     returnNil(firstParam);
     return;
@@ -872,7 +845,7 @@ void ChVM::op_Nth (itemnum firstParam) {
       returnNil(firstParam);
       return;
     }
-    *iBytes(firstParam) = iData(firstParam)[nth];
+    *iBytes(firstParam) = iBytes(firstParam)[nth];
     returnItem(firstParam, Item(1, Val_Char));
     return;
   }
@@ -881,12 +854,12 @@ void ChVM::op_Nth (itemnum firstParam) {
       returnNil(firstParam);
       return;
     }
-    *iBytes(firstParam) = iData(firstParam)[nth];
+    *iBytes(firstParam) = iBytes(firstParam)[nth];
     returnItem(firstParam, Item(1, Val_U08));
     return;
   }
   //Collate vector info
-  uint8_t* vBytes = iData(firstParam);
+  uint8_t* vBytes = iBytes(firstParam);
   uint8_t* vEnd = (vBytes + it->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
   Item* vItems = &((Item*)vEnd)[-vNumItem];
@@ -895,8 +868,8 @@ void ChVM::op_Nth (itemnum firstParam) {
   //Copy bytes into return position
   uint8_t* itemBytes = vBytes;
   for (itemnum vi = 0; vi < nth; ++vi)
-    itemBytes += itemBytesLen(&vItems[(vNumItem - 1) - vi]);
-  memmove(iBytes(firstParam), itemBytes, itemBytesLen(nthItem));
+    itemBytes += vItems[(vNumItem - 1) - vi].len;
+  memmove(iBytes(firstParam), itemBytes, nthItem->len);
   //Return nth item descriptor
   returnItem(firstParam, nthItem);
 }
@@ -904,7 +877,7 @@ void ChVM::op_Nth (itemnum firstParam) {
 void ChVM::op_Len (itemnum firstParam) {
   Item* item = i(firstParam);
   itemlen len = item->len;
-  switch (item->type()) {
+  switch (item->type) {
     case Val_Vec: len = vectLen(firstParam); break;
     case Val_Str: --len; break;
   }
@@ -913,7 +886,7 @@ void ChVM::op_Len (itemnum firstParam) {
 }
 
 void ChVM::op_Sect (itemnum firstParam, bool isBurst) {
-  IType type = i(firstParam)->type();
+  IType type = i(firstParam)->type;
   bool isStr = type == Val_Str;
   //Return nil if not a vector or string
   if (type != Val_Vec && !isStr) {
@@ -946,7 +919,7 @@ void ChVM::op_Sect (itemnum firstParam, bool isBurst) {
     take = len - skip;
   if (isStr) {
     //Copy subsection of memory to start of the string, add terminator
-    memcpy(iBytes(firstParam), iData(firstParam) + skip, take);
+    memcpy(iBytes(firstParam), iBytes(firstParam) + skip, take);
     iBytes(firstParam)[take] = 0;
     //Either return burst characters (b-sect) or a string (sect)
     returnItem(firstParam, Item(take + 1, Val_Str));
@@ -969,14 +942,14 @@ void ChVM::op_Sect (itemnum firstParam, bool isBurst) {
 
 void ChVM::op_Reduce (itemnum firstParam) {
   //Extract function or op number from first parameter
-  bool isOp = i(firstParam)->type() == Var_Op;
+  bool isOp = i(firstParam)->type == Var_Op;
   funcnum fCode = iInt(firstParam);
   //Burst item in situ (the last item on the stack)
   burstItem();
   //Copy seed or first item onto stack - either (reduce f v) (reduce f s v)
   {
     Item* seed = i(firstParam + 1);
-    memcpy(stackItem(), iBytes(firstParam + 1), itemBytesLen(seed));
+    memcpy(stackItem(), iBytes(firstParam + 1), seed->len);
     stackItem(seed);
   }
   //Reduce loop, where the stack is now: [burst v]*N [seed: either v0 or seed]
@@ -984,7 +957,7 @@ void ChVM::op_Reduce (itemnum firstParam) {
   for (itemnum it = firstParam + 2; it < iSeed; ++it) {
     //Copy next item onto stack
     Item* iNext = i(it);
-    memcpy(stackItem(), iBytes(it), itemBytesLen(iNext));
+    memcpy(stackItem(), iBytes(it), iNext->len);
     stackItem(iNext);
     //Execute func or op, which returns to iSeed
     if (isOp) nativeOp((IType)fCode, iSeed);
@@ -996,7 +969,7 @@ void ChVM::op_Reduce (itemnum firstParam) {
 
 void ChVM::op_Map (itemnum firstParam) {
   //Extract function or op number from first parameter
-  bool isOp = i(firstParam)->type() == Var_Op;
+  bool isOp = i(firstParam)->type == Var_Op;
   funcnum fCode = iInt(firstParam);
   //Find shortest vector
   itemnum iFirstVec = firstParam + 1;
@@ -1019,11 +992,11 @@ void ChVM::op_Map (itemnum firstParam) {
                                  : itemsBytesLen(iFirstVec, vi);
       Item iDesc = *(Item*)(vFirstDesc - descOffset); //TODO: Arduino test
       if (it)
-        writeUNum(vFirstDesc, readUNum(vFirstDesc, sizeof(itemlen)) + itemBytesLen(&iDesc), sizeof(itemlen));
+        writeUNum(vFirstDesc, readUNum(vFirstDesc, sizeof(itemlen)) + iDesc.len, sizeof(itemlen));
       else
-        writeUNum(vFirstDesc, viBytesOffset + itemBytesLen(&iDesc), sizeof(itemlen));
+        writeUNum(vFirstDesc, viBytesOffset + iDesc.len, sizeof(itemlen));
       //Copy onto stack
-      memcpy(stackItem(), pFirstVec + viBytesOffset, itemBytesLen(&iDesc));
+      memcpy(stackItem(), pFirstVec + viBytesOffset, iDesc.len);
       stackItem(iDesc);
     }
     if (isOp) nativeOp((IType)fCode, iMapped + it);
@@ -1036,7 +1009,7 @@ void ChVM::op_Map (itemnum firstParam) {
 
 void ChVM::op_For (itemnum firstParam) {
   //Extract function or op number from first parameter
-  bool isOp = i(firstParam)->type() == Var_Op;
+  bool isOp = i(firstParam)->type == Var_Op;
   funcnum fCode = iInt(firstParam);
   //Output N byte lengths and N byte counters onto stack as blob item
   itemnum iFirstVec = firstParam + 1;
@@ -1066,7 +1039,7 @@ void ChVM::op_For (itemnum firstParam) {
       uint8_t* vFirstDesc = vStart + i(iFirstVec + v)->len - sizeof(vectlen) - sizeof(Item);
       uint8_t* viBytes = vStart + offsets[v];
       Item desc = *(Item*)(vFirstDesc - descOffset);
-      itemlen iLen = itemBytesLen(&desc);
+      itemlen iLen = desc.len;
       stagedOffsets[v] = iLen;
       //Increment end counter
       if (v == vLast) {
@@ -1112,14 +1085,14 @@ void ChVM::op_Loop (itemnum firstParam) {
   //If (loop times f)
   if (nArg == 2) {
     to = iInt(firstParam);
-    isOp = i(firstParam + 1)->type() == Var_Op;
+    isOp = i(firstParam + 1)->type == Var_Op;
     fCode = iInt(firstParam + 1);
   }
   //If (loop a b f)
   else {
     from = iInt(firstParam);
     to = iInt(firstParam + 1);
-    isOp = i(firstParam + 2)->type() == Var_Op;
+    isOp = i(firstParam + 2)->type == Var_Op;
     fCode = iInt(firstParam + 2);
   }
   //Prepare stack with one 16-bit int
@@ -1137,12 +1110,6 @@ void ChVM::op_Loop (itemnum firstParam) {
 void ChVM::op_Val (itemnum firstParam) {
   //Truncate the stack to the first item
   trunStack(firstParam + 1);
-  //If it's const, copy as value
-  Item* it = i(firstParam);
-  if (it->isConst()) {
-    memcpy(iBytes(firstParam), iData(firstParam), it->len);
-    returnItem(firstParam, Item(it->len, it->type(), false));
-  }
 }
 
 void ChVM::op_Do (itemnum firstParam) {
@@ -1158,7 +1125,7 @@ void ChVM::op_MsNow (itemnum firstParam) {
 
 void ChVM::op_Print (itemnum firstParam) {
   op_Str(firstParam);
-  harness->print((const char*)iData(firstParam));
+  harness->print((const char*)iBytes(firstParam));
   returnNil(firstParam);
 }
 

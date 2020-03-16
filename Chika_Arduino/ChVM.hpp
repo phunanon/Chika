@@ -29,11 +29,9 @@ class ChVM {
   bytenum   numByte  ();           // Set/Get number of LIFO bytes
 
   //Program item LIFO
-  itemlen  itemBytesLen  (Item*);          //Number of bytes on LIFO byte stack for an item
   itemlen  itemsBytesLen (itemnum, itemnum); //Number of bytes on LIFO byte stack between two items
   Item*    i          (itemnum);  //Traverse items
   uint8_t* iBytes     (itemnum);   //Access item bytes directly
-  uint8_t* iData      (itemnum);   //Access item bytes, traversing references
   Item*    iLast      ();         //Access last item
 
   int32_t  iInt       (itemnum);  //Item-agnostic readNum
