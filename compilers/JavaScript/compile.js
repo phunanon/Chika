@@ -89,8 +89,11 @@ function funcise (forms) {
   funcs.unshift(forms.filter(f => !isFunc(f)));
   //Give entry function a source head
   funcs[0] = ["fn", "entry", "params"].concat(funcs[0]);
+  //Either include a blank heartbeat or insert the heartbeat to the 2nd
   if (!funcs.some(f => f[1] == "heartbeat"))
     funcs.splice(1, 0, ["fn", "heartbeat"]);
+  else
+    funcs.splice(1, 0, funcs.splice(funcs.findIndex(f => f[1] == "heartbeat"), 1)[0]);
   //Include function ID's
   funcs.forEach((f, i) => f.unshift({n: i, b: 2, info: `func ID: ${f[1]}`}));
   return funcs;
