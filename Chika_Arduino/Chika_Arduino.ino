@@ -58,13 +58,13 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {}
 #endif
 
 void ChVM_Harness::pinMod (uint8_t pin, bool mode) {
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(pin, mode);
 }
 bool ChVM_Harness::digIn (uint8_t pin) {
   return digitalRead(pin);
 }
 void ChVM_Harness::digOut (uint8_t pin, bool val) {
-  digitalWrite(LED_BUILTIN, val ? HIGH : LOW);
+  digitalWrite(pin, val ? HIGH : LOW);
 }
 uint16_t ChVM_Harness::anaIn (uint8_t pin) {
   return analogRead(pin);
@@ -152,6 +152,7 @@ void ChVM_Harness::unloadProg (const char* path) {
 
 void setup() {
   bool sdInited = SD.begin(SD_CARD_PIN);
+  pinMode(LED_BUILTIN, OUTPUT);
 #if USE_SERIAL
   while (!Serial);
   Serial.begin(9600);

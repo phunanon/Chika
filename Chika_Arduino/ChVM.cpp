@@ -851,19 +851,29 @@ void ChVM::op_Vec (itemnum firstParam) {
 void ChVM::op_Nth (itemnum firstParam) {
   int32_t nth = iInt(firstParam + 1);
   Item* it = i(firstParam);
-  //Return nil on negative nth or non-str/vec
-  if (nth < 0 || (it->type() != Val_Vec && it->type() != Val_Str)) {
+  //Return nil on negative nth or non-str/vec/blob
+  IType type = it->type();
+  if (nth < 0 || (type != Val_Vec && type != Val_Str && type != Val_Blob)) {
     returnNil(firstParam);
     return;
   }
-  //Different behaviour for if a string or a vector
-  if (it->type() == Val_Str) {
+  //Different behaviour for if a string, vector, or blob
+  if (type == Val_Str) {
     if (it->len < 2 || nth > it->len - 2) {
       returnNil(firstParam);
       return;
     }
     *iBytes(firstParam) = iData(firstParam)[nth];
     returnItem(firstParam, Item(1, Val_Char));
+    return;
+  }
+  if (type == Val_Blob) {
+    if (it->len == 0 || nth >= it->len) {
+      returnNil(firstParam);
+      return;
+    }
+    *iBytes(firstParam) = iData(firstParam)[nth];
+    returnItem(firstParam, Item(1, Val_U08));
     return;
   }
   //Collate vector info

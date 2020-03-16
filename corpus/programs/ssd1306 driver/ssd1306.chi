@@ -1,0 +1,66 @@
+
+
+(fn transfer-start
+  (map dig-w [SCL SDA SDA SCL] [T T F F]))
+
+(fn transfer-stop
+  (map dig-w [SCL SDA SCL SDA] [F F T T]))
+
+(fn send-byte byte
+  (do b= byte
+    (loop 0 8
+      {map dig-w [SDA SCL SCL]
+                 [(& 0x80 (<< b #)) T F]}))
+  (map dig-w [SDA SCL SCL] [T T F]))
+
+(fn command-start
+  (transfer-start)
+  (map send-byte [SA 0x00]))
+
+(fn send-command command
+  (command-start)
+  (send-byte command)
+  (transfer-stop))
+
+(fn data-start
+  (transfer-start)
+  (map send-byte [SA 0x40]))
+
+(fn init
+  (map {p-mode # T} [SDA SCL])
+  (do
+    sequence= (file-r (str "OLED" COLS ".INI"))
+    (loop (len sequence)
+      {send-command (nth sequence #)})))
+
+(fn set-pos col page
+  (command-start)
+  //Column
+  (send-byte 0x21)
+  (map send-byte
+    (if (= COLS 64)
+      (map {+ 0x20 #} [col 64])
+      [col 0x7F]))
+  //Page
+  (map send-byte [0x22 page 0])
+  (transfer-stop))
+
+(fn fill-page page with
+  (set-pos 0 page)
+  (data-start)
+  (do w= with
+    (loop COLS {send-byte w}))
+  (transfer-stop))
+
+(fn fill with
+  (do w= with
+    (loop PAGES {fill-page # w}))
+  (set-pos 0 0))
+
+(fn heartbeat state
+  (do
+    COLS= 128 PAGES= 8
+    SCL= 12 SDA= 11 SA= 0x78
+    (init)
+    (fill (if state 0xAA 0x00))
+    (not state)))

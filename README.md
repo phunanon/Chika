@@ -199,7 +199,7 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `vec` 0-N arg: returns vector of its arguments.
 
-`nth i N`: returns item or character `N` of vector or string `i`, or nil if `N` is in an improper range.
+`nth i N`: returns item, character, or 8-bit int `N` of vector, string, or blob `i`, or nil if `N` is in an improper range.
 
 `str` 0 arg: returns empty string.  
 `str` N arg: returns concatenation of N arguments as a string.
