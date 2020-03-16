@@ -1,21 +1,31 @@
 
 
 (fn transfer-start
-  (map dig-w [SCL SDA SDA SCL] [T T F F]))
+  (dig-w SCL T)
+  (dig-w SDA T)
+  (dig-w SDA F)
+  (dig-w SCL F))
 
 (fn transfer-stop
-  (map dig-w [SCL SDA SCL SDA] [F F T T]))
+  (dig-w SCL F)
+  (dig-w SDA F)
+  (dig-w SCL T)
+  (dig-w SDA T))
 
 (fn send-byte byte
   (do b= byte
-    (loop 0 8
-      {map dig-w [SDA SCL SCL]
-                 [(& 0x80 (<< b #)) T F]}))
-  (map dig-w [SDA SCL SCL] [T T F]))
+    (loop 0 8 {do
+      (dig-w SDA (& 0x80 (<< b #)))
+      (dig-w SCL T)
+      (dig-w SCL F)}))
+  (dig-w SDA T)
+  (dig-w SCL T)
+  (dig-w SCL F))
 
 (fn command-start
   (transfer-start)
-  (map send-byte [SA 0x00]))
+  (send-byte SA)
+  (send-byte 0x00))
 
 (fn send-command command
   (command-start)
@@ -24,7 +34,8 @@
 
 (fn data-start
   (transfer-start)
-  (map send-byte [SA 0x40]))
+  (send-byte SA)
+  (send-byte 0x40))
 
 (fn init
   (map {p-mode # T} [SDA SCL])
@@ -37,12 +48,15 @@
   (command-start)
   //Column
   (send-byte 0x21)
-  (map send-byte
-    (if (= COLS 64)
-      (map {+ 0x20 #} [col 64])
-      [col 0x7F]))
+  (if (= COLS 64)
+    (do (send-byte (+ 0x20 col))
+        (send-byte 0x60))
+    (do (send-byte col)
+        (send-byte 0x7F)))
   //Page
-  (map send-byte [0x22 page 0])
+  (send-byte 0x22)
+  (send-byte page)
+  (send-byte 0x00)
   (transfer-stop))
 
 (fn fill-page page with
@@ -62,5 +76,7 @@
     COLS= 128 PAGES= 8
     SCL= 12 SDA= 11 SA= 0x78
     (init)
+    start= (ms-now)
     (fill (if state 0xAA 0x00))
+    (print (- (ms-now) start) "ms")
     (not state)))
