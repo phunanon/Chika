@@ -23,20 +23,22 @@ Ranges are a-b.
 
 ### Programs
 
-| What | uLisp  | Chika  |
-| ---- | ------ | ------ |
-| fib  | 4B\*37 | 1B\*57 |
+| What | uLisp  | Chika |
+| ---- | ------ | ----- |
+| fib  | 4B\*37 | 57B   |
+| tak  |        | 81B   |
 
 ## Benchmarks
 
 http://www.ulisp.com/show?1EO1
 
-Note: Mega 2560 benchmarks were before major performance improvements.
+Note: Mega 2560 benchmarks were before significant performance improvements.  
+Note: all with no compiler optimisations.
 
-| Which            | Arduino   | uLisp | Chika |
-| ---------------- | --------- |------ | ----- |
-| Takeuchi 18 12 6 | Mega 2560 | 49s   |       |
-| Fibonacci 15     | Mega 2560 | 512ms | 651ms |
-| Fibonacci 23     | Mega 2560 | 28s   | 38s   |
-| Fibonacci 23     | MKRZero   | 12s   | 10s   |
-| Takeuchi 18 12 6 | MKRZero   | 18s   | 13s   |
+| Which            | Arduino   | uLisp | Chika  |
+| ---------------- | --------- |------ | ------ |
+| Takeuchi 18 12 6 | Mega 2560 | 49s   |        |
+| Fibonacci 15     | Mega 2560 | 512ms | 651ms  |
+| Fibonacci 23     | Mega 2560 | 28s   | 38s    |
+| Fibonacci 23     | MKRZero   | 12s   | 7832ms |
+| Takeuchi 18 12 6 | MKRZero   | 18s   | 9575ms |

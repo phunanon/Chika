@@ -10,12 +10,8 @@
   font-family: sans-serif;
   text-align: justify;
 }
-body {
-  padding: 4%;
-}
-section {
-  max-width: 40rem;
-}
+body { padding: 4%; }
+section { max-width: 40rem; }
 a {
   color: #00f;
   text-decoration: none;
@@ -27,24 +23,17 @@ nav * {
   vertical-align: top;
   line-height: 4rem;
 }
-h1 {
-  font-size: 3rem;
-}
-li:not(:first-child) {
-  padding-top: .5rem;
-}
-.features span, .drawbacks span, .philosophy span {
+h1 { font-size: 3rem; }
+li:not(:first-child) { padding-top: .5rem; }
+.boxes span {
   display: inline-block;
   background-color: #ddf;
   padding: .5rem;
   margin: .25rem;
 }
-.drawbacks span {
-  background-color: #fdd;
-}
-.philosophy span {
-  background-color: #dfd;
-}
+.grey span { background-color: #ddd; }
+.red span { background-color: #fdd; }
+.green span { background-color: #dfd; }
     </style>
   </head>
   <body>
@@ -53,26 +42,30 @@ li:not(:first-child) {
       <h1>Chika</h1>
     </nav>
     <section>
-      <h3>Experimental s-expression programming language for both PC and Arduino.</h3>
-      <div class="features">
-        <p>Features...</p>
-<span>functional</span><span>dynamic types</span><span>100% immutable functions</span><span>heap-free memory</span><span>&lt;16kB program ROM+RAM</span><span>round-robin scheduler</span><span>explicit recursion</span><span>implicit tail-call optimisation</span><span>🔜 inter-program messaging</span><span>🔜 self-hosted compiler</span>
+      <h3>S-expression programming language for PC and Arduino.</h3>
+      <div class="grey boxes">
+        <p>Requirements...</p>
+<span>Arduino or Linux</span><span>Arduino: IDE</span></span><span>Arduino: FAT SD card</span><span>&#8805;2K RAM</span><span>&#8805;32K ROM</span><span>a web browser or NodeJS (🔜 decomissioning)</span>
       </div>
-      <div class="drawbacks">
+      <div class="blue boxes">
+        <p>Features...</p>
+<span>functional</span><span>dynamic types</span><span>immutable memory</span><span>pure functions</span><span>heap-free memory</span><span>&#8804;16K program ROM+RAM</span><span>round-robin scheduler</span><span>explicit recursion</span><span>implicit tail-call optimisation</span><span>GPL 3.0</span><span>🔜 inter-program messaging</span><span>🔜 self-hosted compiler</span><span>🔜 self-hosted REPL</span>
+      </div>
+      <div class="red boxes">
         <p>Does not include...</p>
-<span>homoiconicity</span><span>closures</span><span>native compiler</span><span>native REPL</span><span>macros</span><span>laziness</span><span>multi-arity</span><span>floating point</span><span>multi-core</span><span>code import</span>
+<span>homoiconicity</span><span>closures</span><span>native compiler/REPL</span><span>macros</span><span>laziness</span><span>multi-arity</span><span>floating point</span><span>multi-core</span><span>code import</span>
+      </div>
+      <div class="green boxes">
+        <p>Currently supports...</p>
+<span>Linux</span><span>Arduino MKRZero</span><span>Adafruit Feather M0</span>
       </div>
       <p><b>Implementation source, examples, documentation, issue tracking</b>, and more: <b><a href="https://github.com/phunanon/Chika">Github repository</a></b></p>
       <p><b>Community: <a href="https://proglangdesign.net/">Programming Languages Design</a></b></p>
-      <p>Targets both Arduino as firmware or Linux as an executable. It facilitates high-level round-robin multi-tasking, loading programs from either an SD card or Linux filesystem.  
-        Its goal is to lean toward agility over both speed and memory footprint, with a unique stack memory model, Lisp-inspired syntax, and MQTT-style internal messaging.</p>
-      <p><b>Philosophy</b></p>
-      <div class="philosophy">
-<span>decoupling</span><span>flash-once</span>
-      </div>
+      <p>Targets both Arduino as firmware or Linux as an executable. It facilitates high-level round-robin multi-tasking, loading programs from either an SD card or Linux filesystem. With a unique stack memory model, Lisp-inspired syntax, and MQTT-style internal messaging.</p>
       <p><b>Similar projects</b></p>
       <ul class="list">
         <li><a href="https://github.com/technoblogy/ulisp">uLisp</a></li>
+        <li><a href="https://github.com/adafruit/circuitpython">Circuit Python</a></li>
         <li><a href="https://github.com/zooxo/aos">Arduboy Operating System</a></li>
         <li><a href="https://github.com/robinhedwards/ArduinoBASIC">ArduinoBASIC</a></li>
         <li><a href="https://github.com/sau412/Arduino_Basic">Arduino Basic</a></li>
@@ -82,47 +75,43 @@ li:not(:first-child) {
 
       <h2>Rationale</h2>
 
+      <div class="blue boxes">
+<span>decoupling</span><span>flash-once</span>
+      </div>
+
       <h3>The vision...</h3>
-      <p>This is the philosophy. Both I and <a href="https://github.com/thelazurite">Dylan Eddies</a> are keen on our own pocket PC's, built from scratch (within reason). <br>
+      <p>Both <a href="https://github.com/thelazurite">Dylan Eddies</a> and I are keen on developing our own pocket PC's. <br>
       Its capabilities should enable a user to, unless there's a major update, never need to reflash their device with new firmware. Instead, be able to write, compile, and run programs on the device. <br>
       It doesn't have to be performant, rather agile and comfortable to develop on. Inter-task comms should be available to help compose complex, uncoupled systems. <br>
       It should be able to fit onto something as small as a watch to anything larger, be headless, or support multiple peripherals. <br>
       It should be able to interact with peripherals through its native programs, rather than compiled support with the OS itself.</p>
 
-      <h4>Why are speed and memory not a priority?</h4>
-      <p>I prefer to work toward its stability, agility, and ecosystem before giving any further serious consideration on its data-handling. At the moment I'm not being bashful using frequent abstractions to manage memory.</p>
-
       <h4>Why not real-time scheduling?</h4>
-      <p>Real-time scheduling has been <a href="https://github.com/search?q=Arduino+RTOS&type=Repositories">done to death</a>, and they supply <i>compile-time</i> kernels. <br>
-      The vision calls for the ability to write, compile, and execute programs without the need of a second device. A simple, run-time-managed language achieves this. <br>
-      Also, the vision does <i>not</i> call for real-time applications - just applications that eventually do magic.</p>
+      <p>Real-time scheduling has been <a href="https://github.com/search?q=Arduino+RTOS&type=Repositories">done to death</a>, providing <i>compile-time</i> kernels. <br>
+      The vision calls for the ability to write, compile, and execute programs without the need of a second device. A simple to compile, run-time-managed language achieves this. </p>
 
       <h4>Why use MQTT-style messaging?</h4>
       <p><a href="https://en.wikipedia.org/wiki/MQTT">MQTT</a> is predominant in the IoT world for directing and monitoring devices, and I find programs on a computer to be no less important. This will hopefully facilitate drop-in, many-to-many relationships of logic and data, being easier to monitor, secure, and compose.</p>
 
-      <h4>Why no REPL, drivers, compiler, &c?</h4>
+      <h4>Why no native REPL, drivers, compiler, &c?</h4>
       <p>I've chosen to have the REPL, any peripheral drivers, and a compiler written in Chika, rather than a feature of the VM. <br>
-      Composition of programs at runtime is its strength, and I much prefer it to messy, baked-in drivers (e.g. "this Arduino OS works with X display and pretty much only that!"). <br>
+      Composition of programs at runtime is a strength, and I much prefer it to baked-in drivers (e.g. "this OS works with X display and only that!"). <br>
       A really nice example is <a href="http://library.ulisp.com/show?2TMA">SSD1306 support in uLisp</a>. <br>
-      Essentially, other than the SD card, serial, and I/O pins, I want no other firmware-level abstractions.</p>
+      Essentially, other than the SD card, serial, and I/O pins, there will be no other firmware-level facilitates.</p>
 
       <h4>Why not heap or linked-list memory?</h4>
       <p>With the 1-dimensional mind I have I realised Chika's memory can be implemented as a stack. Cheaper so leaning on C's stack, using recursion when Chika enters a function. <br>
-      Using this method, global variables are not practical to implement, with immutability guaranteed. <br>
+      Using this method, global variables are not practical to implement, with immutability and purity guaranteed. <br>
       Futhermore, heap memory on the Arduino platform is cautioned against, due to code size and memory fragmentation. <br>
       However, the lack of garbage collection and dynamic memory management means items must be duplicated on the stack before processing. <br>
-      uLisp uses a linked-list for managing memory, following the traditional implementation of cells. This approach was not used to avoid re-inventing the wheel, and the vision of a leaner memory management model through stack memory. It does pay off in most cases, but operating with big data items - regularly duplicated for processing - means more RAM is required.</p>
+      uLisp uses a linked-list for managing memory, following the traditional implementation of Lisp cells. This approach was not used to avoid re-inventing the wheel, and the vision of a simpler, stack memory model.</p>
 
       <h4>Why separate program memories?</h4>
-      <p>uLisp, again for an example, seems to just allow saving "images" and composing them all together at start-up, sharing memory. I like it, but I like the opportunity of sandboxed areas of memory, with inter-process communication, more. <br>
+      <p>uLisp, again for an example saves "images", composing together at start-up, sharing memory. I like it, but I like the opportunity of sandboxed areas of memory, with inter-process communication, more. <br>
       Decoupling logic through 0-to-many relationships with other programs has its benefits, especially in avoiding recompilation to accommodate new logic. Rather, programs can just assume there will be a program implementing the logic, by emitting messages.</p>
 
-      <h4>Why a Lisp?</h4>
-      <p>I like it. I've been very happy learning Clojure coming from the C++ and C# world. I feel its syntax strikes the perfect balance between person and machine. <br>
-       I know other languages are more suitable for microcontrollers (e.g. Forth), and appreciate C <i>et al</i> more for what they <i>don't</i> compile into an image.</p>
-
-      <h4>Why dynamic variables?</h4>
-      <p>Well, it's a Lisp, and I also want to keep the compilation stage simple so it can eventually self-host. It's not too much overhead (3 bytes per item), and most functions expect only certain types.</p>
+      <h4>Why dynamic types?</h4>
+      <p>I want to keep the compilation stage simple so it can eventually self-host. It's not too much overhead (3 bytes per item), and most native functions expect only certain types.</p>
 
       <h4>Symbolistic lore</h4>
       <ul>
