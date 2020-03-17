@@ -92,13 +92,13 @@ void ChVM::returnItem (itemnum replace, Item* desc) {
 void ChVM::returnCollapseLast (itemnum replace) {
   itemlen lLen = iLast()->len;
   //Move item bytes
-  memmove(iBytes(replace), stackItem() - lLen, lLen);
+  memcpy(iBytes(replace), stackItem() - lLen, lLen);
   //Set old item in return position
   returnItem(replace, iLast());
 }
 void ChVM::returnCollapseItem (itemnum replace, Item* desc) {
   //Move item bytes
-  memmove(iBytes(replace), stackItem(), desc->len);
+  memcpy(iBytes(replace), stackItem(), desc->len);
   //Set new item in return position
   returnItem(replace, desc);
 }
@@ -111,7 +111,7 @@ void ChVM::returnCollapseItem (itemnum replace, Item desc) {
 void ChVM::returnItemFrom (itemnum to, itemnum from) {
   Item* iFrom = i(from);
   //Copy bytes
-  memmove(iBytes(to), iBytes(from), iFrom->len);
+  memcpy(iBytes(to), iBytes(from), iFrom->len);
   //Copy descriptor
   returnItem(to, iFrom);
 }
@@ -869,7 +869,7 @@ void ChVM::op_Nth (itemnum firstParam) {
   uint8_t* itemBytes = vBytes;
   for (itemnum vi = 0; vi < nth; ++vi)
     itemBytes += vItems[(vNumItem - 1) - vi].len;
-  memmove(iBytes(firstParam), itemBytes, nthItem->len);
+  memcpy(iBytes(firstParam), itemBytes, nthItem->len);
   //Return nth item descriptor
   returnItem(firstParam, nthItem);
 }

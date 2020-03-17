@@ -48,11 +48,13 @@ int32_t _pow (int32_t n, uint8_t p) {
 
 //All required because the Arduino doesn't like `*(type*)something`
 int32_t readNum (uint8_t* b, uint8_t len) {
+  if (!len) return 0;
   int32_t n = 0;
   memcpy(&n, b, sizeof(int32_t));
   return n & ((uint32_t)-1 >> ((4 - len) * 8));
 }
 uint32_t readUNum  (uint8_t* b, uint8_t len) {
+  if (!len) return 0;
   uint32_t n = 0;
   memcpy(&n, b, len);
   return n;

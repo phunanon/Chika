@@ -22,53 +22,56 @@
 (fn includes? coll i
   (do find= i (or (burst (map {= find #} coll)))))
 
-(fn every? vec pred
-  (if (= (len vec) 0)
+(fn every? vec f
+  (if (empty? v)
     T
-    (if (pred (1st vec))
-      (recur (sect vec) pred)
-      F)))
+    (if (f (1st v))
+      (recur (sect v) f))))
 
-(fn some vec pred
-  (if (= (len vec) 0)
-    N
-    (if (pred (1st vec))
-      (1st vec)
-      (recur (sect vec) pred))))
+(fn some v f
+  (if (!empty v)
+    (if (f (1st v))
+      (1st v)
+      (recur (sect v) f))))
 
-(fn filter v pred; filtered
-  (if (= (len v) 0)
-    filtered
-    (do f= (1st v)
-      (recur (sect v) pred
-        (if (pred f)
-          (append filtered f)
-          filtered)))))
+(fn filter v f; out
+  (if (empty? v)
+    out
+    (do next= (1st v)
+      (recur (sect v) f
+        (if (f next)
+          (append out next)
+          out)))))
 
-//Scans for first index of vec, str, or char `sub` within `coll`, else nil
-//e.g. (index-of "hello" "ll") => 2
-(fn index-of
-  coll sub; i len
+//Scans for first index of item or char `sub` within vec/str `coll`, else nil
+//e.g. (index "hello" \l) => 2
+(fn index
+  coll i ;; x
+  (if (empty? coll) (return N))
+  (if (= i (1st coll))
+    x (recur (sect coll) i (+ 1i x))))
+
+//Scans for first index of item `sub` within vector/string `coll`, else nil
+//e.g. (str-index "hello" "ll") => 2
+(fn str-index
+  coll sub ;; i
   (if (!empty? coll)
     (if (= (str sub) (sect coll 0 (len sub)))
-      i
-      (recur (sect coll) sub (inc (or i 0i))))))
+      i (recur (sect coll) sub (inc (or i 0i))))))
 
 //e.g. (zip-select [F T F] [\a \b \c]) => \b
 (fn zip-select select from
   (if (!empty? select)
     (if (1st select)
       (1st from)
-      (recur (sect select) (sect from)))
-    N))
+      (recur (sect select) (sect from)))))
 
 //e.g. (range 0 10 2) => [0 2 4 6 8]
 //e.g. (range 10 0 -2i) => [10 8 6 4 2]
-(fn range from to step v
-  (if (!= from to)
-    (recur (+ from step) to step
-      (append v from))
-    v))
+(fn range from to step ;; v
+  (if (= from to)
+    v (recur (+ from step) to step
+             (append v from))))
 
 //Returns item after `k` in vector/string `v`
 (fn key v k
@@ -85,3 +88,12 @@
     (map n*10^p-1
       (map {cast (- # 48) 18} (vec (burst s)))
       (range (len s) 0 -1i))))
+
+//e.g. (-> 2 {+ 65 #} {cast # 0x13}) => \C
+(fn -> seed ; //N args
+  (do-> seed (sect args)))
+(fn do-> acc funcs
+  (if (empty? funcs) (return acc))
+  (do f= (1st funcs)
+    (recur (f acc) (sect funcs))))
+
