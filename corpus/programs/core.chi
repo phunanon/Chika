@@ -13,14 +13,31 @@
 (fn 1st  i (nth i 0))
 (fn 2nd  i (nth i 1))
 (fn last i (nth i (dec (len i))))
-(fn prepend v i (vec i (burst v)))
-(fn append  v i (vec (burst v) i))
-(fn concat v1 v2 (vec (burst v1) (burst v2)))
+(fn prepend v i [i (burst v)])
+(fn append  v i [(burst v) i])
+(fn concat v1 v2 [(burst v1) (burst v2)])
 (fn ex-last i (sect i 0 (dec (len i))))
 (fn empty? i (= (len i) 0))
 (fn !empty? i (!= (len i) 0))
-(fn includes? coll i
-  (do find= i (or (burst (map {= find #} coll)))))
+// (in? [1 2 3 4 5 6] 3) => T
+// (in? [1 2 3 4 5] 6) => N
+(fn in? v i
+  (if (!empty? v))
+    (if (= (1st v) i)
+      T
+      (recur (sect v) i))))
+
+// e.g. [1 2 3 3 3 [0 1] [0 1]]  => [1 2 3 [0 1]]
+(fn distinct v ;; out
+  (if (empty? v)
+    out
+    (recur (sect v)
+      (if (in? out (1st v))
+        out (append out (1st v))))))
+
+(fn join v0 v1 [(burst v0) (burst v1)])
+
+(fn flatten v (reduce join v))
 
 (fn every? vec f
   (if (empty? v)
@@ -43,21 +60,21 @@
           (append out next)
           out)))))
 
-//Scans for first index of item or char `sub` within vec/str `coll`, else nil
+//Scans for first index of item or char `sub` within vec/str `v`, else nil
 //e.g. (index "hello" \l) => 2
 (fn index
-  coll i ;; x
-  (if (empty? coll) (return N))
-  (if (= i (1st coll))
-    x (recur (sect coll) i (+ 1i x))))
+  v i ;; x
+  (if (empty? v) (return N))
+  (if (= i (1st v))
+    x (recur (sect v) i (+ 1i x))))
 
-//Scans for first index of item `sub` within vector/string `coll`, else nil
+//Scans for first index of item `sub` within vector/string `v`, else nil
 //e.g. (str-index "hello" "ll") => 2
 (fn str-index
-  coll sub ;; i
-  (if (!empty? coll)
-    (if (= (str sub) (sect coll 0 (len sub)))
-      i (recur (sect coll) sub (inc (or i 0i))))))
+  v sub ;; i
+  (if (!empty? v)
+    (if (= (str sub) (sect v 0 (len sub)))
+      i (recur (sect v) sub (inc (or i 0i))))))
 
 //e.g. (zip-select [F T F] [\a \b \c]) => \b
 (fn zip-select select from
@@ -86,7 +103,7 @@
 (fn str->int s
   (reduce +
     (map n*10^p-1
-      (map {cast (- # 48) 18} (vec (burst s)))
+      (map {cast (- # 48) 18} [(burst s)])
       (range (len s) 0 -1i))))
 
 //e.g. (-> 2 {+ 65 #} {cast # 0x13}) => \C
