@@ -51,11 +51,11 @@
       (1st v)
       (recur (sect v) f))))
 
-(fn filter v f; out
+(fn filter f v ;; out
   (if (empty? v)
     out
     (do next= (1st v)
-      (recur (sect v) f
+      (recur f (sect v)
         (if (f next)
           (append out next)
           out)))))
@@ -105,6 +105,10 @@
     (map n*10^p-1
       (map {cast (- # 48) 18} [(burst s)])
       (range (len s) 0 -1i))))
+//e.g. 1 -> "01", 10 -> "10"
+(fn 0pad n (str (if (< n 10) "0" "") n))
+//e.g. (vec->str [1 2 3 [4 5]]) => "[1 2 3 [2]]"
+(fn vec->str v (str "[" (reduce {str # \sp #1} v) "]"))
 
 //e.g. (-> 2 {+ 65 #} {cast # 0x13}) => \C
 (fn -> seed ; //N args
@@ -113,4 +117,3 @@
   (if (empty? funcs) (return acc))
   (do f= (1st funcs)
     (recur (f acc) (sect funcs))))
-

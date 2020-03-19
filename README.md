@@ -36,17 +36,17 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
       (my-print))
 
     //Filter function, found in core.chi
-    //Note: `1st`, `append`, and `odd?` are all implemented in Chika in core.chi
-    //Note: `filtered` is an optional argument, as `append` accepts nil as a vector
-    (fn filter v pred ;; filtered
-      (if (= (len v) 0)
-        filtered
-        (do f= (1st v)
-          (recur (sect v) pred
-            (if (pred f)
-              (append filtered f)
-              filtered)))))
-    (filter [0 1 2 3] odd?) => [1 3]
+    //Note: `empty?`, `1st`, `append`, and `odd?` are all implemented in Chika in core.chi
+    //Note: `out` is an optional argument, as `append` accepts nil as a vector
+    (fn filter f v ;; out
+      (if (empty? v)
+        out
+        (do next= (1st v)
+          (recur f (sect v)
+            (if (f next)
+              (append out next)
+              out)))))
+    (filter odd? [0 1 2 3]) => [1 3]
 
     //Returns [15 9], using an inline-function with one argument - `#`
     (map {# 12 3} [+ -])

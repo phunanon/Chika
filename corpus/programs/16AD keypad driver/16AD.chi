@@ -1,0 +1,28 @@
+[prev= N
+ ms=   N]
+
+(fn heartbeat state
+  (do (burst state)
+
+    v= (ana-r 21)
+    k= (/ (+ v 20) 64)
+
+    (burst
+      (if (and prev (< (+ ms 200) (ms-now)))
+        [press= prev
+         prev=  N
+         ms=    N]
+        (if (< k 16)
+          [prev= k
+           ms=   (ms-now)])))
+
+    (if press
+      (burst
+        (if first
+          (val [first= N]
+            (print (cast (| (<< first 4) press) 0x13)))
+          [first= press])))
+
+    [first= first
+     prev=  prev
+     ms=    ms]))
