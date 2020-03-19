@@ -174,13 +174,13 @@ bool ChVM::findBind (itemnum& it, bindnum bNum) {
   if (numItem() > 2) {
     it = numItem() - 2; //Start -1 from last item, to permit "a= (inc a)"
     for (; ; --it) {
+      if (it == (itemnum)-1) break;
       if (i(it)->type != Bind_Mark) continue;
       //Test if this bind is the correct number
       if (readUNum(iBytes(it), sizeof(bindnum)) == bNum) {
         found = true;
         break;
       }
-      if (!it) break;
     }
   }
   //The item after the bind is the variable
