@@ -1,9 +1,17 @@
 #include "ChVM.hpp"
 
-ProgInfo progs[NUM_PROG];
+funcnum prevFNum = -1;       // Used by ChVM::exeFunc
+uint8_t* prevFPtr = nullptr; //
 
-ChVM::ChVM () {}
+ChVM::ChVM (ChVM_Harness* _harness) {
+  harness = _harness;
+}
 
+void ChVM::memLen (bytenum len) {
+  //Limit requested memory to configured maximum
+  if (len > MAX_PROG_RAM) len = MAX_PROG_RAM;
+  progs[pNum].memLen = len;
+}
 void ChVM::romLen (proglen len) {
   pInfo->romLen = len;
   pBytes = pROM + len;
@@ -11,17 +19,19 @@ void ChVM::romLen (proglen len) {
 proglen ChVM::romLen () {
   return pInfo->romLen;
 }
-bytenum ramOffset (prognum pNum) {
+bytenum ChVM::memOffset (prognum pNum) {
   bytenum offset = 0;
   for (prognum p = 0; p < pNum; ++p)
-    offset += progs[p].ramLen;
+    offset += progs[p].memLen;
   return offset;
 }
 void ChVM::setPNum (prognum n) {
   pNum = n;
-  pROM = mem + ramOffset(pNum);
-  pFirstItem = (pROM + progs[n].ramLen) - sizeof(Item);
-  pInfo = progs + pNum;
+  pROM = mem + memOffset(n);
+  pFirstItem = (pROM + progs[n].memLen) - sizeof(Item);
+  pInfo = &progs[n];
+  prevFNum = -1;      // Used by ChVM::exeFunc
+  prevFPtr = nullptr; //
 }
 void ChVM::numItem (itemnum n) {
   pInfo->numItem = n;
@@ -201,8 +211,6 @@ itemnum firstParam;
 itemnum nArg;
 FuncState funcState = FuncContinue;
 
-funcnum prevFNum = -1;
-uint8_t* prevFPtr = nullptr;
 bool ChVM::exeFunc (funcnum fNum, itemnum firstPara) {
   //Cache previous function attribute
   uint8_t* prev_f = f;

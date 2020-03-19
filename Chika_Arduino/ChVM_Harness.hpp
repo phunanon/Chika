@@ -21,7 +21,6 @@ public:
 
   //Program control
   bool     loadProg   (const char*);
-  void     unloadProg (const char*);
 
   //System information
   uint32_t msNow      ();

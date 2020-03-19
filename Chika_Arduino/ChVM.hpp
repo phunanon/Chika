@@ -6,27 +6,32 @@
 #include "ChVM_Harness.hpp"
 
 struct ProgInfo {
-  proglen romLen;
-  bytenum ramLen;
-  itemnum numItem;
-  bytenum numByte;
+  bytenum memLen;  //Length of the program ROM, RAM, and other data
+  proglen romLen;  //Length of the program
+  itemnum numItem; //Number of LIFO items
+  bytenum numByte; //Number of LIFO bytes
   ProgInfo () {}
-  ProgInfo (proglen _romLen, bytenum _ramLen, itemnum _numItem, bytenum _numByte)
-    : romLen(_romLen), ramLen(_ramLen), numItem(_numItem), numByte(_numByte) {}
+  ProgInfo (bytenum _memLen, proglen _romLen, itemnum _numItem, bytenum _numByte)
+    : memLen(_memLen), romLen(_romLen), numItem(_numItem), numByte(_numByte) {}
 };
 
 extern ProgInfo progs[];
 
 class ChVM {
+  uint8_t   mem[CHIKA_SIZE]; //All programs' memory
+  ProgInfo  progs[NUM_PROG]; //Program descriptors
+  ChVM_Harness* harness;
+
   prognum   pNum;
   uint8_t*  pBytes;
   uint8_t*  pFirstItem;
   ProgInfo* pInfo;
-  proglen   romLen   ();           // Get length of program ROM
-  void      numItem  (itemnum);  //
-  itemnum   numItem  ();           // Set/Get number of LIFO items
-  void      numByte  (bytenum);  //
-  bytenum   numByte  ();           // Set/Get number of LIFO bytes
+  bytenum   memOffset (prognum);  //Calculate offset of a program's memory
+  proglen   romLen    ();         // Get length of program ROM
+  void      numItem   (itemnum);  //
+  itemnum   numItem   ();         // Set/Get number of LIFO items
+  void      numByte   (bytenum);  //
+  bytenum   numByte   ();         // Set/Get number of LIFO bytes
 
   //Program item LIFO
   itemlen  itemsBytesLen (itemnum, itemnum); //Number of bytes on LIFO byte stack between two items
@@ -94,15 +99,13 @@ class ChVM {
   void     op_Load   (itemnum);
 
 public:
-  ChVM ();
+  ChVM (ChVM_Harness*);
   void entry ();
   bool heartbeat (prognum);
 
-  uint8_t* mem;
-  //Program ROM
-  uint8_t* pROM;
-  void     romLen (proglen);            //Set length of program ROM
-  void     setPNum (prognum);
-
-  ChVM_Harness* harness;
+  uint8_t* pROM;              //Program ROM
+  prognum  numProg;           //Number of loaded progs
+  void     memLen  (bytenum); //Set length of program memory
+  void     romLen  (proglen); //Set length of program ROM
+  void     setPNum (prognum); //Set current program number
 };

@@ -116,10 +116,8 @@ uint32_t ChVM_Harness::msNow () {
   return millis();
 }
 
-
-ChVM machine = ChVM();
-uint8_t mem[CHIKA_SIZE];
-uint8_t pNum = 0;
+ChVM_Harness harness = ChVM_Harness();
+ChVM machine = ChVM(&harness);
 
 bool ChVM_Harness::loadProg (const char* path) {
   File prog = SD.open(path);
@@ -127,26 +125,22 @@ bool ChVM_Harness::loadProg (const char* path) {
     Serial.println("Program not found");
     return false;
   }
-  bytenum ramLen;
+  bytenum memLen;
   {
-    char ramRequest[4];
-    for (uint8_t b = 0; b < sizeof(ramLen); ++b)
-      ramRequest[b] = prog.read();
-    memcpy(&ramLen, ramRequest, sizeof(ramLen));
+    char memRequest[4];
+    for (uint8_t b = 0; b < sizeof(memLen); ++b)
+      memRequest[b] = prog.read();
+    memcpy(&memLen, memRequest, sizeof(memLen));
   }
-  progs[pNum].ramLen = ramLen <= MAX_PROG_RAM ? ramLen : MAX_PROG_RAM;
-  machine.setPNum(pNum);
+  machine.memLen(memLen);
+  machine.setPNum(machine.numProg++);
   uint16_t pByte = 0;
   while (prog.available())
     machine.pROM[pByte++] = prog.read();
   prog.close();
   machine.romLen(pByte);
   machine.entry();
-  return ++pNum;
-}
-
-void ChVM_Harness::unloadProg (const char* path) {
-  --pNum;
+  return true;
 }
 
 void setup() {
@@ -160,27 +154,16 @@ void setup() {
   while (!sdInited)
     digitalWrite(LED_BUILTIN, (millis() / 250) % 2);
 
-  ChVM_Harness harness = ChVM_Harness();
-  machine.mem = mem;
-  machine.harness = &harness;
-
   harness.loadProg("init.kua");
 }
 
+//Round-robin the heartbeats
 void loop () {
-  //Beat all hearts once, check if all are dead for early exit
-  {
-    bool allDead = true;
-    for (uint8_t p = 0; p < pNum; ++p)
-      if (machine.heartbeat(p))
-        allDead = false;
-    if (allDead)
-      while (true);
-  }
-
-  //Round-robin the heartbeats
-  while (true) {
-    for (uint8_t p = 0; p < pNum; ++p)
-      machine.heartbeat(p);
-  }
+  bool allDead = true;
+  for (uint8_t p = 0; p < machine.numProg; ++p)
+    if (machine.heartbeat(p))
+      allDead = false;
+  //If all heartbeats have stopped, halt the Arduino
+  if (allDead)
+    while (true);
 }

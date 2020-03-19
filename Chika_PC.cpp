@@ -107,49 +107,34 @@ uint32_t ChVM_Harness::msNow () {
 }
 
 
-ChVM machine = ChVM();
-uint8_t mem[CHIKA_SIZE];
-uint8_t pNum = 0;
+ChVM_Harness harness = ChVM_Harness();
+ChVM machine = ChVM(&harness);
 
 bool ChVM_Harness::loadProg (const char* path) {
   FILE* fp = fopen(path, "rb");
   if (!fp) return false;
   size_t fLen = fsize(fp);
-  bytenum ramLen;
-  fread((char*)&ramLen, sizeof(bytenum), 1, fp);
-  progs[pNum].ramLen = ramLen <= MAX_PROG_RAM ? ramLen : MAX_PROG_RAM;
-  machine.setPNum(pNum);
+  bytenum memLen;
+  fread((char*)&memLen, sizeof(bytenum), 1, fp);
+  machine.memLen(memLen);
+  machine.setPNum(machine.numProg++);
   fread((char*)machine.pROM, sizeof(bytenum), fLen, fp);
   fclose(fp);
   machine.romLen(fLen - sizeof(bytenum));
   machine.entry();
-  return ++pNum;
-}
-
-void ChVM_Harness::unloadProg (const char* path) {
-  //TODO
-  --pNum;
+  return true;
 }
 
 int main (int argc, char* argv[]) {
-  ChVM_Harness harness = ChVM_Harness();
-  machine.harness = &harness;
-  machine.mem = mem;
-
   if (argc == 2) harness.loadProg(argv[1]);
   else           harness.loadProg("init.kua");
-
-  //Beat all hearts once, check if all are dead for early exit
-  {
+  
+  //Round-robin the heartbeats until they are all dead
+  while (true) {
     bool allDead = true;
-    for (uint8_t p = 0; p < pNum; ++p)
+    for (uint8_t p = 0; p < machine.numProg; ++p)
       if (machine.heartbeat(p))
         allDead = false;
     if (allDead) return 0;
   }
-
-  //Round-robin the heartbeats
-  while (true)
-    for (uint8_t p = 0; p < pNum; ++p)
-      machine.heartbeat(p);
 }
