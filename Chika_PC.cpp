@@ -3,7 +3,7 @@
 #include "ChVM.hpp"
 
 void ChVM_Harness::print (const char* output) {
-  printf("%s\n", output);
+  printf("%s", output);
 }
 
 void ChVM_Harness::printInt (const char* output, uint32_t number) {

@@ -2,12 +2,12 @@
   (if (<= x y)
     z
     (tak
-     (tak (- x 1i) y z)
-     (tak (- y 1i) z x)
-     (tak (- z 1i) x y))))
+     (tak (- x 1) y z)
+     (tak (- y 1) z x)
+     (tak (- z 1) x y))))
 
 (do
-  (print "calculating tak...")
+  (print "calculating tak..." \nl)
   start= (ms-now)
-  (print "(tak 18 12 6) => " (tak 18i 12i 6i))
-  (print "took " (- (ms-now) start) "ms"))
+  (print "(tak 18 12 6) => " (tak 18 12 6) \nl
+         "took " (- (ms-now) start) "ms"))

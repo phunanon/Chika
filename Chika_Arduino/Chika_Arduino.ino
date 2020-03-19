@@ -4,7 +4,7 @@
 
 #if USE_SERIAL
 void ChVM_Harness::print (const char* output) {
-  Serial.println(output);
+  Serial.print(output);
 }
 
 void ChVM_Harness::printInt (const char* output, uint32_t number) {

@@ -78,5 +78,5 @@
     (init)
     start= (ms-now)
     (fill (if state 0xAA 0x00))
-    (print (- (ms-now) start) "ms")
+    (print (- (ms-now) start) "ms" \nl)
     (not state)))
