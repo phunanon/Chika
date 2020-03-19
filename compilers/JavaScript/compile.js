@@ -38,7 +38,8 @@ const strOps =
    "str":    0xA0, "type":   0xAA, "cast":   0xAB,
    "vec":    0xB0, "nth":    0xB1, "len":    0xB2, "sect":   0xB3, "b-sect": 0xB4,
    "burst":  0xBA, "reduce": 0xBB, "map":    0xBC, "for":    0xBD, "loop":   0xBE,
-   "val":    0xCD, "do":     0xCE, "ms-now": 0xE0, "print":  0xEE, "debug":  0xEF};
+   "val":    0xCD, "do":     0xCE, "ms-now": 0xE0, "print":  0xEE, "debug":  0xEF,
+   "load":   0xF0};
 const literals =
   {"N": Val_Nil, "T": Val_True, "F": Val_False,
    "nl": '\n', "sp": ' '};
@@ -251,8 +252,8 @@ function compile (source, ramRequest) {
                       + numToLEHex(vIndex, 2),
                   info: `var op/fn: ${sym}`}
         else {
-          console.error(`Func not found: ${sym}`);
-          return {hex: "", info: "err"};
+          console.error(`Func ${sym} not found`);
+          return {hex: "", info: `err: func ${sym} not found`};
         }
       }
     }

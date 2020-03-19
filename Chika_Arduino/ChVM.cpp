@@ -127,6 +127,9 @@ void ChVM::restackCopy (itemnum from, itemnum nItem = 1) {
 void ChVM::returnNil (itemnum replace) {
   returnItem(replace, Item(0, Val_Nil));
 }
+void ChVM::returnBool (itemnum replace, bool b) {
+  returnItem(replace, Item(b ? Val_True : Val_False));
+}
 void ChVM::stackNil () {
   stackItem(Item(0, Val_Nil));
 }
@@ -373,7 +376,7 @@ void ChVM::exeForm () {
           }
           //Did and-form end without a falsey value?
           if (*f == Op_And) {
-            returnItem(firstArgItem, Item(0, evaled ? Val_True : Val_False));
+            returnBool(firstArgItem, evaled);
             ++f; //Skip op
             return;
           }
@@ -566,6 +569,7 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_MsNow:  op_MsNow (firstParam); break;
     case Op_Print:  op_Print (firstParam); break;
     case Op_Debug:  op_Debug (firstParam); break;
+    case Op_Load:   op_Load  (firstParam); break;
     default: break;
   }
 }
@@ -606,7 +610,7 @@ vectlen ChVM::vectLen (itemnum it) {
 
 
 void ChVM::op_Not (itemnum firstParam) {
-  returnItem(firstParam, Item(0, iBool(firstParam) ? Val_False : Val_True));
+  returnBool(firstParam, !iBool(firstParam));
 }
 
 void ChVM::op_Equal (itemnum firstParam, bool equality) {
@@ -630,7 +634,7 @@ void ChVM::op_Equal (itemnum firstParam, bool equality) {
     //Further equality through item comparison
     if (equality && a->type != b->type) break;
   }
-  returnItem(firstParam, Item(0, it == itEnd ? Val_True : Val_False));
+  returnBool(firstParam, it == itEnd);
 }
 
 void ChVM::op_Diff (itemnum firstParam, IType op) {
@@ -645,7 +649,7 @@ void ChVM::op_Diff (itemnum firstParam, IType op) {
       break;
     prev = num;
   }
-  returnItem(firstParam, Item(0, it == itEnd ? Val_True : Val_False));
+  returnBool(firstParam, it == itEnd);
 }
 
 void ChVM::op_Arith (itemnum firstParam, IType op) {
@@ -692,7 +696,7 @@ void ChVM::op_GPIO (itemnum firstParam, IType op) {
     case Op_AnaOut: harness->anaOut(pin, intParam); break;
   }
   if (op == Op_DigIn) {
-    returnItem(firstParam, input ? Val_True : Val_False);
+    returnBool(firstParam, input);
   } else
   if (op == Op_AnaIn) {
     writeUNum(iBytes(firstParam), input, sizeof(input));
@@ -735,7 +739,7 @@ void ChVM::op_Write (itemnum firstParam) {
   bool success =
     harness->fileWrite((const char*)iBytes(firstParam),
                        iBytes(firstParam + 1), offset, i(firstParam + 1)->len);
-  returnItem(firstParam, Item(0, success ? Val_True : Val_False));
+  returnBool(firstParam, success);
 }
 
 void ChVM::op_Append (itemnum firstParam) {
@@ -748,12 +752,12 @@ void ChVM::op_Append (itemnum firstParam) {
   bool success =
     harness->fileAppend((const char*)iBytes(firstParam),
                         iBytes(firstParam + 1), i(firstParam + 1)->len);
-  returnItem(firstParam, Item(0, success ? Val_True : Val_False));
+  returnBool(firstParam, success);
 }
 
 void ChVM::op_Delete (itemnum firstParam) {
   bool success = harness->fileDelete((const char*)iBytes(firstParam));
-  returnItem(firstParam, Item(0, success ? Val_True : Val_False));
+  returnBool(firstParam, success);
 }
 
 void ChVM::op_Str (itemnum firstParam) {
@@ -1139,4 +1143,8 @@ void ChVM::op_Debug (itemnum firstParam) {
   }
   writeUNum(iBytes(firstParam), out, sizeof(out));
   returnItem(firstParam, Item(fitInt(sizeof(out))));
+}
+
+void ChVM::op_Load (itemnum firstParam) {
+  returnBool(firstParam, harness->loadProg((const char*)iBytes(firstParam)));
 }

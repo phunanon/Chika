@@ -107,7 +107,8 @@ enum IType : uint8_t {
   Op_Val    = 0xCD, Op_Do     = 0xCE,
   Op_MsNow  = 0xE0,
   Op_Print  = 0xEE,
-  Op_Debug  = 0xEF
+  Op_Debug  = 0xEF,
+  Op_Load   = 0xF0,
 };
 
 funclen constByteLen (IType, uint8_t* = nullptr);

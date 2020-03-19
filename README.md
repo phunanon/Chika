@@ -274,6 +274,8 @@ Example: `(loop 3 5 print)` prints "3" and "4"; returns nil.
 
 `print` 0-N arg: prints result of `str` of N args; returns nil.
 
+`load path`: loads the compiled Chika program (.kua) at `path`; returns bool of success of loading the program.
+
 ### Binary structure
 
 A compiled Chika binary is composed solely of **functions**. Functions contain **forms**. Forms contain **args** (which can also be forms) and end with an **operation**. The hexadecimal byte formats are:
