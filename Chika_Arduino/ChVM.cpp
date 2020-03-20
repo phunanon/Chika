@@ -167,7 +167,17 @@ void ChVM::entry () {
 
 bool ChVM::heartbeat (prognum _pNum) {
   setPNum(_pNum);
-  return exeFunc(0x0001, 0);
+  if (harness->msNow() > pInfo->sleepUntil)
+    return exeFunc(0x0001, 0);
+  return true;
+}
+
+bool ChVM::heartbeat () {
+  bool allDead = true;
+  for (uint8_t p = 0; p < numProg; ++p)
+    if (heartbeat(p))
+      allDead = false;
+  return !allDead;
 }
 
 uint8_t* ChVM::pFunc (funcnum fNum) {
@@ -575,6 +585,7 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_Val:    op_Val   (firstParam); break;
     case Op_Do:     op_Do    (firstParam); break;
     case Op_MsNow:  op_MsNow (firstParam); break;
+    case Op_Sleep:  op_Sleep (firstParam); break;
     case Op_Print:  op_Print (firstParam); break;
     case Op_Debug:  op_Debug (firstParam); break;
     case Op_Load:   op_Load  (firstParam); break;
@@ -1133,6 +1144,11 @@ void ChVM::op_MsNow (itemnum firstParam) {
   auto msNow = harness->msNow();
   writeNum(iBytes(firstParam), msNow, sizeof(msNow));
   returnItem(firstParam, Item(fitInt(sizeof(msNow))));
+}
+
+void ChVM::op_Sleep (itemnum firstParam) {
+  pInfo->sleepUntil = harness->msNow() + readUNum(iBytes(firstParam), sizeof(uint32_t));
+  returnNil(firstParam);
 }
 
 void ChVM::op_Print (itemnum firstParam) {

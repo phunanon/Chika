@@ -10,17 +10,18 @@ struct ProgInfo {
   proglen romLen;  //Length of the program
   itemnum numItem; //Number of LIFO items
   bytenum numByte; //Number of LIFO bytes
+  uint32_t sleepUntil; //Time in miliseconds to not heartbeat until
   ProgInfo () {}
   ProgInfo (bytenum _memLen, proglen _romLen, itemnum _numItem, bytenum _numByte)
     : memLen(_memLen), romLen(_romLen), numItem(_numItem), numByte(_numByte) {}
 };
 
-extern ProgInfo progs[];
-
 class ChVM {
   uint8_t   mem[CHIKA_SIZE]; //All programs' memory
   ProgInfo  progs[NUM_PROG]; //Program descriptors
   ChVM_Harness* harness;
+
+  bool heartbeat (prognum);
 
   prognum   pNum;
   uint8_t*  pBytes;
@@ -94,6 +95,7 @@ class ChVM {
   void     op_Val    (itemnum);
   void     op_Do     (itemnum);
   void     op_MsNow  (itemnum);
+  void     op_Sleep  (itemnum);
   void     op_Print  (itemnum);
   void     op_Debug  (itemnum);
   void     op_Load   (itemnum);
@@ -101,7 +103,7 @@ class ChVM {
 public:
   ChVM (ChVM_Harness*);
   void entry ();
-  bool heartbeat (prognum);
+  bool heartbeat ();
 
   uint8_t* pROM;              //Program ROM
   prognum  numProg;           //Number of loaded progs

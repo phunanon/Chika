@@ -129,12 +129,6 @@ int main (int argc, char* argv[]) {
   if (argc == 2) harness.loadProg(argv[1]);
   else           harness.loadProg("init.kua");
   
-  //Round-robin the heartbeats until they are all dead
-  while (true) {
-    bool allDead = true;
-    for (uint8_t p = 0; p < machine.numProg; ++p)
-      if (machine.heartbeat(p))
-        allDead = false;
-    if (allDead) return 0;
-  }
+  //Keep the machine's heart beating until dead
+  while (machine.heartbeat());
 }

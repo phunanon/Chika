@@ -20,9 +20,11 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
     (fib 35i) => 832040
 
     //LED blink program for Arduino
-    (p-mode 32 true)
-    (fn heartbeat
-      (dig-w 32 (mod (/ (ms-now) 1000i) 2)))
+    (p-mode 32 T)
+    (fn heartbeat on
+      (dig-w 32 on)
+      (sleep 1000i)
+      (not on))
 
     //Prints `15`
     (print
@@ -271,6 +273,8 @@ Example: `(loop 3 5 print)` prints "3" and "4"; returns nil.
 **System related**
 
 `ms-now`: returns milliseconds since ChVM initialisation.
+
+`sleep ms`: postpones the program's *next* heartbeat for `ms` miliseconds; returns nil.
 
 `print` 0-N arg: prints result of `str` of N args; returns nil.
 

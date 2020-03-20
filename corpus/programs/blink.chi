@@ -1,4 +1,6 @@
 
-(p-mode 32 true)
-(fn heartbeat
-  (dig-w 32 (mod (/ (ms-now) 1000i) 2)))
+(p-mode 32 T)
+(fn heartbeat on
+  (dig-w 32 on)
+  (sleep 1000i)
+  (not on))

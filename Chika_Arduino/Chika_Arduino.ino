@@ -157,13 +157,9 @@ void setup() {
   harness.loadProg("init.kua");
 }
 
-//Round-robin the heartbeats
+
 void loop () {
-  bool allDead = true;
-  for (uint8_t p = 0; p < machine.numProg; ++p)
-    if (machine.heartbeat(p))
-      allDead = false;
-  //If all heartbeats have stopped, halt the Arduino
-  if (allDead)
+  //Heartbeat the machine until dead, then halt the Arduino
+  if (!machine.heartbeat())
     while (true);
 }
