@@ -10,4 +10,4 @@
   (print "calculating tak..." \nl)
   start= (ms-now)
   (print "(tak 18 12 6) => " (tak 18 12 6) \nl
-         "took " (- (ms-now) start) "ms"))
+         "took " (- (ms-now) start) "ms" \nl))

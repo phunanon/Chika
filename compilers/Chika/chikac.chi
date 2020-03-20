@@ -108,7 +108,7 @@
 //  comma, semicolon, vector start/end, newline
 (fn stage1-seek
   path-in path-out offset num-str
-  (print offset)
+  (print offset \nl)
   (do chunk-size= 128
       str-in=     (str (file-r path-in offset chunk-size))
       next-index= (next-index-of str-in [\" "//" "/*" \\ \; \, \[ \]])
@@ -141,4 +141,4 @@
   //Begin stage 1
   (stage1-seek path-in (str path-out "0") 0i 0i)
   //Finished
-  (print "Compilation of `" path-in "` complete in " (ms-now) "ms"))
+  (print "Compilation of `" path-in "` complete in " (ms-now) "ms" \nl))
