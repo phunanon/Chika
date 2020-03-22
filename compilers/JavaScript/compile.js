@@ -192,8 +192,9 @@ function compile (source, ramRequest) {
   }
   funcs = walkItems(funcs, i => literals[i] != undefined, replaceLiteral);
 
-  //Replace parameters, variables, and binds
-  const variables = [];
+  //Replace parameters, bind marks, and bind references
+  const binds = [];
+  const bindsUsages = [];
   function argOrVarToHex (sym, fi) {
     if (sym == "args")
       return {hex: numToHex(Val_Args, 1), info: `args val`};
@@ -220,14 +221,18 @@ function compile (source, ramRequest) {
     } else
     //If not op or func, meaning binding or binding reference
     {
-      if (!variables.includes(sym))
-        variables.push(sym);
+      if (!binds.includes(sym)) {
+        binds.push(sym);
+        bindsUsages.push(0);
+      }
+      ++bindsUsages[binds.indexOf(sym)];
       variHex = numToHex(bind ? Bind_Mark : Bind_Val, 1)
-                + numToLEHex(variables.indexOf(sym), 2);
+                + numToLEHex(binds.indexOf(sym), 2);
     }
     return {hex: variHex, info: `${bind ? "bind" : "var"}: ${sym}`};
   }
   funcs = funcs.map((f, fi) => walkItems(f, isString, arg => argOrVarToHex(arg, fi)));
+  bindsUsages.forEach((u, i) => u == 1 ? console.log(`WARN: ${binds[i]} appears only once`) : "");
 
   //Replace tail-positioned native and program functions
   function funcHex (sym, fi) {
