@@ -1,3 +1,5 @@
+#ifndef ARDUINO
+
 #include <cstdio>
 #include <chrono>
 #include "ChVM.hpp"
@@ -38,19 +40,22 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
 
 
 void ChVM_Harness::pinMod (uint8_t pin, bool mode) {
-  printf("PIN%d: %s\n", pin, mode ? "OUT" : "IN");
+  printf("%d%s ", pin, mode ? "O" : "I");
+  fflush(stdout);
 }
 bool ChVM_Harness::digIn  (uint8_t pin) {
   return false;
 }
 void ChVM_Harness::digOut (uint8_t pin, bool val) {
-  printf("PIN%d: %s\n", pin, val ? "HIGH" : "LOW");
+  printf("%d%s ", pin, val ? "H" : "L");
+  fflush(stdout);
 }
 uint16_t ChVM_Harness::anaIn  (uint8_t pin) {
   return 0;
 }
 void ChVM_Harness::anaOut (uint8_t pin, uint16_t val) {
-  printf("PIN%d: %d\n", pin, val);
+  printf("%d:%d ", pin, val);
+  fflush(stdout);
 }
 
 
@@ -131,3 +136,5 @@ int main (int argc, char* argv[]) {
   //Keep the machine's heart beating until dead
   while (machine.heartbeat());
 }
+
+#endif
