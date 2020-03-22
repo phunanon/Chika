@@ -17,8 +17,9 @@
 //CHIKA_SIZE: all Chika programs' memory
 #define CHIKA_SIZE (uint32_t)(MEM_SIZE * .5)
 
-#define NUM_PROG     4
-#define MAX_PROG_RAM CHIKA_SIZE / NUM_PROG
+#define MIN_NUM_PROG     4
+#define MAX_NUM_PROG     8
+#define MAX_PROG_RAM CHIKA_SIZE / MIN_NUM_PROG
 
 
 #ifdef SDCARD_SS_PIN
@@ -28,7 +29,6 @@
   #define SD_CARD_PIN 4
 #endif
 
-typedef uint32_t memolen;
 typedef uint16_t proglen;
 typedef uint16_t itemlen;
 typedef uint8_t  prognum;
@@ -110,6 +110,7 @@ enum IType : uint8_t {
   Op_Print  = 0xEE,
   Op_Debug  = 0xEF,
   Op_Load   = 0xF0,
+  Op_Halt   = 0xFF
 };
 
 funclen constByteLen (IType, uint8_t* = nullptr);

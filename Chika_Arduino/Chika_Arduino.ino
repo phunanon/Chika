@@ -132,13 +132,11 @@ bool ChVM_Harness::loadProg (const char* path) {
       memRequest[b] = prog.read();
     memcpy(&memLen, memRequest, sizeof(memLen));
   }
-  machine.memLen(memLen);
-  machine.setPNum(machine.numProg++);
+  machine.switchToProg(machine.numProg++, prog.size(), memLen);
   uint16_t pByte = 0;
   while (prog.available())
     machine.pROM[pByte++] = prog.read();
   prog.close();
-  machine.romLen(pByte);
   machine.entry();
   return true;
 }

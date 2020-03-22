@@ -270,7 +270,7 @@ Example: `(for str [\a \b \c] [1 2 3]) => [a1 a2 a3 b1 b2 b3 c1 c2 c3]`
 Example: `(loop 2 {print "hello" #})` prints "hello0" and "hello1", returns nil.  
 Example: `(loop 3 5 print)` prints "3" and "4"; returns nil.
 
-**System related**
+**System & program related**
 
 `ms-now`: returns milliseconds since ChVM initialisation.
 
@@ -279,6 +279,8 @@ Example: `(loop 3 5 print)` prints "3" and "4"; returns nil.
 `print` 0-N arg: prints result of `str` of N args; returns nil.
 
 `load path`: loads the compiled Chika program (.kua) at `path`; returns bool of success of loading the program.
+
+`halt`: immediately terminates the Chika program. Note: has the side-effect of skipping the next program's heartbeat.
 
 ### Binary structure
 

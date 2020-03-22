@@ -39,7 +39,7 @@ const strOps =
    "vec":    0xB0, "nth":    0xB1, "len":    0xB2, "sect":   0xB3, "b-sect": 0xB4,
    "burst":  0xBA, "reduce": 0xBB, "map":    0xBC, "for":    0xBD, "loop":   0xBE,
    "val":    0xCD, "do":     0xCE, "ms-now": 0xE0, "sleep":  0xE1,
-   "print":  0xEE, "debug":  0xEF, "load":   0xF0};
+   "print":  0xEE, "debug":  0xEF, "load":   0xF0, "halt":   0xFF};
 const literals =
   {"N": Val_Nil, "T": Val_True, "F": Val_False,
    "nl": '\n', "sp": ' '};
@@ -87,9 +87,9 @@ function funcise (forms) {
   funcs.unshift(forms.filter(f => !isFunc(f)));
   //Give entry function a source head
   funcs[0] = ["fn", "entry", "params"].concat(funcs[0]);
-  //Either include a blank heartbeat or insert the heartbeat to the 2nd
+  //Either include a halting heartbeat or insert the heartbeat to the 2nd
   if (!funcs.some(f => f[1] == "heartbeat"))
-    funcs.splice(1, 0, ["fn", "heartbeat"]);
+    funcs.splice(1, 0, ["fn", "heartbeat", ["halt"]]);
   else
     funcs.splice(1, 0, funcs.splice(funcs.findIndex(f => f[1] == "heartbeat"), 1)[0]);
   //Include function ID's

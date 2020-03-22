@@ -18,7 +18,7 @@ struct ProgInfo {
 
 class ChVM {
   uint8_t   mem[CHIKA_SIZE]; //All programs' memory
-  ProgInfo  progs[NUM_PROG]; //Program descriptors
+  ProgInfo  progs[MAX_NUM_PROG]; //Program descriptors
   ChVM_Harness* harness;
 
   bool heartbeat (prognum);
@@ -28,7 +28,6 @@ class ChVM {
   uint8_t*  pFirstItem;
   ProgInfo* pInfo;
   bytenum   memOffset (prognum);  //Calculate offset of a program's memory
-  proglen   romLen    ();         // Get length of program ROM
   void      numItem   (itemnum);  //
   itemnum   numItem   ();         // Set/Get number of LIFO items
   void      numByte   (bytenum);  //
@@ -99,6 +98,7 @@ class ChVM {
   void     op_Print  (itemnum);
   void     op_Debug  (itemnum);
   void     op_Load   (itemnum);
+  void     op_Halt   ();
 
 public:
   ChVM (ChVM_Harness*);
@@ -107,7 +107,5 @@ public:
 
   uint8_t* pROM;              //Program ROM
   prognum  numProg;           //Number of loaded progs
-  void     memLen  (bytenum); //Set length of program memory
-  void     romLen  (proglen); //Set length of program ROM
-  void     setPNum (prognum); //Set current program number
+  void     switchToProg (prognum, proglen = 0, bytenum = 0); //Set current program, and optionally set its ROM + RAM lengths
 };

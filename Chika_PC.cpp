@@ -4,6 +4,7 @@
 
 void ChVM_Harness::print (const char* output) {
   printf("%s", output);
+  fflush(stdout);
 }
 
 void ChVM_Harness::printInt (const char* output, uint32_t number) {
@@ -116,11 +117,9 @@ bool ChVM_Harness::loadProg (const char* path) {
   size_t fLen = fsize(fp);
   bytenum memLen;
   fread((char*)&memLen, sizeof(bytenum), 1, fp);
-  machine.memLen(memLen);
-  machine.setPNum(machine.numProg++);
+  machine.switchToProg(machine.numProg++, fLen - sizeof(bytenum), memLen);
   fread((char*)machine.pROM, sizeof(bytenum), fLen, fp);
   fclose(fp);
-  machine.romLen(fLen - sizeof(bytenum));
   machine.entry();
   return true;
 }

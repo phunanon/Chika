@@ -7,27 +7,20 @@ ChVM::ChVM (ChVM_Harness* _harness) {
   harness = _harness;
 }
 
-void ChVM::memLen (bytenum len) {
-  //Limit requested memory to configured maximum
-  if (len > MAX_PROG_RAM) len = MAX_PROG_RAM;
-  progs[pNum].memLen = len;
-}
-void ChVM::romLen (proglen len) {
-  pInfo->romLen = len;
-  pBytes = pROM + len;
-}
-proglen ChVM::romLen () {
-  return pInfo->romLen;
-}
 bytenum ChVM::memOffset (prognum pNum) {
   bytenum offset = 0;
   for (prognum p = 0; p < pNum; ++p)
     offset += progs[p].memLen;
   return offset;
 }
-void ChVM::setPNum (prognum n) {
+void ChVM::switchToProg (prognum n, proglen romLen, bytenum memLen) {
+  if (romLen)
+    progs[n].romLen = romLen;
+  if (memLen)
+    progs[n].memLen = memLen <= MAX_PROG_RAM ? memLen : MAX_PROG_RAM;
   pNum = n;
   pROM = mem + memOffset(n);
+  pBytes = pROM + progs[n].romLen;
   pFirstItem = (pROM + progs[n].memLen) - sizeof(Item);
   pInfo = &progs[n];
   prevFNum = -1;      // Used by ChVM::exeFunc
@@ -166,7 +159,7 @@ void ChVM::entry () {
 }
 
 bool ChVM::heartbeat (prognum _pNum) {
-  setPNum(_pNum);
+  switchToProg(_pNum);
   if (harness->msNow() > pInfo->sleepUntil)
     return exeFunc(0x0001, 0);
   return true;
@@ -210,7 +203,7 @@ bool ChVM::findBind (itemnum& it, bindnum bNum) {
   return found ? ++it : false;
 }
 
-enum FuncState { FuncContinue, FuncRecur, FuncReturn };
+enum FuncState { FuncContinue, FuncRecur, FuncReturn, Halted };
 
 
 //These globals are set and restored per function call by ChVM::exeFunc,
@@ -219,7 +212,7 @@ uint8_t* f;
 uint8_t* funcEnd;
 itemnum firstParam;
 itemnum nArg;
-FuncState funcState = FuncContinue;
+FuncState funcState;
 
 bool ChVM::exeFunc (funcnum fNum, itemnum firstPara) {
   //Cache previous function attribute
@@ -257,6 +250,7 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstPara) {
   firstParam = firstPara;
   uint8_t* fStart = f;
   nArg = numItem() - firstParam;
+  funcState = FuncContinue;
   while (f != fEnd) {
     exeForm();
     if (funcState == FuncRecur) {
@@ -269,11 +263,13 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstPara) {
       funcState = FuncContinue;
       break;
     }
+    if (funcState == Halted)
+      return true;
     if (f != fEnd)
       iPop();
   }
   //Move last item into return position
-  if (numItem() > 0)
+  if (numItem() > 1)
     returnCollapseLast(firstParam);
 
   //Restore previous function attributes
@@ -589,6 +585,7 @@ void ChVM::nativeOp (IType op, itemnum firstParam) {
     case Op_Print:  op_Print (firstParam); break;
     case Op_Debug:  op_Debug (firstParam); break;
     case Op_Load:   op_Load  (firstParam); break;
+    case Op_Halt:   op_Halt(); break;
     default: break;
   }
 }
@@ -1170,5 +1167,26 @@ void ChVM::op_Debug (itemnum firstParam) {
 }
 
 void ChVM::op_Load (itemnum firstParam) {
-  returnBool(firstParam, harness->loadProg((const char*)iBytes(firstParam)));
+  //After loading a program the program context will have been switched
+  //  We need to ensure we restore it to this one
+  prognum savePNum = pNum;
+  bool success = harness->loadProg((const char*)iBytes(firstParam));
+  switchToProg(savePNum);
+  returnBool(firstParam, success);
+}
+
+void ChVM::op_Halt () {
+  //Halt all execution while unrolling ChVM:: exeForm & exeFunc
+  funcState = Halted;
+  --numProg;
+  //Move all programs right of this one into its position
+  //And move program infos left in the process too
+  if (pNum == numProg) return;
+  bytenum len = 0;
+  for (prognum p = pNum + 1; p < numProg + 1; ++p) {
+    len += progs[p].memLen;
+    if (p - pNum)
+      progs[p - 1] = progs[p];
+  }
+  memcpy(pROM, pROM + pInfo->memLen, len);
 }
