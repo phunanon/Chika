@@ -270,6 +270,22 @@ Example: `(for str [\a \b \c] [1 2 3]) => [a1 a2 a3 b1 b2 b3 c1 c2 c3]`
 Example: `(loop 2 {print "hello" #})` prints "hello0" and "hello1", returns nil.  
 Example: `(loop 3 5 print)` prints "3" and "4"; returns nil.
 
+**Message related**
+
+Topics are forward-slash `/` delimited strings. Un/subscription topics use the wildcards `/+/` for *any* and `/#` for *any hereafter*.  
+Example: the topic `house/kitchen/fridge` matches the subcription `house/+/fridge` or `house/#` or `+/kitchen/+` or `#`, but not `garage/#` or `house/bedroom/fridge` or `house/+/sink`.
+
+`pub topic payload`: send a message throughout the VM with the string topic `topic` and a payload `payload` of any type;  
+returns nil, or if the message caused another program to publish a message the original publishing program was subscribed to,  
+returns the state returned by the original publishing program's subscription handler.  
+Note: publishing is immediate and synchronous - your program will have to wait as subscribers process the message.
+
+`sub topic f`: subscribe the function `f` to a message topic `topic`, where `f` is `(state payload) => state`; returns nil.
+
+`unsub topic`: remove previous subscription of `topic`; returns nil.  
+`unsub`: drop all program subscriptions; returns nil.  
+Note: will remove all matching specific subscriptions.
+
 **System & program related**
 
 `ms-now`: returns milliseconds since ChVM initialisation.

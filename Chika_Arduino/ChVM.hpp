@@ -4,6 +4,9 @@
 #include "utils.hpp"
 #include "Item.hpp"
 #include "ChVM_Harness.hpp"
+#include "Broker.hpp"
+
+class Broker;
 
 struct ProgInfo {
   bytenum memLen;  //Length of the program ROM, RAM, and other data
@@ -20,6 +23,7 @@ class ChVM {
   uint8_t   mem[CHIKA_SIZE]; //All programs' memory
   ProgInfo  progs[MAX_NUM_PROG]; //Program descriptors
   ChVM_Harness* harness;
+  Broker    broker;
 
   bool heartbeat (prognum);
 
@@ -106,8 +110,9 @@ class ChVM {
 
 public:
   ChVM (ChVM_Harness*);
-  void entry ();
+  void entry     ();
   bool heartbeat ();
+  void invoker   (prognum, funcnum, Item*, uint8_t*);
 
   uint8_t* pROM;              //Program ROM
   prognum  numProg;           //Number of loaded progs

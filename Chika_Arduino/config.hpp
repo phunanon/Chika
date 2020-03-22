@@ -14,8 +14,25 @@
 //#define MEM_SIZE 2048   //2k
 //#define MEM_SIZE 512    //512
 
-//CHIKA_SIZE: all Chika programs' memory
-#define CHIKA_SIZE (uint32_t)(MEM_SIZE * .5)
+typedef uint16_t proglen;
+typedef uint16_t itemlen;
+typedef uint8_t  prognum;
+typedef uint16_t itemnum;
+typedef uint32_t bytenum;
+typedef uint16_t funcnum;
+typedef uint16_t funclen;
+typedef uint8_t  argnum;
+typedef uint16_t bindnum;
+typedef uint16_t strilen;
+typedef uint16_t vectlen;
+typedef uint16_t subnum;
+typedef uint8_t  sublen;
+
+//All Chika programs' memory
+#define CHIKA_SIZE (uint32_t)(MEM_SIZE * .4)
+//All subscription messages and program ID's
+#define SUBS_SIZE  (strilen)(MEM_SIZE * 0.1)
+#define MAX_SUBS   (subnum)256 //* sizeof(uint8_t*) for size
 
 #define MIN_NUM_PROG     4
 #define MAX_NUM_PROG     8
@@ -28,18 +45,6 @@
 #ifndef SDCARD_SS_PIN
   #define SD_CARD_PIN 4
 #endif
-
-typedef uint16_t proglen;
-typedef uint16_t itemlen;
-typedef uint8_t  prognum;
-typedef uint16_t itemnum;
-typedef uint32_t bytenum;
-typedef uint16_t funcnum;
-typedef uint16_t funclen;
-typedef uint8_t  argnum;
-typedef uint16_t bindnum;
-typedef uint16_t strilen;
-typedef uint16_t vectlen;
 
 
 //NOTE: when adding a new value type or op longer than 1B
@@ -105,6 +110,9 @@ enum IType : uint8_t {
   Op_For    = 0xBD,
   Op_Loop   = 0xBE,
   Op_Val    = 0xCD, Op_Do     = 0xCE,
+  Op_MPub   = 0xD0,
+  Op_MSub   = 0xD1,
+  Op_MUnsub = 0xD2,
   Op_MsNow  = 0xE0,
   Op_Sleep  = 0xE1,
   Op_Print  = 0xEE,

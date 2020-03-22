@@ -5,6 +5,7 @@ uint8_t* prevFPtr = nullptr; //
 
 ChVM::ChVM (ChVM_Harness* _harness) {
   harness = _harness;
+  broker = Broker();
 }
 
 bytenum ChVM::memOffset (prognum pNum) {
@@ -190,7 +191,7 @@ uint8_t* ChVM::pFunc (funcnum fNum) {
 
 bool ChVM::findBind (itemnum& it, bindnum bNum) {
   bool found = false;
-  if (numItem() > 2) {
+  if (numItem() > 1) {
     it = numItem() - 2; //Start -1 from last item, to permit "a= (inc a)"
     for (; ; --it) {
       if (it == (itemnum)-1) break;
@@ -282,6 +283,18 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   nArg = prev_nArg;
 
   return true;
+}
+
+
+void ChVM::invoker (prognum pN, funcnum fN, Item* iPayload, uint8_t* bPayload) {
+  switchToProg(pN);
+  //In the case of no program state before a message comes in, create a nil
+  if (!numItem())
+    returnNil(0);
+  //Copy the payload as item 2 (param 2), then call the function
+  memcpy(stackItem(), bPayload, iPayload->len);
+  stackItem(iPayload);
+  exeFunc(fN, numItem() - 2);
 }
 
 
@@ -583,6 +596,9 @@ void ChVM::nativeOp (IType op, itemnum p0) {
     case Op_Loop:   op_Loop  (p0); break;
     case Op_Val:    op_Val   (p0); break;
     case Op_Do:     op_Do    (p0); break;
+    case Op_MPub:   op_Pub   (p0); break;
+    case Op_MSub:   op_Sub   (p0); break;
+    case Op_MUnsub: op_Unsub (p0); break;
     case Op_MsNow:  op_MsNow (p0); break;
     case Op_Sleep:  op_Sleep (p0); break;
     case Op_Print:  op_Print (p0); break;
@@ -1135,6 +1151,34 @@ void ChVM::op_Do (itemnum p0) {
   returnCollapseLast(p0);
 }
 
+
+void ChVM::op_Pub (itemnum p0) {
+  prognum savePNum = pNum;
+  itemnum nItem = numItem();
+  //Pre-emptively stack a nil
+  stackNil();
+  //Publish the message
+  broker.publish(iStr(p0), i(p0 + 1), iBytes(p0 + 1), this);
+  //During a publish, the program may have been switched away from
+  //  so switch back to the original, publishing program
+  switchToProg(savePNum);
+  //If a published message caused another program to publish a message
+  //  which this program was subscribed to, in order to not lose state
+  //  the state change that occurred in the subscription handler
+  //  is returned, otherwise the pre-emptive nil is returned
+  returnCollapseLast(p0);
+}
+void ChVM::op_Sub (itemnum p0) {
+  broker.subscribe(iStr(p0), pNum, iInt(p0 + 1));
+  returnNil(p0);
+}
+void ChVM::op_Unsub (itemnum p0) {
+  //Either unsubscribe just the program if there's only one argument
+  //  or a particular topic
+  broker.unsubscribe(pNum, numItem() - p0 > 1 ? iStr(p0) : nullptr);
+  returnNil(p0);
+}
+
 void ChVM::op_MsNow (itemnum p0) {
   auto msNow = harness->msNow();
   writeNum(iBytes(p0), msNow, sizeof(msNow));
@@ -1187,4 +1231,8 @@ void ChVM::op_Halt () {
       progs[p - 1] = progs[p];
   }
   memcpy(pROM, pROM + pInfo->memLen, len);
+  //Remove its subscriptions,
+  //  and shift any message callbacks left too
+  broker.unsubscribe(pNum);
+  broker.shiftCallbacks(pNum);
 }

@@ -1,0 +1,18 @@
+
+(fn my-func state payload
+  (print "received" \nl)
+  (str payload 123))
+
+(sub "test" my-func)
+
+(fn heartbeat state
+  (print state \nl)
+  (print (pub "test" "my state") \nl)
+  (print state \nl)
+  (halt))
+
+//Should print:
+//N
+//received
+//my state123
+//N
