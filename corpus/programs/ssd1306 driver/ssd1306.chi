@@ -71,12 +71,22 @@
     (loop PAGES {fill-page # w}))
   (set-pos 0 0))
 
-(fn heartbeat state
-  (do
-    COLS= 128 PAGES= 8
-    SCL= 12 SDA= 11 SA= 0x78
-    (init)
-    start= (ms-now)
-    (fill (if state 0xAA 0x00))
-    (print (- (ms-now) start) "ms" \nl)
-    (not state)))
+
+(fn handle-byte ctx byte
+  (do (burst ctx)
+    (data-start)
+    (send-byte byte)
+    (transfer-stop))
+  (val ctx))
+
+(fn heartbeat ctx (val ctx))
+
+(sub "+/byte" handle-byte)
+(do
+  ctx=
+  [COLS= 128 PAGES= 8
+   SCL= 12 SDA= 11 SA= 0x78]
+  (burst ctx)
+  (init)
+  (set-pos 0 0)
+  (val ctx))
