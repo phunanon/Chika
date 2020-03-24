@@ -73,7 +73,7 @@
 
 
 (fn handle-byte ctx byte
-  (do (burst ctx)
+  (do (.. ctx)
     (data-start)
     (send-byte byte)
     (transfer-stop))
@@ -86,7 +86,7 @@
   ctx=
   [COLS= 128 PAGES= 8
    SCL= 12 SDA= 11 SA= 0x78]
-  (burst ctx)
+  (.. ctx)
   (init)
   (set-pos 0 0)
   (val ctx))

@@ -52,6 +52,9 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
 
     //Returns [15 9], using an inline-function with one argument - `#`
     (map {# 12 3} [+ -])
+	
+	//Subscribes to all inter-program messages to do with displays, and prints their payloads
+	(sub "display/+" {print #1})
 
 
 ### Compilation and running
@@ -213,7 +216,8 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 `sect v skip take`: returns `v` with `take` length and first `skip` items omitted;  
 `b-sect`: the same as `sect` but returns items burst.
 
-`burst v`: explodes vector or string `v` onto the argument stack as either vector items or Val_Char items (like Lisp `apply`).
+`.. v`: bursts a vector or string `v` onto the argument stack as either vector items or Val_Char items.  
+Note: like Clojure `apply` e.g. `(+ (.. [1 2 3]))`).
 
 **GPIO related**
 
@@ -280,7 +284,8 @@ returns nil, or if the message caused another program to publish a message the o
 returns the state returned by the original publishing program's subscription handler.  
 Note: publishing is immediate and synchronous - your program will have to wait as subscribers process the message.
 
-`sub topic f`: subscribe the function `f` to a message topic `topic`, where `f` is `(state payload) => state`; returns nil.
+`sub topic f`: subscribe the function `f` to a message topic `topic`, where `f` is `(state payload) => state`; returns nil.  
+Note: only program functions are accepted as `f` - to use a native operation use an inline function.
 
 `unsub topic`: remove previous subscription of `topic`; returns nil.  
 `unsub`: drop all program subscriptions; returns nil.  

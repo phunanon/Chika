@@ -3,12 +3,12 @@
  ms=   N]
 
 (fn heartbeat state
-  (do (burst state)
+  (do (.. state)
 
     v= (ana-r 21)
     k= (/ (+ v 20) 64)
 
-    (burst
+    (..
       (if (and prev (< (+ ms 100) (ms-now)))
         [press= prev
          prev=  N
@@ -18,7 +18,7 @@
            ms=   (ms-now)])))
 
     (if press
-      (burst
+      (..
         (if first
           (val [first= N]
             (pub "keypad/byte"
