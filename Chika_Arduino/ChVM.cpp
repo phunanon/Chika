@@ -294,15 +294,20 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
 }
 
 
-void ChVM::invoker (prognum pN, funcnum fN, Item* iPayload, uint8_t* bPayload) {
+void ChVM::msgInvoker (prognum pN, funcnum fN, const char* topic, Item* iPayload, uint8_t* bPayload) {
   switchToProg(pN);
   //In the case of no program state before a message comes in, create a nil
   if (!numItem())
     returnNil(0);
-  //Copy the payload as item 2 (param 2), then call the function
+  //Copy the topic & payload as items 1 & 2 (param 1 & 2),
+  //  as the state is item 0,
+  //  then call the function
+  strilen sLen = strlen(topic) + 1;
+  memcpy(stackItem(), topic, sLen);
+  stackItem(Item(sLen, Val_Str));
   memcpy(stackItem(), bPayload, iPayload->len);
   stackItem(iPayload);
-  exeFunc(fN, numItem() - 2);
+  exeFunc(fN, numItem() - 3);
 }
 
 

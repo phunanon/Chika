@@ -61,7 +61,7 @@
   (set-pos 0 0))
 
 
-(fn handle-byte ctx byte
+(fn handle-byte ctx t byte
   (do (.. ctx)
     (data-start)
     (send-byte byte)

@@ -287,7 +287,7 @@ returns nil, or if the message caused another program to publish a message the o
 returns the state returned by the original publishing program's subscription handler.  
 Note: publishing is immediate and synchronous - your program will have to wait as subscribers process the message.
 
-`sub topic f`: subscribe the function `f` to a message topic `topic`, where `f` is `(state payload) => state`; returns nil.  
+`sub topic f`: subscribe the function `f` to a message topic `topic`, where `f` is `(state topic payload) => new-state`; returns nil.  
 Note: only program functions are accepted as `f` - to use a native operation use an inline function.
 
 `unsub topic`: remove previous subscription of `topic`; returns nil.  

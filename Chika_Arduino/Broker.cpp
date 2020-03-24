@@ -34,7 +34,7 @@ void Broker::publish (const char* topic, Item* iPayload, uint8_t* bPayload, ChVM
   strilen tOffset = 0;
   for (subnum s = 0; s < numSub; ++s) {
     if (topicsMatch(&topics[tOffset], topic))
-      vm->invoker(subs[s].p, subs[s].f, iPayload, bPayload);
+      vm->msgInvoker(subs[s].p, subs[s].f, topic, iPayload, bPayload);
     tOffset += subs[s].tLen;
   }
 }
