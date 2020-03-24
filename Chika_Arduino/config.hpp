@@ -109,6 +109,7 @@ enum IType : uint8_t {
   Op_Map    = 0xBC,
   Op_For    = 0xBD,
   Op_Loop   = 0xBE,
+  Op_Binds  = 0xCC,
   Op_Val    = 0xCD, Op_Do     = 0xCE,
   Op_MPub   = 0xD0,
   Op_MSub   = 0xD1,

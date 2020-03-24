@@ -2,29 +2,23 @@
 [prev= N
  ms=   N]
 
-(fn heartbeat state
-  (do (.. state)
-
+(fn heartbeat ctx
+  (binds (.. ctx)
+    press= N
     v= (ana-r 21)
     k= (/ (+ v 20) 64)
-
     (..
-      (if (and prev (< (+ ms 100) (ms-now)))
+      (if (and prev (< (+ ms 50) (ms-now)))
         [press= prev
          prev=  N
          ms=    N]
         (if (< k 16)
           [prev= k
            ms=   (ms-now)])))
-
-    (if press
-      (..
+    (..
+      (if press
         (if first
           (val [first= N]
             (pub "keypad/byte"
                  (cast (| (<< first 4) press) 0x13)))
-          [first= press])))
-
-    [first= first
-     prev=  prev
-     ms=    ms]))
+          [first= press])))))

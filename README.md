@@ -219,6 +219,9 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 `.. v`: bursts a vector or string `v` onto the argument stack as either vector items or Val_Char items.  
 Note: like Clojure `apply` e.g. `(+ (.. [1 2 3]))`).
 
+`binds`: deduplicates any bindings in its arguments, favouring newer ones, and then vectorising the remains.  
+Example: `(binds a= 1 b= 2 a= 3) => [b= 2 a= 3]`
+
 **GPIO related**
 
 Note: these have no effect on PC.

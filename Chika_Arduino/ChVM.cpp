@@ -594,6 +594,7 @@ void ChVM::nativeOp (IType op, itemnum p0) {
     case Op_Map:    op_Map   (p0); break;
     case Op_For:    op_For   (p0); break;
     case Op_Loop:   op_Loop  (p0); break;
+    case Op_Binds:  op_Binds (p0); break;
     case Op_Val:    op_Val   (p0); break;
     case Op_Do:     op_Do    (p0); break;
     case Op_MPub:   op_Pub   (p0); break;
@@ -1141,6 +1142,31 @@ void ChVM::op_Loop (itemnum p0) {
   //The last item on the stack is implicitly returned
 }
 
+void ChVM::op_Binds (itemnum p0) {
+  //Deduplicate binds
+  for (itemnum p = p0; p < numItem() - 2; ++p) {
+    //If this is a binding...
+    if (i(p)->type == Bind_Mark) {
+      //If the binding is found later on, erase this binding
+      bindnum bNum = iInt(p);
+      itemnum b = p + 2;
+      for (; b < numItem() - 1; ++b)
+        if (i(b)->type == Bind_Mark && iInt(b) == bNum)
+          break;
+      if (b + 1 != numItem())
+        collapseItems(p, numItem() - p - 2);
+    }
+  }
+  //Remove non-binding items
+  for (itemnum p = p0; p < numItem(); ++p) {
+    if (!p) continue;
+    if (i(p)->type != Bind_Mark && i(p - 1)->type != Bind_Mark)
+      collapseItems(p, numItem() - p - 1);
+  }
+  //Vectorise all remaining parameters
+  op_Vec(p0);
+}
+
 void ChVM::op_Val (itemnum p0) {
   //Truncate the stack to the first item
   trunStack(p0 + 1);
@@ -1150,7 +1176,6 @@ void ChVM::op_Do (itemnum p0) {
   //Collapse the stack to the last item
   returnCollapseLast(p0);
 }
-
 
 void ChVM::op_Pub (itemnum p0) {
   prognum savePNum = pNum;
