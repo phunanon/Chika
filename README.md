@@ -230,11 +230,11 @@ Note: these have no effect on PC.
 
 `dig-r pin`: returns digital input state of pin number `pin`.
 
-`dig-w pin val`: sets the digital output state of pin number `pin` to the boolean `val` - truthy or non-zero as HIGH, else LOW; returns nil.
+`dig-w [1-N pin val]`: per `pin val`, in succession, sets the digital output state of pin number `pin` to the boolean `val` - truthy or non-zero as HIGH, else LOW; returns nil.
 
 `ana-r pin`: returns analog input state of pin number `pin`.
 
-`ana-w pin val`: sets the analog/PWM output state of pin number `pin` to the 16-bit integer `val`; returns nil.
+`ana-w [1-N pin val]`: per `pin val`, in succession, sets the analog/PWM output state of pin number `pin` to the 16-bit integer `val`; returns nil.
 
 `ana-r pin`: returns analog 16-bit integer input of pin number `pin`.
 

@@ -720,16 +720,19 @@ void ChVM::op_Arith (itemnum p0, IType op) {
 
 void ChVM::op_GPIO (itemnum p0, IType op) {
   uint8_t pin = iInt(p0);
-  uint16_t intParam = iInt(p0 + 1);
-  bool boolParam = iCBool(p0 + 1);
   uint16_t input = 0;
-//harness->print("hey there");
   switch (op) {
-    case Op_PinMod: harness->pinMod(pin, boolParam); break;
+    case Op_PinMod: harness->pinMod(pin, iCBool(p0 + 1)); break;
     case Op_DigIn:  input = harness->digIn(pin); break;
     case Op_AnaIn:  input = harness->anaIn(pin); break;
-    case Op_DigOut: harness->digOut(pin, boolParam); break;
-    case Op_AnaOut: harness->anaOut(pin, intParam); break;
+    case Op_DigOut:
+      for (itemnum p = p0; p < numItem(); p += 2)
+        harness->digOut(iInt(p), iCBool(p + 1));
+      break;
+    case Op_AnaOut:
+      for (itemnum p = p0; p < numItem(); p += 2)
+        harness->anaOut(iInt(p), iInt(p + 1));
+      break;
   }
   if (op == Op_DigIn) {
     returnBool(p0, input);

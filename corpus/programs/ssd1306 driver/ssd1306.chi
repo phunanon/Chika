@@ -1,26 +1,15 @@
 
 
 (fn transfer-start
-  (dig-w SCL T)
-  (dig-w SDA T)
-  (dig-w SDA F)
-  (dig-w SCL F))
+  (dig-w SCL T SDA T SDA F SCL F))
 
 (fn transfer-stop
-  (dig-w SCL F)
-  (dig-w SDA F)
-  (dig-w SCL T)
-  (dig-w SDA T))
+  (dig-w SCL F SDA F SCL T SDA T))
 
 (fn send-byte byte
   (do b= byte
-    (loop 0 8 {do
-      (dig-w SDA (& 0x80 (<< b #)))
-      (dig-w SCL T)
-      (dig-w SCL F)}))
-  (dig-w SDA T)
-  (dig-w SCL T)
-  (dig-w SCL F))
+    (loop 0 8 {dig-w SDA (& 0x80 (<< b #)) SCL T SCL F)})
+  (dig-w SDA T SCL T SCL F))
 
 (fn command-start
   (transfer-start)
