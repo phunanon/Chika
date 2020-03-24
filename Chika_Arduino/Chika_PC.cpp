@@ -123,7 +123,7 @@ bool ChVM_Harness::loadProg (const char* path) {
   bytenum memLen;
   fread((char*)&memLen, sizeof(bytenum), 1, fp);
   machine.switchToProg(machine.numProg++, fLen - sizeof(bytenum), memLen);
-  fread((char*)machine.pROM, sizeof(bytenum), fLen, fp);
+  fread((char*)machine.getPROM(), sizeof(bytenum), fLen, fp);
   fclose(fp);
   machine.entry();
   return true;

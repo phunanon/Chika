@@ -134,8 +134,9 @@ bool ChVM_Harness::loadProg (const char* path) {
   }
   machine.switchToProg(machine.numProg++, prog.size(), memLen);
   uint16_t pByte = 0;
+  uint8_t* pROM = machine.getPROM();
   while (prog.available())
-    machine.pROM[pByte++] = prog.read();
+    pROM[pByte++] = prog.read();
   prog.close();
   machine.entry();
   return true;

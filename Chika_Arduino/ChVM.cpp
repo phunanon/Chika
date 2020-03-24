@@ -1,7 +1,12 @@
 #include "ChVM.hpp"
 
-funcnum prevFNum = -1;       // Used by ChVM::exeFunc
-uint8_t* prevFPtr = nullptr; //
+prognum   pNum;       //
+uint8_t*  pBytes;     //
+uint8_t*  pFirstItem; //
+ProgInfo* pInfo;      //
+uint8_t* pROM;        // Current program data
+funcnum prevFNum = -1;       //
+uint8_t* prevFPtr = nullptr; // Used by ChVM::exeFunc
 
 ChVM::ChVM (ChVM_Harness* _harness) {
   harness = _harness;
@@ -24,8 +29,11 @@ void ChVM::switchToProg (prognum n, proglen romLen, bytenum memLen) {
   pBytes = pROM + progs[n].romLen;
   pFirstItem = (pROM + progs[n].memLen) - sizeof(Item);
   pInfo = &progs[n];
-  prevFNum = -1;      // Used by ChVM::exeFunc
-  prevFPtr = nullptr; //
+  prevFNum = -1;      //
+  prevFPtr = nullptr; // Used by ChVM::exeFunc
+}
+uint8_t* ChVM::getPROM () {
+  return pROM;
 }
 void ChVM::numItem (itemnum n) {
   pInfo->numItem = n;

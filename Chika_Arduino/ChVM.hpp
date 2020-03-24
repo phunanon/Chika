@@ -27,10 +27,6 @@ class ChVM {
 
   bool heartbeat (prognum);
 
-  prognum   pNum;
-  uint8_t*  pBytes;
-  uint8_t*  pFirstItem;
-  ProgInfo* pInfo;
   bytenum   memOffset (prognum);  //Calculate offset of a program's memory
   void      numItem   (itemnum);  //
   itemnum   numItem   ();         // Set/Get number of LIFO items
@@ -115,7 +111,7 @@ public:
   bool heartbeat ();
   void invoker   (prognum, funcnum, Item*, uint8_t*);
 
-  uint8_t* pROM;              //Program ROM
   prognum  numProg;           //Number of loaded progs
+  uint8_t* getPROM ();
   void     switchToProg (prognum, proglen = 0, bytenum = 0); //Set current program, and optionally set its ROM + RAM lengths
 };
