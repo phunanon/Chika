@@ -19,6 +19,8 @@
       (if press
         (if first
           (val [first= N]
-            (pub "keypad/byte"
+            (pub "keypad/char"
                  (cast (| (<< first 4) press) 0x13)))
-          [first= press])))))
+          (if (<= press 7)
+            [first= press]
+            (pub "keypad/nibble" press)))))))

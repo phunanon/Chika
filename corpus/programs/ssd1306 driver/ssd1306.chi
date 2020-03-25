@@ -45,7 +45,7 @@
   //Page
   (send-byte 0x22)
   (send-byte page)
-  (send-byte 0x00)
+  (send-byte 7)
   (transfer-stop))
 
 (fn fill-page page with
@@ -55,6 +55,13 @@
     (loop COLS {send-byte w}))
   (transfer-stop))
 
+(fn send-char char
+  (data-start)
+  (send-byte 0x00)
+  (do c= (* 5w (- char 32))
+    (loop 5 {send-byte (nth font (+ c #)})))
+  (transfer-stop))
+
 (fn fill with
   (do w= with
     (loop PAGES {fill-page # w}))
@@ -62,19 +69,29 @@
 
 
 (fn handle-byte ctx t byte
-  (do (.. ctx)
+  (binds (.. ctx)
     (data-start)
     (send-byte byte)
-    (transfer-stop))
-  (val ctx))
+    (transfer-stop)))
+
+(fn handle-char ctx t char
+  (binds (.. ctx)
+    (send-char char)))
+
+(fn handle-str ctx t string
+  (binds (.. ctx)
+    (map send-char [(.. string)])))
 
 (fn heartbeat ctx (val ctx))
 
-(sub "+/byte" handle-byte)
+(sub "display/byte" handle-byte)
+(sub "display/char" handle-char)
+(sub "display/str"  handle-str)
 (do
   ctx=
   [COLS= 128 PAGES= 8
-   SCL= 12 SDA= 11 SA= 0x78]
+   SCL= 12 SDA= 11 SA= 0x78
+   font= (file-r "font6x8.bin")]
   (.. ctx)
   (init)
   (set-pos 0 0)
