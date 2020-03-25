@@ -194,7 +194,7 @@ function compile (source, ramRequest) {
 
   //Replace parameters, bind marks, and bind references
   const binds = [];
-  const bindsUsages = [];
+  const bindsDefined = [];
   function argOrVarToHex (sym, fi) {
     if (sym == "args")
       return {hex: numToHex(Val_Args, 1), info: `args val`};
@@ -203,8 +203,8 @@ function compile (source, ramRequest) {
     if (param != -1)
       return {hex: bytesToHex([Param_Val, param]), info: `param: ${sym}`};
     //Check between variable reference or binding
-    let bind = sym.endsWith("=") && !["!=", "="].includes(sym);
-    if (bind) sym = sym.slice(0, -1);
+    let isBindMark = sym.endsWith("=") && !["!=", "="].includes(sym);
+    if (isBindMark) sym = sym.slice(0, -1);
     //Check if op, function, or variable
     let variHex;
     let op = strOps.hasOwnProperty(sym);
@@ -223,16 +223,17 @@ function compile (source, ramRequest) {
     {
       if (!binds.includes(sym)) {
         binds.push(sym);
-        bindsUsages.push(0);
+        bindsDefined.push(false);
       }
-      ++bindsUsages[binds.indexOf(sym)];
-      variHex = numToHex(bind ? Bind_Mark : Bind_Val, 1)
+      if (isBindMark)
+        bindsDefined[binds.indexOf(sym)] = true;
+      variHex = numToHex(isBindMark ? Bind_Mark : Bind_Val, 1)
                 + numToLEHex(binds.indexOf(sym), 2);
     }
-    return {hex: variHex, info: `${bind ? "bind" : "var"}: ${sym}`};
+    return {hex: variHex, info: `${isBindMark ? "bind" : "var"}: ${sym}`};
   }
   funcs = funcs.map((f, fi) => walkItems(f, isString, arg => argOrVarToHex(arg, fi)));
-  bindsUsages.forEach((u, i) => u == 1 ? console.log(`WARN: ${binds[i]} appears only once`) : "");
+  bindsDefined.forEach((u, i) => !u ? console.log(`WARN: ${binds[i]} undefined`) : "");
 
   //Replace tail-positioned native and program functions
   function funcHex (sym, fi) {

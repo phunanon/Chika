@@ -998,18 +998,12 @@ void ChVM::op_Reduce (itemnum p0) {
   //Burst item in situ (the last item on the stack)
   burstItem();
   //Copy seed or first item onto stack - either (reduce f v) (reduce f s v)
-  {
-    Item* seed = i(p0 + 1);
-    memcpy(stackItem(), iBytes(p0 + 1), seed->len);
-    stackItem(seed);
-  }
+  restackCopy(p0 + 1);
   //Reduce loop, where the stack is now: [burst v]*N [seed: either v0 or seed]
   itemnum iSeed = numItem() - 1;
   for (itemnum it = p0 + 2; it < iSeed; ++it) {
     //Copy next item onto stack
-    Item* iNext = i(it);
-    memcpy(stackItem(), iBytes(it), iNext->len);
-    stackItem(iNext);
+    restackCopy(it);
     //Execute func or op, which returns to iSeed
     if (isOp) nativeOp((IType)fCode, iSeed);
     else      exeFunc(fCode, iSeed);
@@ -1176,8 +1170,10 @@ void ChVM::op_Binds (itemnum p0) {
   //Remove non-binding items
   for (itemnum p = p0; p < numItem(); ++p) {
     if (!p) continue;
-    if (i(p)->type != Bind_Mark && i(p - 1)->type != Bind_Mark)
+    if (i(p)->type != Bind_Mark && i(p - 1)->type != Bind_Mark) {
       collapseItems(p, numItem() - p - 1);
+      --p;
+    }
   }
   //Vectorise all remaining parameters
   op_Vec(p0);

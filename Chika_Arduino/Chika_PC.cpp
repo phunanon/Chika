@@ -33,7 +33,7 @@ void ChVM_Harness::printItems (uint8_t* pItems, uint32_t n) {
   printf("Items: ");
   for (uint8_t it = 0; it < n; ++it) {
     Item* item = (Item*)(pItems - (it * sizeof(Item)));
-    printf("%dl%dt%X ", it, item->len, item->type);
+    printf("%d.%d.%X ", it, item->len, item->type);
   }
   printf("\n");
 }
