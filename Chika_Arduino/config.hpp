@@ -49,6 +49,7 @@ typedef uint8_t  sublen;
 
 //NOTE: when adding a new value type or op longer than 1B
 //  ensure its implementation in constByteLen
+//  as this ensures the VM can skip it in ROM
 enum IType : uint8_t {
   Form_Eval = 0x00,
   Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03, Form_Case = 0x04,
@@ -59,8 +60,9 @@ enum IType : uint8_t {
   Param_Val = 0x08,
   Bind_Mark = 0x09, //e.g. test=
   Bind_Val  = 0x0A, //     test
-  Val_Vec   = 0x0B,
-  Val_Blob  = 0x0C,
+  XBind_Val = 0x0B, //     .test
+  Val_Vec   = 0x0C,
+  Val_Blob  = 0x0D,
   Val_U08   = 0x10,
   Val_U16   = 0x11,
   Val_I32   = 0x12,

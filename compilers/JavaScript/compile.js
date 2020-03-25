@@ -22,7 +22,7 @@ const
   Form_Eval = 0x00,
   Form_If = 0x01, Form_Or = 0x02, Form_And = 0x03, Form_Case = 0x04,
   Val_True = 0x05, Val_False = 0x06, Val_Str = 0x07, Param_Val = 0x08,
-  Bind_Mark = 0x09, Bind_Val = 0x0A,
+  Bind_Mark = 0x09, Bind_Val = 0x0A, XBind_Val = 0x0B,
   Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, Val_Char = 0x13,
   Val_Args = 0x19, Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x1E,
   Op_Func = 0x22, Op_Var = 0x2A, Op_Param = 0x2B;
@@ -221,14 +221,17 @@ function compile (source, ramRequest) {
     } else
     //If not op or func, meaning binding or binding reference
     {
+      let isXBind = sym.startsWith(".");
+      if (isXBind) sym = sym.slice(1);
       if (!binds.includes(sym)) {
         binds.push(sym);
         bindsDefined.push(false);
       }
       if (isBindMark)
         bindsDefined[binds.indexOf(sym)] = true;
-      variHex = numToHex(isBindMark ? Bind_Mark : Bind_Val, 1)
-                + numToLEHex(binds.indexOf(sym), 2);
+      const type = isBindMark ? Bind_Mark : (isXBind ? XBind_Val : Bind_Val);
+      const bIdx = binds.indexOf(sym);
+      variHex = numToHex(type, 1) + numToLEHex(bIdx, 2);
     }
     return {hex: variHex, info: `${isBindMark ? "bind" : "var"}: ${sym}`};
   }

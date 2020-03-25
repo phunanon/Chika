@@ -197,15 +197,19 @@ uint8_t* ChVM::pFunc (funcnum fNum) {
   return nullptr;
 }
 
-bool ChVM::findBind (itemnum& it, bindnum bNum) {
+bool ChVM::findBind (itemnum& it, bindnum bNum, bool skipOne) {
   bool found = false;
   if (numItem() > 1) {
-    it = numItem() - 2; //Start -1 from last item, to permit "a= (inc a)"
+    it = numItem() - 1;
     for (; ; --it) {
       if (it == (itemnum)-1) break;
       if (i(it)->type != Bind_Mark) continue;
       //Test if this bind is the correct number
       if (readUNum(iBytes(it), sizeof(bindnum)) == bNum) {
+        if (skipOne) {
+          skipOne = false;
+          continue;
+        }
         found = true;
         break;
       }
@@ -491,12 +495,12 @@ void ChVM::exeForm () {
       ++f; //Skip const code
     } else
     //If a binding reference
-    if (nextEval == Bind_Val) {
+    if (nextEval == Bind_Val || nextEval == XBind_Val) {
       bindnum bNum = readUNum(++f, sizeof(bindnum));
       f += sizeof(bindnum);
       itemnum it;
       //If the binding was found
-      if (findBind(it, bNum)) {
+      if (findBind(it, bNum, nextEval == XBind_Val)) {
         Item* bItem = i(it);
         //memcpy the data onto the stack
         memcpy(stackItem(), iBytes(it), bItem->len);
@@ -540,7 +544,7 @@ void ChVM::exeForm () {
       bool found = true;
 
       if (nextEval == Op_Bind) {
-        found = findBind(it, readUNum(++f, sizeof(bindnum)));
+        found = findBind(it, readUNum(++f, sizeof(bindnum)), false);
         f += sizeof(bindnum);
       } else {
         it = p0 + readUNum(++f, sizeof(argnum));

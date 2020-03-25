@@ -128,7 +128,7 @@ Names can include (almost) any characters excluding whitespace.
 
 `..=`: binding, whereby `..` is a label.  
 Note: parameters take precedent over bindings.  
-Note: when *redefining* bindings, the binding **must** be the very first argument mentioned after the binding declaration. E.g. `a= (+ a 1)` works, but `a= (+ 1 a)` will not as `1` would be the next item on the ChVM stack after the binding. Consider instead using a different binding label.
+Note: when *redefining* bindings, one must write the binding as `.label`, informing the VM to skip a previous instance of a bind. Consider: `a= (+ 1 .a)`, so that `a` does not refer to the next item on the stack at that moment - `1`.
 
 Parameters override variables.
 
@@ -282,7 +282,7 @@ Example: `(loop 3 5 print)` prints "3" and "4"; returns nil.
 Topics are forward-slash `/` delimited strings. Un/subscription topics use the wildcards `/+/` for *any* and `/#` for *any hereafter*.  
 Example: the topic `house/kitchen/fridge` matches the subcription `house/+/fridge` or `house/#` or `+/kitchen/+` or `#`, but not `garage/#` or `house/bedroom/fridge` or `house/+/sink`.
 
-`pub topic payload`: send a message throughout the VM with the string topic `topic` and a payload `payload` of any type;  
+`pub topic[ payload]`: send a message throughout the VM with the string topic `topic`, and optionally a payload `payload` (otherwise nil) of any type;  
 returns nil, or if the message caused another program to publish a message the original publishing program was subscribed to,  
 returns the state returned by the original publishing program's subscription handler.  
 Note: publishing is immediate and synchronous - your program will have to wait as subscribers process the message.
