@@ -298,20 +298,25 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
 }
 
 
-void ChVM::msgInvoker (prognum pN, funcnum fN, const char* topic, Item* iPayload, uint8_t* bPayload) {
+void ChVM::msgInvoker (prognum pN, funcnum fN, const char* topic, Item* iPayload, uint8_t* bPayload, bool provideT) {
   switchToProg(pN);
   //In the case of no program state before a message comes in, create a nil
   if (!numItem())
     returnNil(0);
-  //Copy the topic & payload as items 1 & 2 (param 1 & 2),
+  //In the case of a circular publishing, ensure a copy of the state is the next item
+  else if (numItem() > 1)
+    restackCopy(0);
+  //Copy the topic (if provideT) & payload as items 1 & 2 (param 1 & 2),
   //  as the state is item 0,
   //  then call the function
-  strilen sLen = strlen(topic) + 1;
-  memcpy(stackItem(), topic, sLen);
-  stackItem(Item(sLen, Val_Str));
+  if (provideT) {
+    strilen sLen = strlen(topic) + 1;
+    memcpy(stackItem(), topic, sLen);
+    stackItem(Item(sLen, Val_Str));
+  }
   memcpy(stackItem(), bPayload, iPayload->len);
   stackItem(iPayload);
-  exeFunc(fN, numItem() - 3);
+  exeFunc(fN, numItem() - (provideT ? 3 : 2));
 }
 
 
@@ -1157,6 +1162,14 @@ void ChVM::op_Loop (itemnum p0) {
 }
 
 void ChVM::op_Binds (itemnum p0) {
+  //Remove non-binding items
+  for (itemnum p = p0; p < numItem(); ++p) {
+    if (!p) continue;
+    if (i(p)->type != Bind_Mark && i(p - 1)->type != Bind_Mark) {
+      collapseItems(p, numItem() - p - 1);
+      --p;
+    }
+  }
   //Deduplicate binds
   for (itemnum p = p0; p < numItem() - 2; ++p) {
     //If this is a binding...
@@ -1169,14 +1182,6 @@ void ChVM::op_Binds (itemnum p0) {
           break;
       if (b + 1 != numItem())
         collapseItems(p, numItem() - p - 2);
-    }
-  }
-  //Remove non-binding items
-  for (itemnum p = p0; p < numItem(); ++p) {
-    if (!p) continue;
-    if (i(p)->type != Bind_Mark && i(p - 1)->type != Bind_Mark) {
-      collapseItems(p, numItem() - p - 1);
-      --p;
     }
   }
   //Vectorise all remaining parameters
@@ -1194,11 +1199,10 @@ void ChVM::op_Do (itemnum p0) {
 }
 
 void ChVM::op_Pub (itemnum p0) {
-  prognum savePNum = pNum;
-  itemnum nItem = numItem();
   //Pre-emptively stack a nil
   stackNil();
   //Publish the message
+  prognum savePNum = pNum;
   broker.publish(iStr(p0), i(p0 + 1), iBytes(p0 + 1), this);
   //During a publish, the program may have been switched away from
   //  so switch back to the original, publishing program
@@ -1210,13 +1214,14 @@ void ChVM::op_Pub (itemnum p0) {
   returnCollapseLast(p0);
 }
 void ChVM::op_Sub (itemnum p0) {
-  broker.subscribe(iStr(p0), pNum, iInt(p0 + 1));
+  bool provideT = numItem() - p0 > 2;
+  broker.subscribe(iStr(p0), pNum, iInt(p0 + 1), provideT);
   returnNil(p0);
 }
 void ChVM::op_Unsub (itemnum p0) {
-  //Either unsubscribe just the program if there's only one argument
-  //  or a particular topic
-  broker.unsubscribe(pNum, numItem() - p0 > 1 ? iStr(p0) : nullptr);
+  //Either unsubscribe from everything (0 param)
+  //  or a particular topic (1 param)
+  broker.unsubscribe(pNum, numItem() - p0 ? iStr(p0) : nullptr);
   returnNil(p0);
 }
 

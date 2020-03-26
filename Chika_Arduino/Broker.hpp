@@ -7,7 +7,8 @@ class ChVM;
 struct Sub {
   prognum p;
   funcnum f;
-  sublen tLen;
+  sublen  tLen;
+  bool    provideT;
 };
 
 class Broker {
@@ -18,7 +19,7 @@ class Broker {
 public:
   Broker ();
   void publish        (const char*, Item*, uint8_t*, ChVM*);
-  void subscribe      (const char*, prognum, funcnum);
+  void subscribe      (const char*, prognum, funcnum, bool);
   void unsubscribe    (prognum, const char* = nullptr);
   void shiftCallbacks (prognum);
 };

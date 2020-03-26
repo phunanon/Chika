@@ -122,7 +122,8 @@ ChVM machine = ChVM(&harness);
 bool ChVM_Harness::loadProg (const char* path) {
   File prog = SD.open(path);
   if (!prog) {
-    Serial.println("Program not found");
+    Serial.print("Program not found: ");
+    Serial.println(path);
     return false;
   }
   bytenum memLen;

@@ -109,7 +109,7 @@ public:
   ChVM (ChVM_Harness*);
   void entry     ();
   bool heartbeat ();
-  void msgInvoker(prognum, funcnum, const char*, Item*, uint8_t*);
+  void msgInvoker(prognum, funcnum, const char*, Item*, uint8_t*, bool);
 
   prognum  numProg;           //Number of loaded progs
   uint8_t* getPROM ();
