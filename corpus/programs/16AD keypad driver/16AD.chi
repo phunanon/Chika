@@ -2,11 +2,11 @@
 [prev= N
  ms=   N]
 
-(fn heartbeat ctx
-  (binds (.. ctx)
+(fn heartbeat x
+  (binds (.. x)
     press= N
     v= (ana-r 21)
-    k= (/ (+ v 20) 64)
+    k= (/ (+ v 8) 64)
     (..
       (if (and prev (< (+ ms 50) (ms-now)))
         [press= prev

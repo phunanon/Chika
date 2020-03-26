@@ -58,8 +58,9 @@
 (fn send-char char
   (data-start)
   (send-byte 0x00)
-  (do c= (* 5w (- char 32))
-    (loop 5 {send-byte (nth font (+ c #)})))
+  (do c= (* 1w CHAR-W (- char 32))
+      data= (file-r "font6x8.bin" c CHAR-W)
+    (loop CHAR-W {send-byte (nth data #)}))
   (transfer-stop))
 
 (fn fill with
@@ -68,31 +69,56 @@
   (set-pos 0 0))
 
 
-(fn handle-byte ctx t byte
-  (binds (.. ctx)
+(fn handle-byte x byte
+  (binds (.. x)
     (data-start)
     (send-byte byte)
     (transfer-stop)))
 
-(fn handle-char ctx t char
-  (binds (.. ctx)
-    (send-char char)))
+(fn handle-char x char
+  (do
+    is-nl= (= char \nl)
+    (binds (.. x)
+      (if is-nl N (send-char char))
+      c-col=
+      (if is-nl 0
+        (if (= .c-col MAX-C-COL) 0 (+ .c-col CHAR-W 1)))
+      prev-page= c-page
+      c-page=
+      (if (= c-col 0) (+ .c-page 1) .c-page)
+      c-page=
+      (if (= .c-page PAGES) 0 .c-page)
+      (if (!= prev-page c-page)
+        (do
+          (fill-page c-page 0x00)
+          (set-pos 0 c-page))))))
 
-(fn handle-str ctx t string
-  (binds (.. ctx)
+(fn handle-str2 x string
+  (binds (.. x)
     (map send-char [(.. string)])))
+
+(fn handle-str x string
+  (reduce handle-char x [(.. string)]))
+
+(fn handle-clear x
+  (binds (.. x)
+    (fill 0x00)
+    c-col= 0 c-page= 0))
 
 (fn heartbeat ctx (val ctx))
 
-(sub "display/byte" handle-byte)
-(sub "display/char" handle-char)
-(sub "display/str"  handle-str)
-(do
-  ctx=
-  [COLS= 128 PAGES= 8
-   SCL= 12 SDA= 11 SA= 0x78
-   font= (file-r "font6x8.bin")]
-  (.. ctx)
+(sub "display/byte"  handle-byte)
+(sub "display/char"  handle-char)
+(sub "display/str"   handle-str)
+(sub "display/clear" handle-clear)
+
+(binds
+  COLS= 128 PAGES= 8
+  SCL= 12 SDA= 11 SA= 0x78
+  CHAR-W= 5
+  MAX-C-COL=
+  (do w= (+ CHAR-W 1)
+    (- (* (/ COLS w) w) w))
+  c-col= 0 c-page= 0
   (init)
-  (set-pos 0 0)
-  (val ctx))
+  (set-pos 0 0))
