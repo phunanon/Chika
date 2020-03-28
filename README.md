@@ -306,7 +306,7 @@ Note: will remove all matching specific subscriptions.
 
 `load path`: loads the compiled Chika program (.kua) at `path`; returns bool of success of loading the program.
 
-`halt`: immediately terminates the Chika program. Note: has the side-effect of skipping the next program's heartbeat.
+`halt`: immediately terminates the Chika program.
 
 ### Binary structure
 

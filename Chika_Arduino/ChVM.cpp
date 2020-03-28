@@ -164,14 +164,36 @@ void ChVM::collapseItems (itemnum to, itemnum nItem) {
   numItem(to + nItem);
 }
 
+void ChVM::purgeProg (prognum n) {
+  --numProg;
+  //Move all programs right of this one into its position
+  //And move program infos left in the process too
+  if (pNum == numProg) return;
+  bytenum len = 0;
+  bytenum replaceLen = pInfo->memLen;
+  for (prognum p = pNum + 1; p < numProg + 1; ++p) {
+    len += progs[p].memLen;
+    if (p - pNum)
+      progs[p - 1] = progs[p];
+  }
+  memcpy(pROM, pROM + replaceLen, len);
+  //Remove its subscriptions,
+  //  and shift any message callbacks left too
+  broker.unsubscribe(pNum);
+  broker.shiftCallbacks(pNum);
+}
 
 
 void ChVM::entry () {
   exeFunc(0x0000, 0);
 }
 
-bool ChVM::heartbeat (prognum _pNum) {
-  switchToProg(_pNum);
+bool ChVM::heartbeat (prognum pNum) {
+  switchToProg(pNum);
+  if (pInfo->isHalting) {
+    purgeProg(pNum);
+    return false;
+  }
   if (harness->msNow() > pInfo->sleepUntil)
     return exeFunc(0x0001, 0);
   return true;
@@ -1266,20 +1288,5 @@ void ChVM::op_Load (itemnum p0) {
 void ChVM::op_Halt () {
   //Halt all execution while unrolling ChVM:: exeForm & exeFunc
   funcState = Halted;
-  --numProg;
-  //Move all programs right of this one into its position
-  //And move program infos left in the process too
-  if (pNum == numProg) return;
-  bytenum len = 0;
-  bytenum replaceLen = pInfo->memLen;
-  for (prognum p = pNum + 1; p < numProg + 1; ++p) {
-    len += progs[p].memLen;
-    if (p - pNum)
-      progs[p - 1] = progs[p];
-  }
-  memcpy(pROM, pROM + replaceLen, len);
-  //Remove its subscriptions,
-  //  and shift any message callbacks left too
-  broker.unsubscribe(pNum);
-  broker.shiftCallbacks(pNum);
+  pInfo->isHalting = true;
 }

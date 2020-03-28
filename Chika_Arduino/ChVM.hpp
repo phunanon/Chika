@@ -9,11 +9,12 @@
 class Broker;
 
 struct ProgInfo {
-  bytenum memLen;  //Length of the program ROM, RAM, and other data
-  proglen romLen;  //Length of the program
-  itemnum numItem; //Number of LIFO items
-  bytenum numByte; //Number of LIFO bytes
+  bytenum  memLen;  //Length of the program ROM, RAM, and other data
+  proglen  romLen;  //Length of the program
+  itemnum  numItem; //Number of LIFO items
+  bytenum  numByte; //Number of LIFO bytes
   uint32_t sleepUntil; //Time in miliseconds to not heartbeat until
+  bool     isHalting = false;
   ProgInfo () {}
   ProgInfo (bytenum _memLen, proglen _romLen, itemnum _numItem, bytenum _numByte)
     : memLen(_memLen), romLen(_romLen), numItem(_numItem), numByte(_numByte) {}
@@ -61,14 +62,16 @@ class ChVM {
   void     iPop       ();                   //Pop item
   void     collapseItems (itemnum, itemnum);
 
+  void     purgeProg (prognum);
   uint8_t* pFunc     (funcnum);
   bool     findBind  (itemnum&, bindnum, bool);
 
   void     collapseArgs  (itemnum&);
   void     tailCallOptim (IType, itemnum&);
+  //All may leave multiple items on the stack
   void     burstItem ();
   void     op_Sect   (itemnum, bool);
-  //All leave one V item on the stack
+  //All leave one item on the stack
   bool     exeFunc   (funcnum, itemnum);
   void     exeForm   ();
   void     nativeOp  (IType, itemnum);
@@ -103,6 +106,7 @@ class ChVM {
   void     op_Print  (itemnum);
   void     op_Debug  (itemnum);
   void     op_Load   (itemnum);
+  //Returns nothing
   void     op_Halt   ();
 
 public:
