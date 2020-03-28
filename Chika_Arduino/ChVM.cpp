@@ -777,7 +777,7 @@ void ChVM::op_Read (itemnum p0) {
   //TODO: crash if above RAM limit
   int32_t rLen = harness->fileRead(iStr(p0), iBytes(p0), offset, count);
   //If the file could not be opened, or read was out-of-bounds, return nil
-  if (rLen < 0) {
+  if (!rLen) {
     returnNil(p0);
     return;
   }
@@ -1232,7 +1232,7 @@ void ChVM::op_MsNow (itemnum p0) {
 }
 
 void ChVM::op_Sleep (itemnum p0) {
-  pInfo->sleepUntil = harness->msNow() + readUNum(iBytes(p0), sizeof(uint32_t));
+  pInfo->sleepUntil = harness->msNow() + iInt(p0);
   returnNil(p0);
 }
 
@@ -1271,12 +1271,13 @@ void ChVM::op_Halt () {
   //And move program infos left in the process too
   if (pNum == numProg) return;
   bytenum len = 0;
+  bytenum replaceLen = pInfo->memLen;
   for (prognum p = pNum + 1; p < numProg + 1; ++p) {
     len += progs[p].memLen;
     if (p - pNum)
       progs[p - 1] = progs[p];
   }
-  memcpy(pROM, pROM + pInfo->memLen, len);
+  memcpy(pROM, pROM + replaceLen, len);
   //Remove its subscriptions,
   //  and shift any message callbacks left too
   broker.unsubscribe(pNum);

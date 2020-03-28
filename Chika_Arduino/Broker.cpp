@@ -9,23 +9,24 @@ uint8_t indexOf (const char* str, char ch) {
   return 0;
 }
 
-bool topicsMatch (const char* sTopic, const char* mTopic) {
-  for (uint8_t s = 0, m = 0; sTopic[s] && mTopic[m]; ) {
-    if (sTopic[s] == '#') return true; //e.g. "test/#" match "test/test"
-    if (sTopic[s] == '+') { //e.g. "test/+/test" match "test/test/test"
+bool topicsMatch (const char* sT, const char* mT) {
+  for (uint8_t s = 0, m = 0; sT[s] && mT[m]; ) {
+    if (sT[s] == '#') return true; //e.g. "test/#" match "test/test"
+    if (sT[s] == '+') { //e.g. "test/+/test" match "test/test/test"
       ++s; //Skip +
       if (!s) return true; //e.g. "test/+" match "test/test/test"
       ++s; //Skip /
-      uint8_t i = indexOf(mTopic + m, '/');
+      uint8_t i = indexOf(mT + m, '/');
       if (!i) return false; //e.g. "test/+/ing" not match "test/test"
       m += i + 1; //Skip field
     } else
-      if (sTopic[s] == mTopic[m]) { //e.g. "123" match "123"
+      if (sT[s] == mT[m]) { //e.g. "123" match "123"
         ++s;
         ++m;
       } else return false; //e.g. "123" not match "124"
-    //e.g. "test" not match "test1"
-    if (!sTopic[s] && mTopic[m]) return false;
+    //e.g. "test" not match "test1" and vice versa
+    if ((!sT[s] && mT[m]) || (sT[s] && !mT[m]))
+      return false;
   }
   return true; //Perfect match
 }
