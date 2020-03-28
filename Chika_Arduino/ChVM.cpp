@@ -913,8 +913,9 @@ void ChVM::op_Vec (itemnum p0) {
 }
 
 void ChVM::op_Nth (itemnum p0) {
-  int32_t nth = iInt(p0 + 1);
-  Item* it = i(p0);
+  int32_t nth = iInt(p0);
+  Item* it = i(p0 + 1);
+  uint8_t* vBytes = iBytes(p0 + 1);
   //Return nil on negative nth or non-str/vec/blob
   IType type = it->type;
   if (nth < 0 || (type != Val_Vec && type != Val_Str && type != Val_Blob)) {
@@ -927,7 +928,7 @@ void ChVM::op_Nth (itemnum p0) {
       returnNil(p0);
       return;
     }
-    *iBytes(p0) = iBytes(p0)[nth];
+    *iBytes(p0) = vBytes[nth];
     returnItem(p0, Item(1, Val_Char));
     return;
   }
@@ -936,12 +937,11 @@ void ChVM::op_Nth (itemnum p0) {
       returnNil(p0);
       return;
     }
-    *iBytes(p0) = iBytes(p0)[nth];
+    *iBytes(p0) = vBytes[nth];
     returnItem(p0, Item(1, Val_U08));
     return;
   }
   //Collate vector info
-  uint8_t* vBytes = iBytes(p0);
   uint8_t* vEnd = (vBytes + it->len) - sizeof(vectlen);
   itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
   Item* vItems = &((Item*)vEnd)[-vNumItem];
@@ -1280,6 +1280,7 @@ void ChVM::op_Load (itemnum p0) {
   //After loading a program the program context will have been switched
   //  We need to ensure we restore it to this one
   prognum savePNum = pNum;
+  memcpy(iBytes(p0) + i(p0)->len - 1, ".kua\0", 5);
   bool success = harness->loadProg(iStr(p0));
   switchToProg(savePNum);
   returnBool(p0, success);

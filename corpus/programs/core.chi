@@ -10,9 +10,9 @@
 (fn min a b (if (< a b) a b))
 (fn abs n (if (pos? n) n (neg n)))
 
-(fn 1st  i (nth i 0))
-(fn 2nd  i (nth i 1))
-(fn last i (nth i (dec (len i))))
+(fn 1st  i (nth 0 i))
+(fn 2nd  i (nth 1 1))
+(fn last i (nth (dec (len i)) i))
 (fn prepend v i [i (.. v)])
 (fn append  v i [(.. v) i])
 (fn join v1 v2 [(.. v1) (.. v2)])

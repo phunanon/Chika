@@ -204,7 +204,7 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `vec` 0-N arg: returns vector of its arguments.
 
-`nth i N`: returns item, character, or 8-bit int `N` of vector, string, or blob `i`, or nil if `N` is in an improper range.
+`nth N i`: returns item, character, or 8-bit integer `N` of vector, string, or blob `i`, or nil if `N` is in an improper range.
 
 `str` 0 arg: returns empty string.  
 `str` N arg: returns concatenation of N arguments as a string.
@@ -217,7 +217,8 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 `b-sect`: the same as `sect` but returns items burst.
 
 `.. v`: bursts a vector or string `v` onto the argument stack as either vector items or Val_Char items.  
-Note: like Clojure `apply` e.g. `(+ (.. [1 2 3]))`).
+Note: like Clojure `apply` e.g. `(+ (.. [1 2 3]))`).  
+Note: if its argument is not a vector it leaves no items on the stack.
 
 `binds`: deduplicates any bindings in its arguments, favouring newer ones, and then vectorising the remains.  
 Example: `(binds a= 1 b= 2 a= 3) => [b= 2 a= 3]`
@@ -304,7 +305,7 @@ Note: will remove all matching specific subscriptions.
 
 `print` 0-N arg: prints result of `str` of N args; returns nil.
 
-`load path`: loads the compiled Chika program (.kua) at `path`; returns bool of success of loading the program.
+`load path`: loads the compiled Chika program at `path` (without file extension); returns bool of success of loading the program.
 
 `halt`: immediately terminates the Chika program.
 
