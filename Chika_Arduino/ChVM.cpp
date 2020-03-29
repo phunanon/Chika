@@ -302,7 +302,7 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
       break;
     }
     if (funcState == Halted)
-      return true;
+      break;
     if (f != fEnd)
       iPop();
   }

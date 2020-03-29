@@ -59,7 +59,7 @@ void Broker::unsubscribe (prognum pNum, const char* topic) {
     sublen tLen = subs[s].tLen;
     if (s + 1 != numSub) {
       memcpy(&subs[s], &subs[s + 1], (numSub - s - 1) * sizeof(Sub));
-      memcpy(&topics[tOffset], &topics[tOffset + tLen], sizeof(char) * tLen);
+      memcpy(&topics[tOffset], &topics[tOffset + tLen], topicsLen - tOffset - tLen);
     }
     --numSub;
     --s;
