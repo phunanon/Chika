@@ -105,6 +105,13 @@ bool ChVM_Harness::fileDelete (const char* path) {
   return remove(path);
 }
 
+int32_t ChVM_Harness::fileSize (const char* path) {
+  FILE* fp = fopen(path, "rb");
+  int32_t fSize = fp ? fsize(fp) : -1;
+  if (fp) fclose(fp);
+  return fSize;
+}
+
 
 auto start_time = std::chrono::high_resolution_clock::now();
 uint32_t ChVM_Harness::msNow () {

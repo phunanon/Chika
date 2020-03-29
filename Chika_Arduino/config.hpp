@@ -3,6 +3,7 @@
 #include "string.h"
 
 #define USE_SERIAL true
+#define USE_DEBUGGING true
 
 //MEM_SIZE: Arduino SRAM size
 //#define MEM_SIZE 262144 //256k

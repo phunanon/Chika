@@ -245,6 +245,7 @@ Note: these have no effect on PC.
 Note: on Arduino files must have extentions of no more than three characters.
 
 `file-r path`: returns blob of whole file contents.  
+`file-r path T`: returns file size.  
 `file-r path offset`: returns blob of file content between offset bytes and EOF.  
 `file-r path offset count`: returns blob of file content between offset and count bytes.  
 All return nil upon failure.

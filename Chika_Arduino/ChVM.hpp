@@ -58,6 +58,7 @@ class ChVM {
   void     restackCopy        (itemnum, itemnum);
   void     returnNil  (itemnum);
   void     returnBool (itemnum, bool);
+  void     returnInt  (itemnum, int32_t, uint8_t);
   void     stackNil   ();
   void     iPop       ();                   //Pop item
   void     collapseItems (itemnum, itemnum);

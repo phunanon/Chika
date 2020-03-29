@@ -145,6 +145,10 @@ void ChVM::returnNil (itemnum replace) {
 void ChVM::returnBool (itemnum replace, bool b) {
   returnItem(replace, Item(b ? Val_True : Val_False));
 }
+void ChVM::returnInt (itemnum replace, int32_t num, uint8_t size) {
+  writeNum(iBytes(replace), num, size);
+  returnItem(replace, fitInt(size));
+}
 void ChVM::stackNil () {
   stackItem(Item(0, Val_Nil));
 }
@@ -741,6 +745,10 @@ void ChVM::op_Arith (itemnum p0, IType op) {
   itemlen len = constByteLen(type);
   int32_t result = readNum(iBytes(p0), len);
   if (op == Op_BNot) result = ~result;
+  if (op == Op_Sub && p0 + 1 == numItem()) {
+    returnInt(p0, -readNum(iBytes(p0), constByteLen(i(p0)->type)), sizeof(int32_t));
+    return;
+  }
   for (itemnum it = p0 + 1, itEnd = numItem(); it < itEnd; ++it) {
     int32_t num = readNum(iBytes(it), min(len, constByteLen(i(it)->type)));
     switch (op) {
@@ -778,14 +786,10 @@ void ChVM::op_GPIO (itemnum p0, IType op) {
         harness->anaOut(iInt(p), iInt(p + 1));
       break;
   }
-  if (op == Op_DigIn) {
-    returnBool(p0, input);
-  } else
-  if (op == Op_AnaIn) {
-    writeUNum(iBytes(p0), input, sizeof(input));
-    returnItem(p0, Item(sizeof(input), fitInt(sizeof(input))));
-  } else {
-    returnNil(p0);
+  switch (op) {
+    case Op_DigIn: returnBool(p0, input); break;
+    case Op_AnaIn: returnInt(p0, input, sizeof(input)); break;
+    default: returnNil(p0); break;
   }
 }
 
@@ -793,7 +797,16 @@ void ChVM::op_Read (itemnum p0) {
   //Collect arguments
   uint32_t offset = 0, count = 0;
   argnum nArg = numItem() - p0;
-  if (nArg > 1) offset = iInt(p0 + 1);
+  if (nArg > 1) {
+    if (i(p0 + 1)->type == Val_True) {
+      int32_t fLen = harness->fileSize(iStr(p0));
+      if (fLen > 0)
+        returnInt(p0, fLen, sizeof(fLen));
+      else returnNil(p0);
+      return;
+    }
+    offset = iInt(p0 + 1);
+  }
   if (nArg > 2) count  = iInt(p0 + 2);
   //Read file into first parameter memory
   //TODO: crash if above RAM limit
@@ -963,8 +976,7 @@ void ChVM::op_Len (itemnum p0) {
     case Val_Vec: len = vectLen(p0); break;
     case Val_Str: --len; break;
   }
-  writeUNum(iBytes(p0), len, sizeof(itemlen));
-  returnItem(p0, Item(sizeof(itemlen), fitInt(sizeof(itemlen))));
+  returnInt(p0, len, sizeof(len));
 }
 
 void ChVM::op_Sect (itemnum p0, bool isBurst) {
@@ -1174,8 +1186,7 @@ void ChVM::op_Loop (itemnum p0) {
   //Prepare stack with one 16-bit int
   for (uint16_t i = from; i < to; ++i) {
     //Copy i to p0
-    returnItem(p0, Item(Val_U16));
-    writeUNum(iBytes(p0), i, sizeof(i));
+    returnInt(p0, i, sizeof(i));
     //Execute f
     if (isOp) nativeOp((IType)fCode, p0);
     else      exeFunc(fCode, p0);
@@ -1249,8 +1260,7 @@ void ChVM::op_Unsub (itemnum p0) {
 
 void ChVM::op_MsNow (itemnum p0) {
   auto msNow = harness->msNow();
-  writeNum(iBytes(p0), msNow, sizeof(msNow));
-  returnItem(p0, Item(fitInt(sizeof(msNow))));
+  returnInt(p0, msNow, sizeof(msNow));
 }
 
 void ChVM::op_Sleep (itemnum p0) {
@@ -1265,6 +1275,7 @@ void ChVM::op_Print (itemnum p0) {
 }
 
 void ChVM::op_Debug (itemnum p0) {
+#if USE_DEBUGGING
   uint32_t out = 0;
   switch (iInt(p0)) {
     case 0: out = numItem(); break;
@@ -1272,8 +1283,10 @@ void ChVM::op_Debug (itemnum p0) {
     case 2: harness->printItems(pFirstItem, numItem()); break;
     case 3: harness->printMem(pBytes, numByte());
   }
-  writeUNum(iBytes(p0), out, sizeof(out));
-  returnItem(p0, Item(fitInt(sizeof(out))));
+  returnInt(p0, out, sizeof(out));
+#elif
+  returnNil(p0);
+#endif
 }
 
 void ChVM::op_Load (itemnum p0) {

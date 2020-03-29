@@ -111,6 +111,10 @@ bool ChVM_Harness::fileDelete (const char* path) {
   return SD.remove(path);
 }
 
+int32_t ChVM_Harness::fileSize (const char* path) {
+  return SD.open(path, FILE_READ).size();
+}
+
 
 uint32_t ChVM_Harness::msNow () {
   return millis();
