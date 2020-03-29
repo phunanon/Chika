@@ -99,9 +99,20 @@ function funcise (forms) {
   return funcs;
 }
 
-function compile (source, ramRequest) {
+function compile (source) {
 
   const startTime = new Date();
+
+  let ramRequest = 1024*8;
+  //Extract possible RAM request
+  //Or skip shebang
+  while (source.startsWith("#")) {
+    const nlAt = source.indexOf("\n");
+    const req = source.slice(1, nlAt);
+    source = source.slice(nlAt);
+    if (parseInt(req) == req)
+      ramRequest = parseInt(req);
+  }
 
   //Extract all strings, and replace them with "`n`"
   const extractedStrings = extractStrings(source);
@@ -284,20 +295,20 @@ function compile (source, ramRequest) {
     return insert(f, 1, {n: itemsLen(f.slice(1)), b: 2, info: "func len"});
   });
 
-  //console.log(funcs);
-
   //assembly to image
-  const image =
-    numToLEHex(ramRequest, 4) + //Prepend program RAM request
+  let image =
     flatten(funcs)
       .filter(isObject)
       .map(n => n.hex == undefined ? numToLEHex(n.n, n.b) : n.hex)
       .join("");
+  //Prepend program memory request
+  image = numToLEHex(ramRequest + image.length/2, 4) + image;
 
-  console.log(`${(image.length / 2)} B in ${((new Date()) - startTime)}ms`);
+  console.log(`${(image.length / 2)}B in ${((new Date()) - startTime)}ms`);
   return {assembly: JSON.stringify(funcs, null, ' '), image};
 }
 
-module.exports = function() { 
+const mod = typeof module !== 'undefined' ? module : {};
+mod.exports = function() { 
     this.compile = compile;
 }

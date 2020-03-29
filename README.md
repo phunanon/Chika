@@ -85,7 +85,6 @@ Using pre-allocated memory to store and execute a variable number of programs at
 - state first last on heartbeat
 - can be compiled as C++ program
 - uses stacks
-- uses C/V items
 
 TODO
 
@@ -107,7 +106,9 @@ TODO
 
 #### Syntax
 
-Names can include (almost) any characters excluding whitespace.
+Labels and function names can include (almost) any characters excluding whitespace.
+
+`(start of file)#num`: informs the VM how many bytes of RAM (`num`) will be used by the program. Otherwise a default maximum is used.
 
 `(func[ N args])`: a form, with a function in the head position, and 0-N arguments separated by spaces. Arguments can be forms.
 
