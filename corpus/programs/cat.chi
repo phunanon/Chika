@@ -1,0 +1,15 @@
+
+//USAGE: (load "cat") (pub "cat" ["result" "file1" "file2" ...])
+//Appends to existing "result" file, or creates a new one
+
+(fn cat into files
+  (if (!= (len files) 0)
+    (do
+      (file-a into (file-r (nth 0 files)))
+      (recur into (sect files)))))
+
+(sub "cat" {cat (nth 0 #1) (sect #1) 0i})
+
+(fn heartbeat x
+  (sleep 255)
+  (if x (halt) T))

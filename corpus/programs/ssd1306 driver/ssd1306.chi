@@ -31,25 +31,25 @@
   (do
     sequence= (file-r (str "OLED" COLS ".INI"))
     (loop (len sequence)
-      {send-command (nth sequence #)})))
+      {send-command (nth # sequence)})))
 
-(fn set-pos col page
+(fn set-pos c p
   (command-start)
   //Column
   (send-byte 0x21)
   (if (= COLS 64)
-    (do (send-byte (+ 0x20 col))
+    (do (send-byte (+ 0x20 c))
         (send-byte 0x60))
-    (do (send-byte col)
+    (do (send-byte c)
         (send-byte 0x7F)))
   //Page
   (send-byte 0x22)
-  (send-byte page)
+  (send-byte p)
   (send-byte 7)
   (transfer-stop))
 
-(fn fill-page page with
-  (set-pos 0 page)
+(fn fill-page p with
+  (set-pos 0 p)
   (data-start)
   (do w= with
     (loop COLS {send-byte w}))
@@ -60,7 +60,7 @@
   (send-byte 0x00)
   (do c= (* 1w CHAR-W (- char 32))
       data= (file-r "font6x8.bin" c CHAR-W)
-    (loop CHAR-W {send-byte (nth data #)}))
+    (loop CHAR-W {send-byte (nth # data)}))
   (transfer-stop))
 
 (fn fill with
@@ -79,46 +79,73 @@
   (do
     is-nl= (= char \nl)
     (binds (.. x)
-      (if is-nl N (send-char char))
-      c-col=
-      (if is-nl 0
-        (if (= .c-col MAX-C-COL) 0 (+ .c-col CHAR-W 1)))
-      prev-page= c-page
-      c-page=
-      (if (= c-col 0) (+ .c-page 1) .c-page)
-      c-page=
-      (if (= .c-page PAGES) 0 .c-page)
-      (if (!= prev-page c-page)
+      (if (!= prev-page page)
         (do
-          (fill-page c-page 0x00)
-          (set-pos 0 c-page))))))
-
-(fn handle-str2 x string
-  (binds (.. x)
-    (map send-char [(.. string)])))
+          (fill-page page 0x00)
+          (set-pos 0 page)))
+      (if is-nl N (send-char char))
+      col=
+      (if is-nl 0
+        (if (= .col MAX-COL) 0 (+ .col CHAR-W 1)))
+      prev-page= page
+      page=
+      (if (= col 0) (+ .page 1) .page)
+      page=
+      (if (= .page PAGES) 0 .page)
+      )))
 
 (fn handle-str x string
   (reduce handle-char x [(.. string)]))
 
+(fn handle-page x p
+  (handle-str
+    (binds (.. x)
+      (fill-page 0 0x00)
+      (set-pos 0 0)
+      col= 0 page= 0)
+    p))
+
 (fn handle-clear x
   (binds (.. x)
     (fill 0x00)
-    c-col= 0 c-page= 0))
+    col= 0 page= 0))
 
-(fn heartbeat ctx (val ctx))
+(fn handle-pos? x
+  (binds (.. x)
+    (pub "dis/pos" [col page])))
 
-(sub "display/byte"  handle-byte)
-(sub "display/char"  handle-char)
-(sub "display/str"   handle-str)
-(sub "display/clear" handle-clear)
+(fn handle-pos! x pos
+  (binds (.. x)
+    col= (nth 0 pos)
+    page= (nth 1 pos)
+    prev-col= col
+    prev-page= page
+    (set-pos col page)))
+
+(fn handle-len? x
+  (binds (.. x)
+    (pub "dis/len"
+      [(/ COLS (+ CHAR-W 1)) PAGES])))
+
+(sub "dis/byte"  handle-byte)
+(sub "dis/char"  handle-char)
+(sub "dis/str"   handle-str)
+(sub "dis/page"  handle-page)
+(sub "dis/clear" handle-clear)
+(sub "dis/pos?"  handle-pos?)
+(sub "dis/pos!"  handle-pos!)
+(sub "dis/len?"  handle-len?)
 
 (binds
   COLS= 128 PAGES= 8
   SCL= 12 SDA= 11 SA= 0x78
   CHAR-W= 5
-  MAX-C-COL=
+  MAX-COL=
   (do w= (+ CHAR-W 1)
     (- (* (/ COLS w) w) w))
-  c-col= 0 c-page= 0
+  col= 0 page= 0
+  prev-col= 0 prev-page= 0
   (init)
   (set-pos 0 0))
+
+(fn heartbeat ctx (val ctx))

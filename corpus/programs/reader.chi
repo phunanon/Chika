@@ -1,0 +1,71 @@
+#2048
+
+(fn on-screen-len
+  string ;; real screen
+  (if (= (len string) 0) (return real))
+  (do
+    is-nl=  (= (nth 0 string) \nl)
+    n-real= (+ (or real 1w) 1)
+    n-screen= (or screen 0w)
+    n-screen=
+    (+ .n-screen
+       (if is-nl (- X (mod .n-screen X)) 1))
+    (if (>= n-screen L)
+      (return (if is-nl (- real 1) real)))
+    (recur (sect string) n-real n-screen)))
+
+(fn do-refresh
+  (if do-halt N
+    (do
+      text= (str (file-r path offset L))
+      l=    (on-screen-len text)
+      (pub "dis/page" (sect text 0 l))
+      [s-len= l])))
+
+(fn do-load x input
+  (if (file-r input 0 1) N
+    (do
+      (pub "display/page" "File not found.")
+      (halt)))
+  (sub "kb/cmd" handle-cmd)
+  (binds (.. x)
+    path= input))
+
+(fn scroll is-down
+  (do
+    f=     (if is-down + -)
+    new-o= (f offset s-len)
+    new-o= (if (< .new-o 0) 0 .new-o)
+    f-len= (file-r path T)
+    new-o= (if (< f-len .new-o) offset .new-o)
+  [offset= new-o]))
+
+(fn handle-cmd x cmd
+  (binds (.. x)
+    (..
+      (case cmd
+        0x8 (scroll F)
+        0xC (scroll T)
+        0xB [do-halt= T]))
+    (.. (do-refresh))))
+
+
+(pub "dis/str" (str "Enter file path:" \nl))
+(load "prompt")
+(sub "prompt/in" do-load)
+(sub "dis/len"   handle-len)
+
+(fn heartbeat x
+  (binds (.. x)
+    (if do-halt (halt))))
+
+[do-halt= F
+ path= N
+ offset= 0i
+ s-len= 0
+ (.. (pub "dis/len?"))]
+
+(fn handle-len x len
+  [X= (nth 0 len)
+   Y= (nth 1 len)
+   L= (* 1w X Y)])

@@ -1,0 +1,24 @@
+
+(fn handle-cmd offset cmd
+  (+ offset
+    (case cmd
+      0xC (* 60w 60)
+      0xD 60
+      0xE 1)))
+
+(fn heartbeat offset
+  (sleep 500w)
+  (do
+    s= (+ (/ (ms-now) 1000w) offset)
+    m= (/ s 60) h= (/ m 60)
+    s= (mod .s 60) m= (mod .m 60) h= (mod .h 24)
+    segs= (map {str (if (< # 10) \0 "") #} [h m s])
+    text= (reduce {str # \: #1} segs)
+    (pub "display/page" text))
+  (val offset))
+
+(load "ssd1306")
+(load "16AD")
+(pub "dis/clear")
+(sub "kb/cmd" handle-cmd)
+(val 0i)

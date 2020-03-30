@@ -1,0 +1,34 @@
+#512
+
+//prompts for and accepts user input
+//supporting backspace 0x7F
+//Press 0xF to enter or 0xE to cancel ("")
+
+(fn handle-char x char
+  (binds (.. x)
+    in=
+    (if (== char 0x7F)
+      (if (= (len .in) 0)
+        "" (sect .in 0 (- (len .in) 1)))
+      (str .in char))
+    (pub "dis/pos!" pos)
+    (pub "dis/str" (str in \sp))))
+
+(fn handle-cmd x cmd
+  (unsub "kb/cmd")
+  (do (.. x)
+    (pub "prompt/in"
+      (case cmd 0xF in 0xE "")))
+  (halt))
+
+(sub "kb/cmd"  handle-cmd)
+(sub "kb/char" handle-char)
+(pub "dis/char" \>)
+
+(fn heartbeat x
+  (sleep 1000w)
+  (val x))
+
+(sub "dis/pos" {val #1})
+[in= ""
+ pos= (pub "dis/pos?")]
