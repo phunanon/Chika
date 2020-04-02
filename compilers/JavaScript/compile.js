@@ -25,23 +25,23 @@ const
   Bind_Mark = 0x09, Bind_Val = 0x0A, XBind_Val = 0x0B,
   Val_U08 = 0x10, Val_U16 = 0x11, Val_I32 = 0x12, Val_Char = 0x13,
   Val_Args = 0x19, Var_Op = 0x1A, Var_Func = 0x1B, Val_Nil = 0x1E,
-  Op_Func = 0x22, Op_Var = 0x2A, Op_Param = 0x2B;
+  Op_Func = 0x22, Op_Bind = 0x61, Op_Param = 0x62;
 const strOps =
-  {"if":     0x23, "or":     0x24, "and":    0x25, "case":  0x26,
-   "not":    0x27, "return": 0x2E, "recur":  0x2F,
-   "=":      0x30, "==":     0x31, "!=":     0x32, "!==":    0x33,
-   "<":      0x34, "<=":     0x35, ">":      0x36, ">=":     0x37,
-   "+":      0x38, "-":      0x39, "*":      0x3A, "/":      0x3B, "mod":    0x3C, "pow": 0x3D,
-   "~":      0x40, "&":      0x41, "|":      0x42, "^":      0x43, "<<":     0x44, ">>":  0x45,
-   "p-mode": 0x60, "dig-r":  0x61, "dig-w":  0x62, "ana-r":  0x63, "ana-w":  0x64,
-   "file-r": 0x6A, "file-w": 0x6B, "file-a": 0x6C, "file-d": 0x6D,
-   "str":    0xA0, "type":   0xAA, "cast":   0xAB,
-   "vec":    0xB0, "nth":    0xB1, "len":    0xB2, "sect":   0xB3, "b-sect": 0xB4,
-   "..":     0xBA, "reduce": 0xBB, "map":    0xBC, "for":    0xBD, "loop":   0xBE,
-   "binds":  0xCC, "val":    0xCD, "do":     0xCE,
-   "pub":    0xD0, "sub":    0xD1, "unsub":  0xD2,
-   "ms-now": 0xE0, "sleep":  0xE1,
-   "print":  0xEE, "debug":  0xEF, "load":   0xF0, "halt":   0xFF};
+  {"if":     0x23, "case":   0x24, "or":     0x25, "and":    0x26,
+   "not":    0x27, "return": 0x28, "recur":  0x29,
+   "=":      0x2A, "==":     0x2B, "!=":     0x2C, "!==":    0x2D,
+   "<":      0x2E, "<=":     0x2F, ">":      0x30, ">=":     0x31,
+   "+":      0x32, "-":      0x33, "*":      0x34, "/":      0x35, "mod":    0x36, "pow":    0x37,
+   "~":      0x38, "&":      0x39, "|":      0x3A, "^":      0x3B, "<<":     0x3C, ">>":     0x3D,
+   "p-mode": 0x3E, "dig-r":  0x3F, "dig-w":  0x40, "ana-r":  0x41, "ana-w":  0x42,
+   "file-r": 0x43, "file-w": 0x44, "file-a": 0x45, "file-d": 0x46,
+   "str":    0x47, "vec":    0x48, "nth":    0x49, "len":    0x4A, "sect":   0x4B, "b-sect": 0x4C,
+   "..":     0x4D, "reduce": 0x4E, "map":    0x4F, "for":    0x50, "loop":   0x51,
+   "binds":  0x52, "val":    0x53, "do":     0x54,
+   "pub":    0x55, "sub":    0x56, "unsub":  0x57,
+   "type":   0x58, "cast":   0x59,
+   "ms-now": 0x5A, "sleep":  0x5B,
+   "print":  0x5C, "debug":  0x5D, "load":   0x5E, "comp":   0x5F, "halt":   0x60};
 const literals =
   {"N": Val_Nil, "T": Val_True, "F": Val_False,
    "nl": '\n', "sp": ' '};
@@ -270,8 +270,8 @@ function compile (source) {
       {
         let vIndex = binds.indexOf(sym);
         if (vIndex != -1)
-          return {hex: numToHex(Op_Var, 1)
-                      + numToLEHex(vIndex, 2),
+          return {hex: numToHex(Op_Bind, 1)
+                     + numToLEHex(vIndex, 2),
                   info: `var op/fn: ${sym}`}
         else {
           console.error(`Func ${sym} not found`);
