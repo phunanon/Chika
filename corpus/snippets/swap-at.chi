@@ -2,6 +2,6 @@
   (do half= (sect v n)
     (vec
       (b-sect v 0 n)
-      (2nd half)
-      (1st half)
+      (nd half)
+      (st half)
       (b-sect half 2))))

@@ -1,6 +1,6 @@
 (fn some-at v p n
   (if (!= (len v) 0)
-    (do f=    (1st v)
+    (do f=    (st v)
         here= (or n 0)
       (if (p f)
         here

@@ -2,7 +2,7 @@
 //Takes sub-string of `s` until character `delim`
 (fn substr-until-char
   s delim; sub
-  (do char= (1st s)
+  (do char= (st s)
     (if (= char delim)
       sub
       (recur (sect s) delim (str (or sub "") char)))))

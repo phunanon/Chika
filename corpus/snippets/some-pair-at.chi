@@ -1,7 +1,7 @@
 (fn some-pair-at v p n
   (if (< 1 (len v))
-    (do i1=   (1st v)
-        i2=   (2nd v)
+    (do i1=   (st v)
+        i2=   (nd v)
         here= (or n 0)
       (if (p i1 i2)
         here

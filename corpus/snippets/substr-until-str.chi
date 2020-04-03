@@ -6,4 +6,4 @@
     (do next= (sect s 0 (len delim))
       (if (= next delim)
         sub
-        (recur (sect s) delim (str (or sub "") (1st s)))))))
+        (recur (sect s) delim (str (or sub "") (st s)))))))

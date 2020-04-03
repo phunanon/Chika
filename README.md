@@ -38,12 +38,12 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
       (my-print))
 
     //Filter function, found in core.chi
-    //Note: `empty?`, `1st`, `append`, and `odd?` are all implemented in Chika in core.chi
+    //Note: `empty?`, `st`, `append`, and `odd?` are all implemented in Chika in core.chi
     //Note: `out` is an optional argument, as `append` accepts nil as a vector
     (fn filter f v ;; out
       (if (empty? v)
         out
-        (do next= (1st v)
+        (do next= (st v)
           (recur f (sect v)
             (if (f next)
               (append out next)
@@ -106,7 +106,8 @@ TODO
 
 #### Syntax
 
-Labels and function names can include (almost) any characters excluding whitespace.
+Labels and function names can include (almost) any characters excluding whitespace.  
+Function names must not start with a digit.
 
 `(start of file)#num`: informs the VM how many bytes of RAM (`num`) will be used by the program. Otherwise a default maximum is used.
 
@@ -141,8 +142,9 @@ As functions must only contain forms ensure returns use `val`.
 
 Note: integers are either in decimal or big-endian hexadecimal format.
 
-- `".."`: string, whereby `..` are 0 to 2¹⁶-1 ASCII characters, or `""` for empty.  
-Use `\"` and `str` for double-quotations, as strings provide no escaped characters.
+- `".."`: string, whereby `..` are 0 to 128 ASCII characters, or `""` for empty.  
+Note: use `\"` and `str` for double-quotations, as strings provide no escaped characters.  
+Note: internally strings can be up to 2¹⁶-1 characters long.
 - `0` or `0x00`: 8-bit unsigned integer.
 - `0w` or `0x0000`: 16-bit unsigned integer.
 - `0i` or `0x00000000`: 32-bit signed integer.

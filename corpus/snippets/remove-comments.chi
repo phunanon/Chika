@@ -6,7 +6,7 @@
   (if (empty? in)
     out
     (do
-      c1= (1st in) c2= (2nd in)
+      c1= (st in) c2= (nd in)
       is-slc=     (== \/ c1 c2)
       is-mlc=     (and (== \/ c1) (== \* c2))
       in-comment= (or is-inside is-slc is-mlc)
@@ -15,5 +15,5 @@
       in-comment= (and (! is-end-slc) (! is-end-mlc) in-comment)
       new-in=     (if is-end-mlc (sect in 2) in)
       (recur (sect new-in)
-             (if in-comment out (str (or out "") (1st new-in)))
+             (if in-comment out (str (or out "") (st new-in)))
              in-comment))))

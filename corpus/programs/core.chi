@@ -10,8 +10,8 @@
 (fn min a b (if (< a b) a b))
 (fn abs n (if (pos? n) n (neg n)))
 
-(fn 1st  i (nth 0 i))
-(fn 2nd  i (nth 1 1))
+(fn st   i (nth 0 i))
+(fn nd   i (nth 1 1))
 (fn last i (nth (dec (len i)) i))
 (fn prepend v i [i (.. v)])
 (fn append  v i [(.. v) i])
@@ -24,7 +24,7 @@
 // (in? [1 2 3 4 5] 6) => N
 (fn in? v i
   (if (!empty? v))
-    (if (= (1st v) i)
+    (if (= (st v) i)
       T
       (recur (sect v) i))))
 
@@ -33,25 +33,25 @@
   (if (empty? v)
     out
     (recur (sect v)
-      (if (in? out (1st v))
-        out (append out (1st v))))))
+      (if (in? out (st v))
+        out (append out (st v))))))
 
 (fn every? vec f
   (if (empty? v)
     T
-    (if (f (1st v))
+    (if (f (st v))
       (recur (sect v) f))))
 
 (fn some v f
   (if (!empty v)
-    (if (f (1st v))
-      (1st v)
+    (if (f (st v))
+      (st v)
       (recur (sect v) f))))
 
 (fn filter f v ;; out
   (if (empty? v)
     out
-    (do next= (1st v)
+    (do next= (st v)
       (recur f (sect v)
         (if (f next)
           (append out next)
@@ -62,7 +62,7 @@
 (fn index
   v i ;; x
   (if (empty? v) (return N))
-  (if (= i (1st v))
+  (if (= i (st v))
     x (recur (sect v) i (+ 1i x))))
 
 //Scans for first index of item `sub` within vector/string `v`, else nil
@@ -76,8 +76,8 @@
 //e.g. (zip-select [F T F] [\a \b \c]) => \b
 (fn zip-select select from
   (if (!empty? select)
-    (if (1st select)
-      (1st from)
+    (if (st select)
+      (st from)
       (recur (sect select) (sect from)))))
 
 //e.g. (range 0 10 2) => [0 2 4 6 8]
@@ -90,7 +90,7 @@
 //Returns item after `k` in vector/string `v`
 (fn key v k
   (if (empty? v) (return N))
-  (if (= (1st v) k) (return (2nd v)))
+  (if (= (st v) k) (return (nd v)))
   (recur (sect v 2) k))
 
 //e.g. (str->int "123") => 123i
@@ -103,7 +103,7 @@
       (map {cast (- # 48) 18} [(.. s)])
       (range (len s) 0 -1i))))
 //e.g. 1 -> "01", 10 -> "10"
-(fn 0pad n (str (if (< n 10) "0" "") n))
+(fn zpad n (str (if (< n 10) \0 "") n))
 //e.g. (vec->str [1 2 3 [4 5]]) => "[1 2 3 [2]]"
 (fn vec->str v (str "[" (reduce {str # \sp #1} v) "]"))
 
@@ -112,5 +112,5 @@
   (do-> seed (sect args)))
 (fn do-> acc funcs
   (if (empty? funcs) (return acc))
-  (do f= (1st funcs)
+  (do f= (st funcs)
     (recur (f acc) (sect funcs))))
