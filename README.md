@@ -1,6 +1,6 @@
 # Chika
 
-| ![Chika Logo](docs/media/chika.svg) | Experimental s-expression programming language for both PC and Arduino. |
+| ![Chika Logo](docs/media/chika.svg) | S-expression programming language for both PC and Arduino. |
 | -- | -- |
 
 *Chika* is a programming language targeting both Arduino as firmware or Linux as an executable. It facilitates high-level round-robin multi-tasking, loading programs from either an SD card or Linux filesystem.  
@@ -70,13 +70,13 @@ Suitable devices:
 
 #### Chika VM target: Linux
 
-In terminal run `./compile.sh && ./bin/mOS bin/init.kua` from the repository directory. This also recompiles `corpus/programs/init.chi`, a basic shell.
+In terminal run `./compile.sh && ./bin/chika bin/init.kua` from the repository directory. This also recompiles `corpus/programs/init.chi`, a basic shell.
 
 #### Chika compilers
 
 Using a web-browser: open `compile.html`, convert the hex output into a binary image. For Linux use `xxd -r -p chika.hex init.kua`.  
 Using NodeJS: `node compiler.js source.chi` => source.kua  
-Using Chika: a work in progress!
+Using the Chika VM: a work in progress!
 
 ### Chika Virtual Machine (ChVM) implementation
 
@@ -114,7 +114,9 @@ Labels and function names can include (almost) any characters excluding whitespa
 
 `(fn func-name[ N params] [1-N forms])`: a function definition, with 0-N parameter symbols separated by spaces, and 1-N forms.
 
-`{form}`: an inline-function, comprised as one form. Note: parameters of surrounding functions cannot be referenced within inline-functions. Consider instead using a binding.
+`{form}`: an inline-function, comprised as one form.  
+Note: parameters of surrounding functions cannot be referenced within inline-functions. Consider instead using a binding.  
+Note: nested inline-functions are forbidden.
 
 `#`: first argument reference within an inline-function.  
 `#num`: positional argument reference within an inline-function, e.g. `#3`.
@@ -131,23 +133,21 @@ Labels and function names can include (almost) any characters excluding whitespa
 Note: parameters take precedent over bindings.  
 Note: when *redefining* bindings, one must write the binding as `.label`, informing the VM to skip a previous instance of a bind. Consider: `a= (+ 1 .a)`, so that `a` does not refer to the next item on the stack at that moment - `1`.
 
-Parameters override variables.
-
 The functions `if`, `and`, `or`, and `case` cannot be represented in a binding or parameter.
 
-Functions must end in a form - to return a value use `val`.
+As functions must only contain forms ensure returns use `val`. 
 
 #### Data types
 
 Note: integers are either in decimal or big-endian hexadecimal format.
 
-- `".."`: string, whereby `..` are 0 to 2^16 ASCII characters, or `""` for empty.  
-Use `\dq` and `str` for double-quotations, as strings provide no escaped characters.
+- `".."`: string, whereby `..` are 0 to 2¹⁶-1 ASCII characters, or `""` for empty.  
+Use `\"` and `str` for double-quotations, as strings provide no escaped characters.
 - `0` or `0x00`: 8-bit unsigned integer.
 - `0w` or `0x0000`: 16-bit unsigned integer.
 - `0i` or `0x00000000`: 32-bit signed integer.
-- `\c`: ASCII character. Extended: \nl newline, \sp space.
-- `[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty.
+- `\c`: ASCII character. Extended: `\nl` newline, `\sp` space.
+- `[..]`: vector, whereby `..` are 0 to 2^16 items delimited by space, or `[]` for empty. Syntactic sugar for `(vec ..)`
 
 #### Constants
 
@@ -167,7 +167,7 @@ Note: `[square brackets]` indicate optional arguments.
 returns sum / subtraction / multiplication / division / modulus / raise-to-the-power /  
 AND / OR / XOR / left shift / right shift of N integers.  
 Zero args returns nil. Will cast all parameters as the type of the first argument.  
-`~` 1 arg: returns NOT.  
+`~ n`: returns bitwise NOT of `n`.  
 Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 **Conditional**
@@ -177,7 +177,7 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `case match ... N pairs ... [default]`: evaluates `match` then compares against the 1st of each pair of arguments, returning the 2nd if the 1st matches; if no matches are made `default` or nil is returned.
 
-`not i`: negates item `i`.
+`not i`: logically negates item `i`.
 
 `or` N arg: returns first truthy arg.
 
@@ -203,9 +203,10 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 **String and vector related**
 
-`vec` 0-N arg: returns vector of its arguments.
+`vec` 0 arg: returns empty vector.  
+`vec` N arg: returns vector of its arguments.
 
-`nth N i`: returns item, character, or 8-bit integer `N` of vector, string, or blob `i`, or nil if `N` is in an improper range.
+`nth N i`: returns item, character, or 8-bit integer at index `N` of vector, string, or blob `i`, or nil if `N` is in an improper range.
 
 `str` 0 arg: returns empty string.  
 `str` N arg: returns concatenation of N arguments as a string.
@@ -217,8 +218,8 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 `sect v skip take`: returns `v` with `take` length and first `skip` items omitted;  
 `b-sect`: the same as `sect` but returns items burst.
 
-`.. v`: bursts a vector or string `v` onto the argument stack as either vector items or Val_Char items.  
-Note: like Clojure `apply` e.g. `(+ (.. [1 2 3]))`).  
+`.. v`: bursts a vector or string `v` onto the argument stack as either vector items or character items.  
+Note: like Clojure `apply` e.g. `(+ (.. [1 2 3])) => 6`.  
 Note: if its argument is not a vector it leaves no items on the stack.
 
 `binds`: deduplicates any bindings in its arguments, favouring newer ones, and then vectorising the remains.  
@@ -232,7 +233,7 @@ Note: these have no effect on PC.
 
 `dig-r pin`: returns digital input state of pin number `pin`.
 
-`dig-w [1-N pin val]`: per `pin val`, in succession, sets the digital output state of pin number `pin` to the boolean `val` - truthy or non-zero as HIGH, else LOW; returns nil.
+`dig-w [1-N pin val]`: per `pin val`, in succession, sets the digital output state of pin number `pin` to the boolean `val` - truthy or non-zero as HIGH, zero or else LOW; returns nil.
 
 `ana-r pin`: returns analog input state of pin number `pin`.
 
@@ -247,11 +248,11 @@ Note: on Arduino files must have extentions of no more than three characters.
 `file-r path`: returns blob of whole file contents.  
 `file-r path T`: returns file size.  
 `file-r path offset`: returns blob of file content between offset bytes and EOF.  
-`file-r path offset count`: returns blob of file content between offset and count bytes.  
+`file-r path offset count`: returns blob of file content between offset and up to count bytes.  
 All return nil upon failure.
 
 `file-a path content`: appends a blob or item as string to file.  
-`file-w path content[ offset]`: writes a blob or item as string to a file, optionally with a byte offset (otherwise its 0); returns success as boolean.  
+`file-w path content[ offset]`: writes a blob or item as string to a file, optionally with a byte offset (otherwise 0); returns success as boolean.  
 Both return success as boolean.  
 Note: strings are written without null terminator.
 
@@ -282,7 +283,7 @@ Example: `(loop 3 5 print)` prints "3" and "4"; returns nil.
 
 **Message related**
 
-Topics are forward-slash `/` delimited strings. Un/subscription topics use the wildcards `/+/` for *any* and `/#` for *any hereafter*.  
+Topics are forward-slash (`/`) delimited strings. Un/subscription topics use the wildcards `/+/` for *any* and `/#` for *any hereafter*.  
 Example: the topic `house/kitchen/fridge` matches the subcription `house/+/fridge` or `house/#` or `+/kitchen/+` or `#`, but not `garage/#` or `house/bedroom/fridge` or `house/+/sink`.
 
 `pub topic[ payload]`: send a message throughout the VM with the string topic `topic`, and optionally a payload `payload` (otherwise nil) of any type;  
@@ -296,8 +297,7 @@ else (default) `f` is `(state payload) => new-state`; returns nil.
 Note: only program functions are accepted as `f` - to use a native operation use an inline function.
 
 `unsub topic`: remove previous subscription of `topic`; returns nil.  
-`unsub`: drop all program subscriptions; returns nil.  
-Note: will remove all matching specific subscriptions.
+`unsub`: drop all program subscriptions; returns nil.
 
 **System & program related**
 
@@ -324,7 +324,7 @@ A compiled Chika binary is composed solely of **functions**. Functions contain *
 `00`, form marker; `[args]`, 0-N args; `OO` an operation.
 
 **arg**  
-or `AA..`, a form  
+or `00..`, a form  
 `AA`, uint8_t arg-code; `..` variable-sized bespoke argument body.
 
 **operation**  
