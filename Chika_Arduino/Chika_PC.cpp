@@ -85,7 +85,7 @@ int32_t ChVM_Harness::fileRead (const char* path, uint8_t* blob, uint32_t offset
 }
 
 bool ChVM_Harness::fileWrite (const char* path, uint8_t* blob, uint32_t offset, uint32_t count) {
-  FILE* fp = fopen(path, "wb");
+  FILE* fp = fopen(path, "r+b");
   if (!fp) return false;
   fseek(fp, offset, SEEK_SET);
   fwrite(blob, sizeof(uint8_t), count, fp);
@@ -128,9 +128,9 @@ bool ChVM_Harness::loadProg (const char* path) {
   if (!fp) return false;
   size_t fLen = fsize(fp);
   bytenum memLen;
-  fread((char*)&memLen, sizeof(bytenum), 1, fp);
-  machine.switchToProg(machine.numProg++, fLen - sizeof(bytenum), memLen);
-  fread((char*)machine.getPROM(), sizeof(bytenum), fLen, fp);
+  fread((char*)&memLen, sizeof(proglen), 1, fp);
+  machine.switchToProg(machine.numProg++, fLen - sizeof(proglen), memLen);
+  fread((char*)machine.getPROM(), sizeof(proglen), fLen, fp);
   fclose(fp);
   machine.entry();
   return true;

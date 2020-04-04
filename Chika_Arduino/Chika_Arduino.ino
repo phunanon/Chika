@@ -130,14 +130,14 @@ bool ChVM_Harness::loadProg (const char* path) {
     Serial.println(path);
     return false;
   }
-  bytenum memLen;
+  proglen memLen;
   {
-    char memRequest[4];
+    char memRequest[sizeof(memLen)];
     for (uint8_t b = 0; b < sizeof(memLen); ++b)
       memRequest[b] = prog.read();
     memcpy(&memLen, memRequest, sizeof(memLen));
   }
-  machine.switchToProg(machine.numProg++, prog.size(), memLen);
+  machine.switchToProg(machine.numProg++, prog.size() - sizeof(memLen), memLen);
   uint16_t pByte = 0;
   uint8_t* pROM = machine.getPROM();
   while (prog.available())

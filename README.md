@@ -109,7 +109,7 @@ TODO
 Labels and function names can include (almost) any characters excluding whitespace.  
 Function names must not start with a digit.
 
-`(start of file)#num`: informs the VM how many bytes of RAM (`num`) will be used by the program. Otherwise a default maximum is used.
+`(start of file)#num`: informs the VM how many bytes of RAM (`num` up to 64kB) will be used by the program. Otherwise a default maximum is used.
 
 `(func[ N args])`: a form, with a function in the head position, and 0-N arguments separated by spaces. Arguments can be forms.
 

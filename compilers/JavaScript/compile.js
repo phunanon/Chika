@@ -302,7 +302,7 @@ function compile (source) {
       .map(n => n.hex == undefined ? numToLEHex(n.n, n.b) : n.hex)
       .join("");
   //Prepend program memory request
-  image = numToLEHex(ramRequest + image.length/2, 4) + image;
+  image = numToLEHex(ramRequest + image.length/2, 2) + image;
 
   console.log(`${(image.length / 2)}B in ${((new Date()) - startTime)}ms`);
   return {assembly: JSON.stringify(funcs, null, ' '), image};

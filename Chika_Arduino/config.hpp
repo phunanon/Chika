@@ -13,7 +13,6 @@
 //#define MEM_SIZE 16384  //16k
 //#define MEM_SIZE 8192   //8k;  Mega 2560
 //#define MEM_SIZE 2048   //2k
-//#define MEM_SIZE 512    //512
 
 typedef uint16_t proglen;
 typedef uint16_t itemlen;
@@ -58,19 +57,19 @@ enum IType : uint8_t {
 
   Val_True  = 0x05, Val_False = 0x06,
   Val_Str   = 0x07,
-  Param_Val = 0x08,
+  Param_Val = 0x08, //e.g. "(fn func a (val a))" `a` is a Param_Val
   Bind_Mark = 0x09, //e.g. test=
   Bind_Val  = 0x0A, //     test
   XBind_Val = 0x0B, //     .test
   Val_Vec   = 0x0C,
   Val_Blob  = 0x0D,
-  Val_U08   = 0x10,
-  Val_U16   = 0x11,
-  Val_I32   = 0x12,
-  Val_Char  = 0x13,
-  Val_Args  = 0x19,
-  Var_Op    = 0x1A,
-  Var_Func  = 0x1B,
+  Val_U08   = 0x10, //e.g. 123
+  Val_U16   = 0x11, //e.g. 1234w
+  Val_I32   = 0x12, //e.g. 1234i
+  Val_Char  = 0x13, //e.g. \a
+  Val_Args  = 0x19, //Emits args
+  Var_Op    = 0x1A, //e.g. "(reduce + ..." `+` is a Var_Op
+  Var_Func  = 0x1B, //e.g. "(reduce my-func ..." `my-func` is a Var_Func
   Val_Nil   = 0x1E,
   
   OPS_START = 0x22,
