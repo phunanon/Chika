@@ -46,6 +46,13 @@ int32_t _pow (int32_t n, uint8_t p) {
   return sum;
 }
 
+bool isDigit (char ch) {
+  return ch >= '0' && ch <= '9';
+}
+bool isHexDigit (char ch) {
+  return isDigit(ch) || (ch >= 'A' && ch <= 'F');
+}
+
 //All required because the Arduino doesn't like `*(type*)something`
 int32_t readNum (uint8_t* b, uint8_t len) {
   if (!len) return 0;
@@ -85,4 +92,16 @@ uint8_t int2chars (uint8_t* str, int32_t n) {
     n /= 10;
   } while (--c > offset);
   return numDigits + offset;
+}
+
+int32_t chars2int (const char* str, bool isHex) {
+  int32_t num = 0;
+  bool isNeg = *str == '-';
+  if (isNeg) ++str;
+  while (isHex ? isHexDigit(*str) : isDigit(*str)) {
+    num *= isHex ? 16 : 10;
+    num += *str < 'A' ? (*str - '0') : (*str - 'A' + 10);
+    ++str;
+  }
+  return num * (isNeg ? -1 : 1);
 }

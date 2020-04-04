@@ -1,4 +1,5 @@
 #include "ChVM.hpp"
+#include "Compiler.hpp"
 
 prognum   pNum;       //
 uint8_t*  pBytes;     //
@@ -263,15 +264,13 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   if (prevFNum == fNum)
     f = prevFPtr;
   else {
-    f = pFunc(fNum);
+    uint8_t* fPtr = pFunc(fNum);
+    if (!fPtr) return false;
+    f = fPtr;
     prevFNum = fNum;
     prevFPtr = f;
   }
 
-  if (f == nullptr) {
-    f = prev_f;
-    return false;
-  }
   uint8_t* fEnd;
   f += sizeof(funcnum);
   {
@@ -653,6 +652,7 @@ void ChVM::nativeOp (IType op, itemnum p0) {
     case Op_Print:  op_Print (p0); break;
     case Op_Debug:  op_Debug (p0); break;
     case Op_Load:   op_Load  (p0); break;
+    case Op_Comp:   op_Comp  (p0); break;
     case Op_Halt:   op_Halt(); break;
     default: break;
   }
@@ -1293,10 +1293,16 @@ void ChVM::op_Load (itemnum p0) {
   //After loading a program the program context will have been switched
   //  We need to ensure we restore it to this one
   prognum savePNum = pNum;
-  memcpy(iBytes(p0) + i(p0)->len - 1, ".kua\0", 5);
+  memcpy(iBytes(p0) + i(p0)->len - 1, ".kua", 5);
   bool success = harness->loadProg(iStr(p0));
   switchToProg(savePNum);
   returnBool(p0, success);
+}
+
+void ChVM::op_Comp (itemnum p0) {
+  Compiler comp = Compiler(harness);
+  comp.compile(iStr(0), iStr(1));
+  returnNil(p0);
 }
 
 void ChVM::op_Halt () {

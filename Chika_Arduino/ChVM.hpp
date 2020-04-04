@@ -107,6 +107,7 @@ class ChVM {
   void     op_Print  (itemnum);
   void     op_Debug  (itemnum);
   void     op_Load   (itemnum);
+  void     op_Comp   (itemnum);
   //Returns nothing
   void     op_Halt   ();
 

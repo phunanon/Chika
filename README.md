@@ -76,7 +76,7 @@ In terminal run `./compile.sh && ./bin/chika bin/init.kua` from the repository d
 
 Using a web-browser: open `compile.html`, convert the hex output into a binary image. For Linux use `xxd -r -p chika.hex init.kua`.  
 Using NodeJS: `node compiler.js source.chi` => source.kua  
-Using the Chika VM: a work in progress!
+Using the Chika VM: **only tested on PC**: use the `comp` op within Chika to compile `.chi` source files.
 
 ### Chika Virtual Machine (ChVM) implementation
 
@@ -310,6 +310,8 @@ Note: only program functions are accepted as `f` - to use a native operation use
 `print` 0-N arg: prints result of `str` of N args; returns nil.
 
 `load path`: loads the compiled Chika program at `path` (without file extension); returns bool of success of loading the program.
+
+`comp path-in path-out`: compiles a source file (idiomatically `*.chi`) at `path-in` as a Chika binary at `path-out` (idiomatically `*.kua`).
 
 `halt`: immediately terminates the Chika program.
 

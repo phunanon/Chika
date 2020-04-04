@@ -51,11 +51,11 @@ li:not(:first-child) { padding-top: .5rem; }
       </div>
       <div class="blue boxes">
         <p>Features...</p>
-<span>functional</span><span>dynamic types</span><span>immutable memory</span><span>pure functions</span><span>heap-free memory</span><span>&#8804;64K program ROM</span><span>round-robin scheduler</span><span>inter-program messaging</span><span>explicit recursion</span><span>implicit tail-call optimisation</span><span>GPL 3.0</span><span>🔜 native compiler</span><span>🔜 self-hosted REPL</span>
+<span>functional</span><span>dynamic types</span><span>immutable memory</span><span>pure functions</span><span>heap-free memory</span><span>native compiler</span><span>&#8804;64K program ROM</span><span>round-robin scheduler</span><span>inter-program messaging</span><span>explicit recursion</span><span>implicit tail-call optimisation</span><span>GPL 3.0</span><span>🔜 self-hosted REPL</span>
       </div>
       <div class="red boxes">
         <p>Does not include...</p>
-<span>homoiconicity</span><span>closures</span><span>native compiler/REPL</span><span>macros</span><span>laziness</span><span>multi-arity</span><span>floating point</span><span>multi-core</span><span>code import</span>
+<span>homoiconicity</span><span>closures</span><span>native REPL</span><span>macros</span><span>laziness</span><span>multi-arity</span><span>floating point</span><span>multi-core</span><span>code import</span>
       </div>
       <div class="green boxes">
         <p>Currently supports...</p>
@@ -98,7 +98,7 @@ li:not(:first-child) { padding-top: .5rem; }
       <h4>Why no native REPL, drivers, compiler, &c?</h4>
       <p>I've chosen to have the REPL, any peripheral drivers, and a compiler written in Chika, rather than a feature of the VM. <br>
       Composition of programs at runtime is a strength, and I much prefer it to baked-in drivers (e.g. "this OS works with X display and only that!"). <br>
-      A really nice example is <a href="http://library.ulisp.com/show?2TMA">SSD1306 support in uLisp</a>. <br>
+      A really nice example is <a href="http://library.ulisp.com/show?2TMA">SSD1306 support in uLisp</a>. Chika now has a SSD1306 library of its own, controlled through inter-program messaging. <br>
       Essentially, other than the SD card, serial, and I/O pins, there will be no other firmware-level facilitates.</p>
 
       <h4>Why not heap or linked-list memory?</h4>

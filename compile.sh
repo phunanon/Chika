@@ -13,6 +13,6 @@ done
 cd ..
 #Compile the Chika executable
 cd Chika_Arduino
-g++ -o ../bin/chika Chika_PC.cpp ChVM.cpp Broker.cpp Item.cpp utils.cpp config.cpp -g
+g++ -o ../bin/chika Chika_PC.cpp ChVM.cpp Broker.cpp Item.cpp Compiler.cpp utils.cpp config.cpp -g -Wall -Wno-switch
 
 echo "Compiled Chika VM for PC."

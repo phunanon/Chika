@@ -103,7 +103,7 @@ function compile (source) {
 
   const startTime = new Date();
 
-  let ramRequest = 1024*8;
+  let ramRequest = 3276;
   //Extract possible RAM request
   //Or skip shebang
   while (source.startsWith("#")) {
