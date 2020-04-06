@@ -483,7 +483,7 @@ void ChVM::exeForm () {
             }
             //Copy the match value to the top of the stack and compare
             restackCopy(firstArgItem);
-            op_Equal(numItem() - 2, Op_Equal);
+            op_Equal(numItem() - 2, true);
             //If comparison was successful, flag as evaluated
             //  else skip value to next case
             if (isTypeTruthy(iLast()->type))
@@ -726,10 +726,10 @@ void ChVM::op_Diff (itemnum p0, IType op) {
   itemnum it = p0, itEnd = numItem();
   for (; it < itEnd; ++it) {
     int32_t num = iInt(it);
-    if (op == Op_GT  && num >= prev
-     || op == Op_GTE && num >  prev
-     || op == Op_LT  && num <= prev
-     || op == Op_LTE && num <  prev)
+    if ((op == Op_GT  && num >= prev)
+     || (op == Op_GTE && num >  prev)
+     || (op == Op_LT  && num <= prev)
+     || (op == Op_LTE && num <  prev))
       break;
     prev = num;
   }
@@ -822,7 +822,7 @@ void ChVM::op_Read (itemnum p0) {
 
 void ChVM::op_Write (itemnum p0) {
   //Collect arguments
-  uint32_t offset = 0, count = i(p0 + 1)->len;
+  uint32_t offset = 0;
   argnum nArg = numItem() - p0;
   if (nArg > 1) offset = iInt(p0 + 2);
   //Ensure item is etiher a blob or converted to string
@@ -899,8 +899,7 @@ void ChVM::op_Type (itemnum p0) {
 
 void ChVM::op_Cast (itemnum p0) {
   //Get IType parameters
-  IType from = i(p0)->type;
-  IType to   = (IType)iInt(p0 + 1);
+  IType to = (IType)iInt(p0 + 1);
   //Zero out new memory, and ensure strings/blobs are cast correctly
   uint8_t oldNByte = i(p0)->len;
   uint8_t newNByte = constByteLen(to);
