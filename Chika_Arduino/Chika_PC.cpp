@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <chrono>
 #include "ChVM.hpp"
+#include "Compiler.hpp"
 
 void ChVM_Harness::print (const char* output) {
   printf("%s", output);
@@ -137,8 +138,20 @@ bool ChVM_Harness::loadProg (const char* path) {
 }
 
 int main (int argc, char* argv[]) {
-  if (argc == 2) harness.loadProg(argv[1]);
-  else           harness.loadProg("init.kua");
+  if (argc == 2) {
+    //If a source file, compile, otherwise load the .kua
+    auto pathLen = strlen(argv[1]);
+    if (!strcmp(&argv[1][pathLen - 4], ".chi")) {
+      auto compiler = Compiler(&harness);
+      char newPath[255];
+      memcpy(newPath, argv[1], pathLen - 4);
+      memcpy(newPath + pathLen - 4, ".kua", 4);
+      compiler.compile(argv[1], newPath);
+      harness.loadProg(newPath);
+    } else
+      harness.loadProg(argv[1]);
+  } else
+    harness.loadProg("init.kua");
   
   //Keep the machine's heart beating until dead
   while (machine.heartbeat());

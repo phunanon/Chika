@@ -62,7 +62,8 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
 #### Chika VM target: Arduino
 
 Open `Chika_Arduino.ino` in Arduino IDE, upload to your Arduino.  
-Ensure there is an SD card inserted with the file `init.kua`.  
+Ensure there is an SD card inserted with the file `init.kua`. Further programs should be loaded within the `init.kua` file with the `load` operation.
+
 Suitable devices:
 - ATSAMD21
   - Arduino MKRZero
@@ -70,13 +71,17 @@ Suitable devices:
 
 #### Chika VM target: Linux
 
-In terminal run `./compile.sh && ./bin/chika bin/init.kua` from the repository directory. This also recompiles `corpus/programs/init.chi`, a basic shell.
+There are currently a few options for compiling and executing Chika on Linux.  
+In the terminal you can run `./compile.sh` to recompile Chika VM for your machine, which also uses the compiler in NodeJS (being decommissioned) to recompile `corpus/programs/init.chi`.  
+To run a Chika `.chi` source file or `.kua` compiled file you can invoke the `chika` executable with its path, such as: `./chika ../corpus/programs/fibonacci.chi`. This will compile `fibonacci.chi` as `fibonacci.kua` in the executable's working directory.  
+Source files can be prepended with a shebang to the Chika executable to execute a `.chi` file directly.
+
 
 #### Chika compilers
 
 Using a web-browser: open `compile.html`, convert the hex output into a binary image. For Linux use `xxd -r -p chika.hex init.kua`.  
 Using NodeJS: `node compiler.js source.chi` => source.kua  
-Using the Chika VM: **only tested on PC**: use the `comp` op within Chika to compile `.chi` source files.
+Using the Chika VM: **experimental and only tested on PC**: invoke the `chika` executable with a path to the `.chi` source file or use the `comp` op within Chika to compile `.chi` source files.
 
 ### Chika Virtual Machine (ChVM) implementation
 
