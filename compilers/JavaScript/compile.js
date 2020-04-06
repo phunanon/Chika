@@ -109,7 +109,7 @@ function compile (source) {
   while (source.startsWith("#")) {
     const nlAt = source.indexOf("\n");
     const req = source.slice(1, nlAt);
-    source = source.slice(nlAt);
+    source = source.slice(nlAt + 1);
     if (parseInt(req) == req)
       ramRequest = parseInt(req);
   }

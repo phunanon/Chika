@@ -1,6 +1,13 @@
+
 (fn fib n
   (if (< n 3) 1i
     (+ (fib (- n 1i)) (fib (- n 2i)))))
+
+(fn fib2 n
+  (if (= n 0) (return 0))
+  (nth 1
+    (loop [0i 1i] 1 n
+      {vec (nth 1 #) (reduce + #)})))
 
 (do
   term=  23i

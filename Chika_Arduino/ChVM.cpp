@@ -1165,30 +1165,22 @@ void ChVM::op_For (itemnum p0) {
 }
 
 void ChVM::op_Loop (itemnum p0) {
-  argnum nArg = numItem() - p0;
-  uint16_t from = 0, to;
-  bool isOp;
-  funcnum fCode;
-  //If (loop times f)
-  if (nArg == 2) {
-    to = iInt(p0);
-    isOp = i(p0 + 1)->type == Var_Op;
-    fCode = iInt(p0 + 1);
+  uint16_t from, to;
+  bool hasSeed;
+  funcnum fCode = iInt(numItem() - 1);
+  {
+    argnum nArg = numItem() - p0;
+    //If (loop to f)
+    //or (loop seed to f)
+    //or (loop seed from to f)
+    to = iInt(p0 + nArg - 2);
+    hasSeed = nArg > 2;
+    from = nArg > 3 ? iInt(p0 + 1) : 0;
   }
-  //If (loop a b f)
-  else {
-    from = iInt(p0);
-    to = iInt(p0 + 1);
-    isOp = i(p0 + 2)->type == Var_Op;
-    fCode = iInt(p0 + 2);
-  }
-  //Prepare stack with one 16-bit int
   for (uint16_t i = from; i < to; ++i) {
-    //Copy i to p0
-    returnInt(p0, i, sizeof(i));
-    //Execute f
-    if (isOp) nativeOp((IType)fCode, p0);
-    else      exeFunc(fCode, p0);
+    //Copy i to p1, execute f
+    returnInt(p0 + hasSeed, i, sizeof(i));
+    exeFunc(fCode, p0);
   }
   //The last item on the stack is implicitly returned
 }

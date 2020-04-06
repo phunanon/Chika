@@ -284,9 +284,12 @@ Example: `(map str [\a \b \c] [1 2 3]) => [a1 b2 c3]`
 Example: `(for str [\a \b \c] [1 2 3]) => [a1 a2 a3 b1 b2 b3 c1 c2 c3]`
 
 `loop n f`: repeats `n` 16-bit number of times the function `f`, where `f` is `(0..n) => any`; returns last return of `f`.  
-`loop a b f`: repeats the function `f` for 16-bit integers `a` to `b`, where `f` is `(a..b) => any`; returns last return of `f`.  
+`loop seed n f`: same as above, but `f` is `(acc 0..n) => any` where `acc` is firstly `seed` then the return of the previous iteration.  
+`loop seed a b f`: same as above, except `n` ranges from `a` to `b`.  
 Example: `(loop 2 {print "hello" #})` prints "hello0" and "hello1", returns nil.  
-Example: `(loop 3 5 print)` prints "3" and "4"; returns nil.
+Example: `(loop 0 5 {+ (.. args)}) => 10`.  
+Example: `(loop 0 5 10 {+ (.. args)}) => 35`  
+Note: `f` must be a program function, and not a native operation.
 
 **Message related**
 
