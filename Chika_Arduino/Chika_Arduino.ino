@@ -91,7 +91,7 @@ int32_t ChVM_Harness::fileRead (const char* path, uint8_t* blob, uint32_t offset
 }
 
 bool ChVM_Harness::fileWrite (const char* path, uint8_t* blob, uint32_t offset, uint32_t count) {
-  File fp = SD.open(path, FILE_WRITE);
+  File fp = SD.open(path, O_RDWR);
   if (!fp) return false;
   fp.seek(offset);
   fp.write(blob, count);

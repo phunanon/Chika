@@ -335,13 +335,14 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
       if (s[0] == '{') {
         s.refreshBuffer();
         const char* fHead0 = "(fn ";
-        uint8_t fNumChars[5] = {'F'};
+        uint8_t fNumChars[6] = {0};
+        fNumChars[0] = 'F';
         int2chars(fNumChars + 1, iFNum++);
         hashOut("ifuncs.hsh", (const char*)fNumChars);
         const char* fHead1 = " (";
         const char* fTail = "))";
         inlinesOut.a((uint8_t*)fHead0, 4);
-        inlinesOut.a(fNumChars, sizeof(fNumChars));
+        inlinesOut.a(fNumChars, sizeof(fNumChars) - 1);
         inlinesOut.a((uint8_t*)fHead1, 2);
         while (true) {
           if (s.next()) break;
@@ -351,7 +352,7 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
           inlinesOut.a(&s[0], 1);
         }
         inlinesOut.a((uint8_t*)fTail, 2);
-        sexprOut.a(fNumChars, sizeof(fNumChars));
+        sexprOut.a(fNumChars, sizeof(fNumChars) - 1);
         continue;
       }
       if (s[0] != '\n')
