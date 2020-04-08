@@ -138,18 +138,21 @@ bool ChVM_Harness::loadProg (const char* path) {
 }
 
 int main (int argc, char* argv[]) {
-  if (argc == 2) {
-    //If a source file, compile, otherwise load the .kua
-    auto pathLen = strlen(argv[1]);
-    if (!strcmp(&argv[1][pathLen - 4], ".chi")) {
+  bool onlyCompile = argc > 2 && argv[1][0] == 'c';
+  const char* path = argc < 2 ? nullptr : argv[argc - 1];
+  if (path) {
+    //If a source file, compile and load, otherwise load the .kua
+    auto pathLen = strlen(path);
+    if (!strcmp(&path[pathLen - 4], ".chi")) {
       auto compiler = Compiler(&harness);
-      char newPath[255];
-      memcpy(newPath, argv[1], pathLen - 4);
+      char newPath[255] = {0};
+      memcpy(newPath, path, pathLen - 4);
       memcpy(newPath + pathLen - 4, ".kua", 4);
-      compiler.compile(argv[1], newPath);
-      harness.loadProg(newPath);
+      compiler.compile(path, newPath);
+      if (!onlyCompile)
+        harness.loadProg(newPath);
     } else
-      harness.loadProg(argv[1]);
+      harness.loadProg(path);
   } else
     harness.loadProg("init.kua");
   

@@ -57,7 +57,7 @@ See [core.chi](corpus/programs/core.chi) and the rest of [the corpus](corpus) fo
 	(sub "display/+" {print #1})
 
 
-### Compilation and running
+### Deployment and compilation
 
 #### Chika VM target: Arduino
 
@@ -77,11 +77,12 @@ To run a Chika `.chi` source file or `.kua` compiled file you can invoke the `ch
 Source files can be prepended with a shebang to the Chika executable to execute a `.chi` file directly.
 
 
-#### Chika compilers
+#### Chika compilation
 
-Using a web-browser: open `compile.html`, convert the hex output into a binary image. For Linux use `xxd -r -p chika.hex init.kua`.  
-Using NodeJS: `node compiler.js source.chi` => source.kua  
-Using the Chika VM: **experimental and only tested on PC**: invoke the `chika` executable with a path to the `.chi` source file or use the `comp` op within Chika to compile `.chi` source files.
+On PC: invoke the `chika` executable such as `./chika c source.chi`. Invoke without the `c` flag to compile and then execute the resulting file.  
+On PC/Arduino: use the `comp` op within Chika to compile `.chi` source files.  
+Note: it can take a while on the Arduino as it compiles with very limited memory, mostly writing one byte to a file at a time.  
+Note: compilation emits many temporary files, which should be deleted after a successful compilation. Right now these files must be manually removed on an unsuccessful compilation.
 
 ### Chika Virtual Machine (ChVM) implementation
 

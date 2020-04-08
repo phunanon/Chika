@@ -8,7 +8,7 @@
 
 (fn send-byte byte
   (do b= byte
-    (loop 8 {dig-w SDA (& 0x80 (<< b #)) SCL T SCL F))}
+    (loop 8 {dig-w SDA (& 0x80 (<< b #)) SCL T SCL F}))
   (dig-w SDA T SCL T SCL F))
 
 (fn command-start
