@@ -1,0 +1,18 @@
+#128
+
+(load "prompt")
+(sub "prompt/in" handle-input)
+
+(fn handle-input x input
+  (file-w "repltmp.chi"
+    (str "(pub " \" "dis/str" \" " (str " input "))"))
+  (comp "repltmp.chi" "repltmp.kua")
+  (pub "dis/char" \nl)
+  (load "repltmp")
+  (file-d "repltmp")
+  (pub "dis/char" \nl)
+  (val T))
+
+(fn heartbeat load-prompt
+  (if load-prompt (load "prompt"))
+  (sleep 1000w))
