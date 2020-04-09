@@ -197,8 +197,7 @@ bool ChVM::heartbeat (prognum pNum) {
   switchToProg(pNum);
   if (pInfo->isHalting) {
     purgeProg(pNum);
-    return false;
-  }
+  } else
   if (harness->msNow() > pInfo->sleepUntil)
     return exeFunc(0x0001, 0);
   return true;
@@ -1292,7 +1291,7 @@ void ChVM::op_Load (itemnum p0) {
 
 void ChVM::op_Comp (itemnum p0) {
   Compiler comp = Compiler(harness);
-  comp.compile(iStr(0), iStr(1));
+  comp.compile(iStr(p0), iStr(p0 + 1));
   returnNil(p0);
 }
 

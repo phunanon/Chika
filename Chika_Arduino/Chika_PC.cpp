@@ -87,6 +87,7 @@ int32_t ChVM_Harness::fileRead (const char* path, uint8_t* blob, uint32_t offset
 
 bool ChVM_Harness::fileWrite (const char* path, uint8_t* blob, uint32_t offset, uint32_t count) {
   FILE* fp = fopen(path, "r+b");
+  if (!fp) fp = fopen(path, "wb");
   if (!fp) return false;
   fseek(fp, offset, SEEK_SET);
   fwrite(blob, sizeof(uint8_t), count, fp);

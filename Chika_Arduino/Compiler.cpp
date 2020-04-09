@@ -9,14 +9,36 @@ typedef uint8_t buflen;
 //  perhaps update the compiler to use a closure
 class Appender {
   ChVM_Harness* h;
+  uint8_t buffer [32] = {0};
+  uint8_t buffLen = 0;
+
 public:
   const char* path;
   proglen nWritten = 0;
+
   Appender (ChVM_Harness* harness, const char* pathOut)
     : h(harness), path(pathOut) {}
+  
+  ~Appender () {
+    flushBuffer();
+  }
+
   void a (uint8_t* data, uint8_t len) {
-    h->fileAppend(path, data, len);
+    if (buffLen + len > sizeof(buffer))
+      flushBuffer();
+    if (len > sizeof(buffer))
+      h->fileAppend(path, data, len);
+    else {
+      memcpy(buffer + buffLen, data, len);
+      buffLen += len;
+    }
     nWritten += len;
+h->printInt(path, nWritten);
+  }
+
+  void flushBuffer () {
+    h->fileAppend(path, buffer, buffLen);
+    buffLen = 0;
   }
 };
 
@@ -206,12 +228,12 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
     return false;
   };
 
-  auto cleanOut = Appender(h, "clean.chc");
   //Comment, comma, semi-colon, newline, excessive whitespace removal
   //  [] -> (vec ), transparent string/char pass-through
   //Single-character step
   {
     auto s = Streamer(h, pathIn, afterShebang);
+    auto cleanOut = Appender(h, "clean.chc");
     bool inComment = false,
          isMulti = false,
          inComma = false,
@@ -228,8 +250,8 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
           inComment = false;
           s.skip(2);
         }
+        continue;
       }
-      if (inComment) continue;
       
       //Ignoring whitespace after commas until break
       if (inComma && !isWhitespace(s[0]))
@@ -301,15 +323,20 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
       heartOut.a((uint8_t*)"(fn heartbeat (halt))", 21);
   }
   //Concat entry.chc + heart.chc + body.chc = clean.chc
-  h->fileDelete("clean.chc");
-  cleanOut.a((uint8_t*)"(fn entry ", 10);
-  concatFiles("clean.chc", "entry.chc");
-  cleanOut.a((uint8_t*)")", 1);
-  concatFiles("clean.chc", "heart.chc");
-  concatFiles("clean.chc", "body.chc");
-  h->fileDelete("entry.chc");
-  h->fileDelete("heart.chc");
-  h->fileDelete("body.chc");
+  {
+    auto cleanOut = Appender(h, "clean.chc");
+    h->fileDelete("clean.chc");
+    cleanOut.a((uint8_t*)"(fn entry ", 10);
+    cleanOut.flushBuffer();
+    concatFiles("clean.chc", "entry.chc");
+    cleanOut.a((uint8_t*)")", 1);
+    cleanOut.flushBuffer();
+    concatFiles("clean.chc", "heart.chc");
+    concatFiles("clean.chc", "body.chc");
+    h->fileDelete("entry.chc");
+    h->fileDelete("heart.chc");
+    h->fileDelete("body.chc");
+  }
 
 
   //Extract and hash inline functions
@@ -407,13 +434,13 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
   }
   
 
-  auto binOut = Appender(h, pathOut);
-  //Output dummy RAM request
-  binOut.a((uint8_t*)"  ", 2);
 
 
-  //Serialise s-expressions
   {
+    auto binOut = Appender(h, pathOut);
+    //Output dummy RAM request
+    binOut.a((uint8_t*)"  ", 2);
+    //Serialise s-expressions
     auto s = Streamer(h, "stripped.chc");
     s.next();
     funcnum fN = 0;
@@ -490,6 +517,7 @@ void Compiler::compileFunc (funcnum fNum, Counters& c, Streamer& s, Appender& bi
   uint8_t fNBytes[sizeof(fNum)];
   writeUNum(fNBytes, fNum++, sizeof(fNum));
   binOut.a(fNBytes, sizeof(fNBytes));
+  binOut.flushBuffer();
   proglen writeFLenAt = h->fileSize(binOut.path);
   binOut.a((uint8_t*)"  ", 2);
 
@@ -504,6 +532,7 @@ void Compiler::compileFunc (funcnum fNum, Counters& c, Streamer& s, Appender& bi
   }
 
   //Prepend function length
+  binOut.flushBuffer();
   h->fileWrite(binOut.path, (uint8_t*)&binOut.nWritten, writeFLenAt, sizeof(funclen));
 }
 
