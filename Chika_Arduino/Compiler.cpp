@@ -33,7 +33,6 @@ public:
       buffLen += len;
     }
     nWritten += len;
-h->printInt(path, nWritten);
   }
 
   void flushBuffer () {
@@ -173,7 +172,7 @@ struct Counters {
 
 void Compiler::hashOut (const char* file, const char* symbol) {
   hash32 hsh = hash(symbol);
-  Appender(h, file).a((uint8_t*)&hsh, sizeof(hsh));
+  h->fileAppend(file, (uint8_t*)&hsh, sizeof(hsh));
 }
 
 void Compiler::concatFiles (const char* into, const char* addition) {
@@ -187,8 +186,25 @@ void Compiler::concatFiles (const char* into, const char* addition) {
   }
 }
 
+void Compiler::cleanUp () {
+  //Delete any possible residue files from a previous unsuccessful compilation
+  h->fileDelete("sexpr.chc");
+  h->fileDelete("inlines.chc");
+  h->fileDelete("ifuncs.hsh");
+  h->fileDelete("clean.chc");
+  h->fileDelete("entry.chc");
+  h->fileDelete("heart.chc");
+  h->fileDelete("body.chc");
+  h->fileDelete("strings.chc");
+  h->fileDelete("chars.chc");
+  h->fileDelete("stripped.chc");
+  h->fileDelete("funcs.hsh");
+  h->fileDelete("binds.hsh");
+}
+
 void Compiler::compile (const char* pathIn, const char* pathOut) {
   h->fileDelete(pathOut);
+  cleanUp();
 
   //Maybe remove shebang and/or maybe extract RAM request
   proglen ramRequest = MAX_PROG_RAM;
@@ -466,12 +482,7 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
     h->fileWrite(pathOut, rReq, 0, sizeof(rReq));
   }
 
-  //Clean up
-  h->fileDelete("strings.chc");
-  h->fileDelete("chars.chc");
-  h->fileDelete("stripped.chc");
-  h->fileDelete("funcs.hsh");
-  h->fileDelete("binds.hsh");
+  cleanUp();
 }
 
 
@@ -696,7 +707,7 @@ void Compiler::compileArg (Params* p, Counters& c, Streamer& s, Appender& binOut
     binOut.a((uint8_t*)&pN, sizeof(pN));
   }
   //If a hexademical or decimal integer
-  if (!isSerialised && isDigit(s[0])) {
+  if (!isSerialised && (isDigit(s[0]) || s[0] == '-')) {
       isSerialised = true;
     bool isDecimal = s[1] != 'x';
     if (patternIs((uint8_t*)symbol, "0x") || isDecimal) {

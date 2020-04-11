@@ -1291,6 +1291,10 @@ void ChVM::op_Load (itemnum p0) {
 
 void ChVM::op_Comp (itemnum p0) {
   Compiler comp = Compiler(harness);
+  if (numItem() - p0 == 1) {
+    restackCopy(p0, 1);
+    memcpy(iBytes(p0 + 1) + (i(p0 + 1)->len - 4), (uint8_t*)"kua", 3);
+  }
   comp.compile(iStr(p0), iStr(p0 + 1));
   returnNil(p0);
 }

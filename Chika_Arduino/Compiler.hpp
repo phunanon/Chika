@@ -10,6 +10,7 @@ struct Params;
 
 class Compiler {
   ChVM_Harness* h;
+  void cleanUp ();
   void concatFiles (const char*, const char*);
   void hashOut (const char*, const char*);
   bindnum newBind (const char*);

@@ -1,18 +1,31 @@
-#128
+#196
 
 (load "prompt")
 (sub "prompt/in" handle-input)
 
-(fn handle-input x input
+(fn nl (pub "dis/char" \nl))
+
+(fn do-repl input
+  (nl)
   (file-w "repltmp.chi"
     (str "(pub " \" "dis/str" \" " (str " input "))"))
-  (comp "repltmp.chi" "repltmp.kua")
-  (pub "dis/char" \nl)
+  (comp "repltmp.chi")
   (load "repltmp")
-  (file-d "repltmp")
-  (pub "dis/char" \nl)
+  (file-d "repltmp"))
+
+(fn do-load input
+  (nl)
+  (if (load input)
+    N (pub "dis/str" "Program not found.")))
+
+(fn handle-input x input
+  (case (nth 0 input)
+    \( (do-repl input)
+    \) (comp (sect input))
+    (do-load input))
+  (nl)
   (val T))
 
 (fn heartbeat load-prompt
   (if load-prompt (load "prompt"))
-  (sleep 1000w))
+  (sleep 255))

@@ -320,7 +320,7 @@ Note: only program functions are accepted as `f` - to use a native operation use
 
 `load path`: loads the compiled Chika program at `path` (without file extension); returns bool of success of loading the program.
 
-`comp path-in path-out`: compiles a source file (idiomatically `*.chi`) at `path-in` as a Chika binary at `path-out` (idiomatically `*.kua`).
+`comp path-in[ path-out]`: compiles a source file (idiomatically `*.chi`) at `path-in` as a Chika binary, either saved at the same path with the extension changed to `.kua` or at `path-out` (idiomatically `*.kua`).
 
 `halt`: immediately terminates the Chika program.
 
