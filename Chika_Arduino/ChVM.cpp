@@ -264,7 +264,10 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
     f = prevFPtr;
   else {
     uint8_t* fPtr = pFunc(fNum);
-    if (!fPtr) return false;
+    if (!fPtr) {
+      returnNil(firstParam);
+      return false;
+    }
     f = fPtr;
     prevFNum = fNum;
     prevFPtr = f;

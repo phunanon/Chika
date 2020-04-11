@@ -367,7 +367,7 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
       if (s.next()) break;
       if (patternIs(s.peek(), "(fn ")) {
         s.refreshBuffer();
-        auto symLen = indexOf(s.peek(4), ' ').i;
+        auto symLen = firstNonSymbol(s.peek(4)).i;
         char after = *s.peek(4 + symLen);
         *s.peek(4 + symLen) = '\0';
         hashOut("funcs.hsh", (const char*)s.peek(4));
@@ -463,7 +463,7 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
     auto counters = Counters();
     while (true) {
       //Skip the end of a level-0 func or form
-      if (s[0] == ')') {
+      if (s[0] == ')' || !s[0]) {
         if (s.next())
           break;
         continue;
@@ -509,9 +509,15 @@ void Compiler::compileFunc (funcnum fNum, Counters& c, Streamer& s, Appender& bi
   s.skip(); //Skip first (
   //Skip "fn name "
   {
+    bool isBlank = false;
     s.skip(3);
     auto symLen = firstNonSymbol(s.peek()).i;
+    if (*s.peek(symLen) == ')')
+      isBlank = true;
     s.skip(symLen + 1);
+    //If this is a blank function do not output any bytecode
+    //  The VM will return nil for functions it cannot find
+    if (isBlank || s[0] == ')') return;
   }
   //Add params to a hash table
   auto params = Params();

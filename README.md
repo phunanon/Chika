@@ -119,7 +119,8 @@ Function names must not start with a digit.
 
 `(func[ N args])`: a form, with a function in the head position, and 0-N arguments separated by spaces. Arguments can be forms.
 
-`(fn func-name[ N params] [1-N forms])`: a function definition, with 0-N parameter symbols separated by spaces, and 1-N forms.
+`(fn func-name[ N params] [1-N forms])`: a function definition, with 0-N parameter symbols separated by spaces, and 1-N forms.  
+Note: calling a function with no forms returns nil.
 
 `{form}`: an inline-function, comprised as one form.  
 Note: parameters of surrounding functions cannot be referenced within inline-functions. Consider instead using a binding.  
