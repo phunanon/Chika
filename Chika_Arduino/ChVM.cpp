@@ -895,8 +895,11 @@ void ChVM::op_Str (itemnum p0) {
 }
 
 void ChVM::op_Type (itemnum p0) {
-  *(IType*)iBytes(p0) = i(p0)->type; //TODO: Arduino test
-  returnItem(p0, Item(sizeof(IType), fitInt(sizeof(IType))));
+  IType t0 = i(p0)->type;
+  if (numItem() - p0 > 1 && (t0 != i(p0 + 1)->type))
+    returnNil(p0);
+  else
+    returnInt(p0, t0, sizeof(t0));
 }
 
 void ChVM::op_Cast (itemnum p0) {
@@ -1277,7 +1280,7 @@ void ChVM::op_Debug (itemnum p0) {
     case 3: harness->printMem(pBytes, numByte());
   }
   returnInt(p0, out, sizeof(out));
-#elif
+#else
   returnNil(p0);
 #endif
 }

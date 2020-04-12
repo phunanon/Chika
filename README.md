@@ -269,7 +269,8 @@ Note: strings are written without null terminator.
 
 **Types and casting**
 
-`type i`: returns type code of item `i`.
+`type i`: returns type code of item `i`.  
+`type a b`: returns type code of items `a` & `b` if they are equal, otherwise `nil`.
 
 `cast i t`: returns item `i` cast as type code `t`.  
 Note: wider to thinner will be truncated, thinner to wider will be zeroed out;  

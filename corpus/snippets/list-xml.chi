@@ -1,0 +1,13 @@
+
+(fn list->xml m
+  (if (not (type m []))
+    (return m))
+  (do tag= (nth 0 m)
+    (str \< tag \>
+      (.. (map list->xml (sect m)))
+      "</" tag \>)))
+
+(print (list->xml
+  ["body"
+    ["h1" "Welcome"]
+    ["p" "This is " ["i" "very"] " exciting."]]))
