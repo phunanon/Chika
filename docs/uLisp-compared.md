@@ -25,6 +25,7 @@ Ranges are a-b.
 
 | What | uLisp  | Chika |
 | ---- | ------ | ----- |
+| sq   | 4B*15  | 10B   |
 | fib  | 4B\*37 | 57B   |
 | tak  |        | 81B   |
 

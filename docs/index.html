@@ -10,8 +10,13 @@
   font-family: sans-serif;
   text-align: justify;
 }
-body { padding: 4%; }
-section { max-width: 40rem; }
+body { padding: 4% 4% 4% 0; }
+section {
+  max-width: 40rem;
+  vertical-align: top;
+  float: left;
+  margin-left: 4%;
+}
 .img { width: 100%; }
 a {
   color: #00f;
@@ -38,13 +43,16 @@ li:not(:first-child) { padding-top: .5rem; }
     </style>
   </head>
   <body>
-    <nav>
-      <img src="media/chika.svg">
-      <h1>Chika</h1>
-    </nav>
     <section>
+      <nav>
+        <img src="media/chika.svg">
+        <h1>Chika</h1>
+      </nav>
       <h3>S-expression programming language for PC and Arduino.</h3>
       <img class="img" src="media/Chika-sample.png">
+      <img class="img" src="media/20200411_REPL.jpg">
+    </section>
+    <section>
       <div class="grey boxes">
         <p>Requirements...</p>
 <span>Arduino or Linux</span><span>Arduino: IDE</span></span><span>Arduino: FAT SD card</span><span>&#8805;2K RAM</span><span>&#8805;32K ROM</span>
@@ -55,7 +63,7 @@ li:not(:first-child) { padding-top: .5rem; }
       </div>
       <div class="red boxes">
         <p>Does not include...</p>
-<span>homoiconicity</span><span>closures</span><span>native REPL</span><span>macros</span><span>laziness</span><span>multi-arity</span><span>floating point</span><span>multi-core</span><span>code import</span>
+<span>homoiconicity</span><span>closures</span><span>macros</span><span>laziness</span><span>multi-arity</span><span>floating point</span><span>multi-core</span><span>code import</span>
       </div>
       <div class="green boxes">
         <p>Currently supports...</p>
@@ -101,6 +109,9 @@ li:not(:first-child) { padding-top: .5rem; }
       Composition of programs at runtime is a strength, and I much prefer it to baked-in drivers (e.g. "this OS works with X display and only that!"). <br>
       A really nice example is <a href="http://library.ulisp.com/show?2TMA">SSD1306 support in uLisp</a>. Chika now has a SSD1306 library of its own, controlled through inter-program messaging. <br>
       Essentially, other than the SD card, serial, and I/O pins, there will be no other firmware-level facilitates.</p>
+
+    </section>
+    <section>
 
       <h4>Why not heap or linked-list memory?</h4>
       <p>With the 1-dimensional mind I have I realised Chika's memory can be implemented as a stack. Cheaper so leaning on C's stack, using recursion when Chika enters a function. <br>

@@ -84,29 +84,19 @@ On PC/Arduino: use the `comp` op within Chika to compile `.chi` source files.
 Note: it can take a while on the Arduino as it compiles with very limited memory, mostly writing one byte to a file at a time.  
 Note: compilation emits many temporary files, which should be deleted after a successful compilation. Right now these files must be manually removed on an unsuccessful compilation.
 
-### Chika Virtual Machine (ChVM) implementation
-
-Using pre-allocated memory to store and execute a variable number of programs at once...
-- entry and heartbeat
-- state first last on heartbeat
-- can be compiled as C++ program
-- uses stacks
-
-TODO
-
-#### Internal features
-
-- tail-call optimisation
-
-TODO
-
 ### Program lifetime
+
+Each program loaded into the VM has a lifetime of:
 
 - entry
 - heartbeat
 - messages
+- halt
 
-TODO
+All of these are optional.  
+Entry is code executed at the program's start, before any heartbeats or messages, and is not contained within any functions.  
+Heartbeats are required to stop a program immediately terminating after entry, by including a function called `heartbeat`. This is executed flat-out per program heartbeat function, round-robin style. The `heartbeat` function is passed the program's persisted state as a parameter, and the return is persisted as the new state.  
+Messages are broadcast throughout the VM and execute any callback functions, also passed the program's state and returning the new state.
 
 ### Written
 
