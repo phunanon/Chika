@@ -936,13 +936,13 @@ void ChVM::op_Nth (itemnum p0) {
   int32_t nth = iInt(p0);
   Item* it = i(p0 + 1);
   uint8_t* vBytes = iBytes(p0 + 1);
-  //Return nil on negative nth or non-str/vec/blob
+  //Return nil on negative nth or non-str/vec
   IType type = it->type;
-  if (nth < 0 || (type != Val_Vec && type != Val_Str && type != Val_Blob)) {
+  if (nth < 0 || (type != Val_Vec && type != Val_Str)) {
     returnNil(p0);
     return;
   }
-  //Different behaviour for if a string, vector, or blob
+  //Different behaviour for if a string or vector
   if (type == Val_Str) {
     if (it->len < 2 || nth > it->len - 2) {
       returnNil(p0);
@@ -950,15 +950,6 @@ void ChVM::op_Nth (itemnum p0) {
     }
     *iBytes(p0) = vBytes[nth];
     returnItem(p0, Item(1, Val_Char));
-    return;
-  }
-  if (type == Val_Blob) {
-    if (it->len == 0 || nth >= it->len) {
-      returnNil(p0);
-      return;
-    }
-    *iBytes(p0) = vBytes[nth];
-    returnItem(p0, Item(1, Val_U08));
     return;
   }
   //Collate vector info
@@ -1050,16 +1041,26 @@ void ChVM::op_Blob (itemnum p0) {
 void ChVM::op_Get (itemnum p0) {
   argnum nArg = numItem() - p0;
   itemlen offset = iInt(p0);
-  uint8_t size = iInt(p0 + 1);
+  uint8_t len = iInt(p0 + 1);
   IType type = nArg == 3 ? Val_U08 :(IType)iInt(p0 + 2);
   itemnum iN = p0 + nArg - 1;
-  returnItem(iN, Item(size, type));
-  memmove(iBytes(iN), iBytes(iN) + offset, size); //I don't know why memcpy breaks
+  if (offset + len > i(iN)->len) {
+    returnNil(p0);
+    return;
+  }
+  returnItem(iN, Item(len, type));
+  memmove(iBytes(iN), iBytes(iN) + offset, len); //I don't know why memcpy breaks
   returnCollapseLast(p0);
 }
 
 void ChVM::op_Set (itemnum p0) {
-  memcpy(iBytes(p0 + 2) + iInt(p0), iBytes(p0 + 1), i(p0 + 1)->len);
+  itemlen offset = iInt(p0);
+  itemlen len = i(p0 + 1)->len;
+  if (offset + len > i(p0 + 2)->len) {
+    returnNil(p0);
+    return;
+  }
+  memcpy(iBytes(p0 + 2) + offset, iBytes(p0 + 1), len);
   returnCollapseLast(p0);
 }
 

@@ -205,7 +205,7 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 `vec` 0 arg: returns empty vector.  
 `vec` N arg: returns vector of its arguments.
 
-`nth N i`: returns item, character, or 8-bit integer at index `N` of vector, string, or blob `i`, or nil if `N` is in an improper range.
+`nth N i`: returns item or character at index `N` of vector or string `i`, or nil if `N` is in an improper range.
 
 `str` 0 arg: returns empty string.  
 `str` N arg: returns concatenation of N arguments as a string.
@@ -219,9 +219,9 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `blob l s`: returns a blob of length `l` with all bytes set to `s`.
 
-`get o l t b`: returns item of type `t` and length `l` from offset `o` bytes of blob `b`.
-
-`set o i b`: returns blob `b` with offset `o` bytes set to the bytes of item `i`.
+`get o l t b`: returns item of type `t` and length `l` from offset `o` bytes of blob `b`.  
+`set o i b`: returns blob `b` with offset `o` bytes set to the bytes of item `i`.  
+Note: both `get` and `set` return nil if requested offset + len would exceed the size of the blob.
 
 `.. v`: bursts a vector or string `v` onto the argument stack as either vector items or character items.  
 Note: like Clojure `apply` e.g. `(+ (.. [1 2 3])) => 6`.  
