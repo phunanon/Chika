@@ -638,7 +638,10 @@ void ChVM::nativeOp (IType op, itemnum p0) {
     case Op_Len:    op_Len   (p0); break;
     case Op_Sect: case Op_BSect:
       op_Sect(p0, op == Op_BSect); break;
-    case Op_Burst:  burstItem();           break;
+    case Op_Blob:   op_Blob  (p0); break;
+    case Op_Get:    op_Get   (p0); break;
+    case Op_Set:    op_Set   (p0); break;
+    case Op_Burst:  burstItem();   break;
     case Op_Reduce: op_Reduce(p0); break;
     case Op_Map:    op_Map   (p0); break;
     case Op_For:    op_For   (p0); break;
@@ -1036,6 +1039,28 @@ void ChVM::op_Sect (itemnum p0, bool isBurst) {
     op_Vec(p0 + skip);
     returnCollapseLast(p0);
   }
+}
+
+void ChVM::op_Blob (itemnum p0) {
+  uint8_t blobLen = iInt(p0);
+  returnItem(p0, Item(blobLen, Val_Blob));
+  memset(iBytes(p0), (uint8_t)iInt(p0 + 1), blobLen);
+}
+
+void ChVM::op_Get (itemnum p0) {
+  argnum nArg = numItem() - p0;
+  itemlen offset = iInt(p0);
+  uint8_t size = iInt(p0 + 1);
+  IType type = nArg == 3 ? Val_U08 :(IType)iInt(p0 + 2);
+  itemnum iN = p0 + nArg - 1;
+  returnItem(iN, Item(size, type));
+  memmove(iBytes(iN), iBytes(iN) + offset, size); //I don't know why memcpy breaks
+  returnCollapseLast(p0);
+}
+
+void ChVM::op_Set (itemnum p0) {
+  memcpy(iBytes(p0 + 2) + iInt(p0), iBytes(p0 + 1), i(p0 + 1)->len);
+  returnCollapseLast(p0);
 }
 
 void ChVM::op_Reduce (itemnum p0) {

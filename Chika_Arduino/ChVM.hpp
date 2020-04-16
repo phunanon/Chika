@@ -92,6 +92,9 @@ class ChVM {
   void     op_Vec    (itemnum);
   void     op_Nth    (itemnum);
   void     op_Len    (itemnum);
+  void     op_Blob   (itemnum);
+  void     op_Get    (itemnum);
+  void     op_Set    (itemnum);
   void     op_Reduce (itemnum);
   void     op_Map    (itemnum);
   void     op_For    (itemnum);

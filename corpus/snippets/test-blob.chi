@@ -1,0 +1,4 @@
+(print
+  (get 1 4 (type 0i)
+    (set 1 1234567i
+      (blob 128 0x00))))

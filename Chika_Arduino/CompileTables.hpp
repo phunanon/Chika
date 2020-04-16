@@ -15,12 +15,13 @@ const char* const ops[] = {
   "p-mode", "dig-r", "dig-w", "ana-r", "ana-w", //3E-42
   "file-r", "file-w", "file-a", "file-d",       //43-46
   "str", "vec", "nth", "len", "sect", "b-sect", //47-4C
-  "..", "reduce", "map", "for", "loop",         //4D-51
-  "binds", "val", "do",                         //52-54
-  "pub", "sub", "unsub",                        //
-  "type", "cast",                               //
-  "ms-now", "sleep",                            //
-  "print", "debug", "load", "comp", "halt", 0   //
+  "blob", "get", "set",                         //4D-4F
+  "..", "reduce", "map", "for", "loop",         //50-54
+  "binds", "val", "do",                         //55-57
+  "pub", "sub", "unsub",                        //58-5A
+  "type", "cast",                               //5B-5C
+  "ms-now", "sleep",                            //5D-5E
+  "print", "debug", "load", "comp", "halt", 0   //5F-63
 };
 
 #ifdef ARDUINO

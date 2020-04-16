@@ -200,7 +200,7 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `do` 1-N arg: returns its final argument.
 
-**String and vector related**
+**String, vector, and blob related**
 
 `vec` 0 arg: returns empty vector.  
 `vec` N arg: returns vector of its arguments.
@@ -212,10 +212,16 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `len i`: returns either vector, string, or internal item length.
 
-`sect v`: returns `v` with first item omitted;  
-`sect v skip`: returns `v` with first `skip` items omitted;  
-`sect v skip take`: returns `v` with `take` length and first `skip` items omitted;  
-`b-sect`: the same as `sect` but returns items burst.
+`sect v`: returns `v` with first item (if vector) or character (if string) omitted;  
+`sect v skip`: returns `v` with first `skip` items/characters omitted;  
+`sect v skip take`: returns `v` with `take` length and first `skip` items/characters omitted;  
+`b-sect`: the same as `sect` but returns items/characters burst.
+
+`blob l s`: returns a blob of length `l` with all bytes set to `s`.
+
+`get o l t b`: returns item of type `t` and length `l` from offset `o` bytes of blob `b`.
+
+`set o i b`: returns blob `b` with offset `o` bytes set to the bytes of item `i`.
 
 `.. v`: bursts a vector or string `v` onto the argument stack as either vector items or character items.  
 Note: like Clojure `apply` e.g. `(+ (.. [1 2 3])) => 6`.  
