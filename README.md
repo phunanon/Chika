@@ -221,9 +221,11 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `blob l s`: returns a blob of length `l` with all bytes set to `s`.
 
-`get o l t b`: returns item of type `t` and length `l` from offset `o` bytes of blob `b`.  
+`get o l t b`: returns item of type `t` and length `l` from offset `o` bytes of item `b`.  
+`get o b`: returns U08 value of byte at offset `o` bytes of item `b`.  
 `set o i b`: returns blob `b` with offset `o` bytes set to the bytes of item `i`.  
-Note: both `get` and `set` return nil if requested offset + len would exceed the size of the blob.
+Note: both `get` and `set` return nil if requested offset + len would exceed the size of the blob.  
+Note: both accept a reference as `b` (e.g. `*binding`), and will instead inspect/modify the bytes of the original reference item, `set` returning the reference or nil.
 
 `.. v`: bursts a vector or string `v` onto the argument stack as either vector items or character items.  
 Note: like in inversed Clojure `apply` e.g. `(+ (.. [1 2 3]) (.. [4 5 6])) => 21`.  

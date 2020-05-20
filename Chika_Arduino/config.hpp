@@ -61,11 +61,12 @@ enum IType : uint8_t {
   Bind_Mark = 0x09, //e.g. test=
   Bind_Val  = 0x0A, //     test
   XBind_Val = 0x0B, //     .test
-  Val_Vec   = 0x0C,
-  Val_Blob  = 0x0D,
+  RBind_Val = 0x0C, //     *test
+  Val_Vec   = 0x0D,
+  Val_Blob  = 0x0E,
   Val_U08   = 0x10, //e.g. 123
   Val_U16   = 0x11, //e.g. 1234w
-  Val_I32   = 0x12, //e.g. 1234i
+  Val_I32   = 0x12, //e.g. 123456i
   Val_Char  = 0x13, //e.g. \a
   Val_Args  = 0x19, //Emits args
   Var_Op    = 0x1A, //e.g. "(reduce + ..." `+` is a Var_Op

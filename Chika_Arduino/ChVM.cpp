@@ -67,6 +67,13 @@ Item* ChVM::iLast () {
   if (!nItem) return nullptr;
   return i(nItem - 1);
 }
+itemnum ChVM::ri (itemnum iNum) {
+  if (i(iNum)->type == RBind_Val) {
+    itemnum n;
+    return findBind(n, iInt(iNum), false) ? n : 0;
+  }
+  return iNum;
+}
 
 int32_t ChVM::iInt (itemnum iNum) {
   return readNum(iBytes(iNum), constByteLen(i(iNum)->type));
@@ -213,8 +220,7 @@ bool ChVM::heartbeat () {
 
 uint8_t* ChVM::pFunc (funcnum fNum) {
   uint8_t* r = pROM;
-  uint8_t* rEnd = pBytes;
-  while (r != rEnd) {
+  while (r != pBytes) {
     if (readUNum(r, sizeof(funcnum)) == fNum)
       return r;
     r += sizeof(funcnum);
@@ -526,7 +532,7 @@ void ChVM::exeForm () {
       op_Vec(firstArgItem);
       ++f; //Skip const code
     } else
-    //If a binding reference
+    //If a binding value
     if (nextEval == Bind_Val || nextEval == XBind_Val) {
       bindnum bNum = readUNum(++f, sizeof(bindnum));
       f += sizeof(bindnum);
@@ -1033,34 +1039,34 @@ void ChVM::op_Sect (itemnum p0, bool isBurst) {
 }
 
 void ChVM::op_Blob (itemnum p0) {
-  uint8_t blobLen = iInt(p0);
-  returnItem(p0, Item(blobLen, Val_Blob));
+  itemlen blobLen = iInt(p0);
   memset(iBytes(p0), (uint8_t)iInt(p0 + 1), blobLen);
+  returnItem(p0, Item(blobLen, Val_Blob));
 }
 
 void ChVM::op_Get (itemnum p0) {
   argnum nArg = numItem() - p0;
   itemlen offset = iInt(p0);
-  uint8_t len = iInt(p0 + 1);
-  IType type = nArg == 3 ? Val_U08 :(IType)iInt(p0 + 2);
+  uint8_t len = nArg == 2 ? 1 : iInt(p0 + 1);
+  IType type  = nArg == 2 ? Val_U08 :(IType)iInt(p0 + 2);
   itemnum iN = p0 + nArg - 1;
-  if (offset + len > i(iN)->len) {
+  if (offset + len > i(ri(iN))->len) {
     returnNil(p0);
     return;
   }
+  memmove(iBytes(iN), iBytes(ri(iN)) + offset, len); //I don't know why memcpy breaks
   returnItem(iN, Item(len, type));
-  memmove(iBytes(iN), iBytes(iN) + offset, len); //I don't know why memcpy breaks
   returnCollapseLast(p0);
 }
 
 void ChVM::op_Set (itemnum p0) {
   itemlen offset = iInt(p0);
   itemlen len = i(p0 + 1)->len;
-  if (offset + len > i(p0 + 2)->len) {
+  if (offset + len > i(ri(p0 + 2))->len) {
     returnNil(p0);
     return;
   }
-  memcpy(iBytes(p0 + 2) + offset, iBytes(p0 + 1), len);
+  memcpy(iBytes(ri(p0 + 2)) + offset, iBytes(p0 + 1), len);
   returnCollapseLast(p0);
 }
 

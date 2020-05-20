@@ -37,8 +37,9 @@ class ChVM {
   //Program item LIFO
   itemlen  itemsBytesLen (itemnum, itemnum); //Number of bytes on LIFO byte stack between two items
   Item*    i          (itemnum);  //Traverse items
-  uint8_t* iBytes     (itemnum);   //Access item bytes directly
+  uint8_t* iBytes     (itemnum);  //Access item bytes directly
   Item*    iLast      ();         //Access last item
+  itemnum  ri         (itemnum);  //Redirect through RBind_Val if necessary
 
   int32_t  iInt       (itemnum);  //Item-agnostic readNum
   bool     iBool      (itemnum);  //Item-agnostic truth test

@@ -1,0 +1,8 @@
+#128
+
+(do b= (blob 8 123)
+  (print (get 1 b))
+  (set 1 121 *b)
+  (print (get 1 *b)))
+
+//Should print `123121`

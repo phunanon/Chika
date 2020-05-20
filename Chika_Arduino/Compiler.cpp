@@ -1,7 +1,6 @@
 #include "Compiler.hpp"
 #include "CompileTables.hpp"
 #include "utils.hpp"
-#include <assert.h>
 
 typedef uint8_t buflen;
 
@@ -106,7 +105,6 @@ public:
   }
 
   uint8_t &operator[] (uint8_t i) {
-    assert(i < nLookahead);
     return lookaheads[i];
   }
 };
@@ -500,7 +498,6 @@ struct Params {
     hashes[n++] = hash(symbol);
   }
   uint32_t &operator[] (uint8_t i) {
-    assert(i < n);
     return hashes[i];
   }
 };
@@ -765,13 +762,15 @@ void Compiler::compileArg (Params* p, Counters& c, Streamer& s, Appender& binOut
     //  and if a reference, if extended or regular
     bool isMark = *s.peek(symLen - 1) == '=';
     bool isX = s[0] == '.';
+    bool isR = s[0] == '*';
     if (isMark)
       *s.peek(symLen - 1) = '\0';
-    tOut(isMark ? Bind_Mark : (isX ? XBind_Val : Bind_Val), binOut);
+    tOut(isMark ? Bind_Mark : (isX ? XBind_Val : (isR ? RBind_Val : Bind_Val)), binOut);
     //Either find its existing hash or assign a new one
-    idx bNum = findHash("binds.hsh", symbol + isX);
+    symbol += isX + isR; //Skip . or *
+    idx bNum = findHash("binds.hsh", symbol);
     if (!bNum.found)
-      bNum.i = newBind(symbol + isX);
+      bNum.i = newBind(symbol);
     binOut.a((uint8_t*)&bNum.i, sizeof(bNum.i));
   }
   if (!isSerialised) {
