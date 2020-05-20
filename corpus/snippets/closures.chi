@@ -1,0 +1,13 @@
+#!chika
+
+(fn close f ;
+  [f (sect args)])
+
+(fn open c ;
+  (do f= (nth 0 c)
+    (f (.. (nth 1 c)) (.. (sect args)))))
+
+(do
+  lambda= {+ #1 #}
+  closure= (close lambda 15) //Enclose with arg 0 as 15
+  (print (open closure 3)))  //Prints 18

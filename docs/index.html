@@ -59,11 +59,12 @@ li:not(:first-child) { padding-top: .5rem; }
       </div>
       <div class="blue boxes">
         <p>Features...</p>
-<span>purely functional</span><span>dynamic types</span><span>immutable, heap-free memory</span><span>native compiler</span><span>self-hosted REPL</span><span>round-robin scheduler</span><span>inter-program messaging</span><span>&#8804;64K program ROM</span><span>explicit recursion</span><span>implicit tail-call optimisation</span><span>GPL 3.0</span>
+<span>first-class functions</span><span>dynamic types</span><span>immutable, heap-free memory</span><span>native compiler</span><span>self-hosted REPL</span><span>round-robin scheduler</span><span>inter-program messaging</span><span>&#8804;64K per program</span><span>explicit recursion</span><span>implicit tail-call optimisation</span><span>GPL 3.0</span>
       </div>
       <div class="red boxes">
         <p>Does not include...</p>
-<span>homoiconicity</span><span>closures</span><span>macros</span><span>laziness</span><span>multi-arity</span><span>floating point</span><span>multi-core</span><span>code import</span>
+<span>homoiconicity</span><span>native closures*</span><span>macros</span><span>laziness</span><span>multi-arity</span><span>hash-maps</span><span>exceptions</span><span>floating point</span><span>multi-core</span><span>code import</span>
+        <p>* has an idiom substitute.</p>
       </div>
       <div class="green boxes">
         <p>Currently supports...</p>
@@ -93,9 +94,9 @@ li:not(:first-child) { padding-top: .5rem; }
       <h3>The vision...</h3>
       <p>Both <a href="https://github.com/thelazurite">Dylan Eddies</a> and I are keen on developing our own pocket PC's. <br>
       Its capabilities should enable a user to, unless there's a major update, never need to reflash their device with new firmware. Instead, be able to write, compile, and run programs on the device. <br>
-      It doesn't have to be performant, rather agile and comfortable to develop on. Inter-task comms should be available to help compose complex, uncoupled systems. <br>
+      It doesn't have to be performant, but rather agile and comfortable to develop on. Inter-program comms should be available to help compose uncoupled systems. <br>
       It should be able to fit onto something as small as a watch to anything larger, be headless, or support multiple peripherals. <br>
-      It should be able to interact with peripherals through its native programs, rather than compiled support with the OS itself.</p>
+      It should interact with peripherals through its native programs, rather than compiled support with the language itself.</p>
 
       <h4>Why not real-time scheduling?</h4>
       <p>Real-time scheduling has been <a href="https://github.com/search?q=Arduino+RTOS&type=Repositories">done to death</a>, providing <i>compile-time</i> kernels. <br>
