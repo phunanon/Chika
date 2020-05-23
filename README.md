@@ -6,7 +6,8 @@
 Its goal is to lean toward agility over both speed and memory footprint, with a unique stack memory model, Lisp-inspired syntax, and MQTT-style internal messaging.  
 Its spirit is: decouple everything through inter-task communication.
 
-**[Visit the website](https://phunanon.github.io/Chika) for more information**, including rationale, comparisons to other projects, photos, and more.
+**[Visit the website](https://phunanon.github.io/Chika) for more information**, including rationale, comparisons to other projects, photos, and more.  
+**[Visit the Discord](https://discord.gg/emdhpd5) to chat.**
 
 ### Examples
 
@@ -290,9 +291,8 @@ Example: `(for str [\a \b \c] [1 2 3]) => [a1 a2 a3 b1 b2 b3 c1 c2 c3]`
 `loop seed n f`: same as above, but `f` is `(acc 0…n) => any` where `acc` is firstly `seed` then the return of the previous iteration.  
 `loop seed a b f`: same as above, except `n` ranges from `a` to `b`.  
 Example: `(loop 2 {print "hello" #})` prints "hello0" and "hello1", returns nil.  
-Example: `(loop 0 5 {+ (.. args)}) => 10`.  
-Example: `(loop 0 5 10 {+ (.. args)}) => 35`  
-Note: `f` must be a program function, and not a native operation.
+Example: `(loop 0 5 +) => 10`.  
+Example: `(loop 0 5 10 +) => 35`
 
 **Message related**
 

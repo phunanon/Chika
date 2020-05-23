@@ -1205,6 +1205,7 @@ void ChVM::op_Loop (itemnum p0) {
   uint16_t from, to;
   bool hasSeed;
   funcnum fCode = iInt(numItem() - 1);
+  bool isOp = iLast()->type == Var_Op;
   {
     argnum nArg = numItem() - p0;
     //If (loop to f)
@@ -1217,7 +1218,8 @@ void ChVM::op_Loop (itemnum p0) {
   for (uint16_t i = from; i < to; ++i) {
     //Copy i to p1, execute f
     returnInt(p0 + hasSeed, i, sizeof(i));
-    exeFunc(fCode, p0);
+    if (isOp) nativeOp((IType)fCode, p0);
+    else      exeFunc(fCode, p0);
   }
   //The last item on the stack is implicitly returned
 }
