@@ -296,8 +296,7 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
       bool isWhite = isWhitespace(s[0]);
       if (isWhite)
         inComma = s[0] == ',';
-      if (!(isWhite && s[0] != ' ')
-        && !((s[0] == ' ' || s[0] == '\n') && prevCh == ' ')) {
+      if (!((s[0] == ' ' || s[0] == '\n') && prevCh == ' ')) {
         if (s[0] == '\n') s[0] = ' ';
         prevCh = s[0];
         cleanOut.a(&s[0], 1);
@@ -520,6 +519,7 @@ void Compiler::compileFunc (funcnum fNum, Counters& c, Streamer& s, Appender& bi
   auto params = Params();
   if (s[0] != '(') {
     while (true) {
+      if (s[0] == ' ') s.skip();
       if (s[0] == '(') break;
       auto symLen = firstNonSymbol(s.peek()).i;
       *s.peek(symLen) = '\0';
@@ -582,6 +582,7 @@ bindnum Compiler::newBind (const char* symbol) {
 void Compiler::compileForm (Params* p, Counters& c, Streamer& s, Appender& binOut) {
   s.skip(); //Skip '('
   s.refreshBuffer();
+  while (s[0] == ' ') s.skip();
   //The beginning of every form is an op, so serialise this first
   //  which could be an operation, function, func-through-parm, or func-through-bind
   auto symLen = firstNonSymbol(s.peek()).i;
