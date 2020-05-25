@@ -5,7 +5,7 @@
 
 bool isTypeTruthy (IType type);
 bool isTypeInt (IType type);
-void skipArg (uint8_t** f);
+uint8_t* skipArg (uint8_t* f);
 
 #ifndef min
   #define min(a,b) (a<b?a:b)

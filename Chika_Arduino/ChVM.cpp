@@ -52,8 +52,9 @@ bytenum ChVM::numByte () {
 //`to` is exclusive
 itemlen ChVM::itemsBytesLen (itemnum from, itemnum to) {
   bytenum n = 0;
-  for (itemnum it = from; it < to; ++it)
-    n += i(it)->len;
+  Item* iPtr = i(from);
+  for (itemnum it = from; it < to; ++it, --iPtr)
+    n += iPtr->len;
   return n;
 }
 Item* ChVM::i (itemnum iNum) {
@@ -385,7 +386,7 @@ void ChVM::exeForm () {
           //                ^
           if (formData == WasTrue) {
             //Was true: skip the if-false arg if present
-            if (*f != Op_If) skipArg(&f);
+            if (*f != Op_If) f = skipArg(f);
             ++f; //Skip op
             return;
           } else
@@ -400,7 +401,7 @@ void ChVM::exeForm () {
           if (firstArgItem + 1 == numItem()) {
             if (!isTypeTruthy(iLast()->type)) {
               //False: skip the if-true arg
-              skipArg(&f);
+              f = skipArg(f);
               //If there's no if-false, return nil
               if (*f == Op_If) {
                 returnNil(firstArgItem);
@@ -426,7 +427,7 @@ void ChVM::exeForm () {
               trunStack(firstArgItem + 1);
               //Skip all args until Op_Or
               while (*f != Op_Or)
-                skipArg(&f);
+                f = skipArg(f);
               ++f; //Skip op
               return;
             }
@@ -453,7 +454,7 @@ void ChVM::exeForm () {
             if (!isTruthy) {
               //Skip all args until Op_And
               while (*f != Op_And)
-                skipArg(&f);
+                f = skipArg(f);
               returnItem(firstArgItem, Item(0, Val_False));
               ++f; //Skip op
               return;
@@ -475,7 +476,7 @@ void ChVM::exeForm () {
           if (formData == WasTrue) {
             //Return evaluated case by skipping all args until Op_Case
             while (*f != Op_Case)
-              skipArg(&f);
+              f = skipArg(f);
             returnCollapseLast(firstArgItem);
             ++f; //Skip op
             return;
@@ -497,7 +498,7 @@ void ChVM::exeForm () {
             if (isTypeTruthy(iLast()->type))
               formData = WasTrue;
             else
-              skipArg(&f);
+              f = skipArg(f);
             //Forget case comparison
             iPop();
           }

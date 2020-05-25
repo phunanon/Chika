@@ -8,27 +8,28 @@ bool isTypeInt (IType type) {
   return type >= Val_U08 && type <= Val_I32;
 }
 
-void skipArg (uint8_t** f) {
+uint8_t* skipArg (uint8_t* f) {
   //Is a value?
-  if (**f > FORMS_END) {
-    IType type = (IType)**f;
-    *f += constByteLen(type, ++*f);
-    return;
+  if (*f > FORMS_END) {
+    IType type = (IType)*f;
+    f += constByteLen(type, ++f);
+    return f;
   }
   //It's a form - skip f to the end of it
   uint8_t nForm = 0;
   do {
     //If it's a form, increment form counter
-    if (**f <= FORMS_END) {
-      ++*f;
+    if (*f <= FORMS_END) {
+      ++f;
       ++nForm;
     } else {
       //If an op, decrement form counter
-      if (**f >= OPS_START) --nForm;
-      IType type = (IType)**f;
-      *f += constByteLen(type, ++*f);
+      if (*f >= OPS_START) --nForm;
+      IType type = (IType)*f;
+      f += constByteLen(type, ++f);
     }
   } while (nForm);
+  return f;
 }
 
 uint8_t _log10 (uint32_t v) {
