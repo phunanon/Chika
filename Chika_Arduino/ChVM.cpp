@@ -258,7 +258,7 @@ enum FuncState { FuncContinue, FuncRecur, FuncReturn, Halted };
 //These globals are set and restored per function call by ChVM::exeFunc,
 //  and used extensively by ChVM::exeForm, providing per-function context
 uint8_t* f;
-uint8_t* funcEnd;
+uint8_t* fEnd;
 itemnum p0;
 itemnum nArg;
 FuncState funcState;
@@ -280,7 +280,12 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
     prevFPtr = f;
   }
 
-  uint8_t* fEnd;
+  //Cache previous function attributes
+  uint8_t* prev_funcEnd = fEnd;
+  itemnum prev_p0 = p0;
+  itemnum prev_nArg = nArg;
+
+  //Calculate function ending
   f += sizeof(funcnum);
   {
     funclen fLen = readUNum(f, sizeof(funclen));
@@ -291,11 +296,6 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
     f += sizeof(funclen);
     fEnd = f + fLen;
   }
-
-  //Cache previous function attributes
-  uint8_t* prev_funcEnd = funcEnd;
-  itemnum prev_p0 = p0;
-  itemnum prev_nArg = nArg;
 
   p0 = firstParam;
   uint8_t* fStart = f;
@@ -324,7 +324,7 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
 
   //Restore previous function attributes
   f = prev_f;
-  funcEnd = prev_funcEnd;
+  fEnd = prev_funcEnd;
   p0 = prev_p0;
   nArg = prev_nArg;
 
@@ -359,12 +359,18 @@ void ChVM::collapseArgs (itemnum& firstArgItem) {
   collapseItems(p0, numItem() - firstArgItem);
   firstArgItem = p0;
 }
-void ChVM::tailCallOptim (IType type, itemnum& firstArgItem) {
-  if (f == funcEnd - constByteLen(type) - 1) //If the op is a tail call
-    collapseArgs(firstArgItem);
+bool ChVM::tailCallOptim (itemnum& firstArgItem, funcnum fNum) {
+  if (f == fEnd) { //If the op is a tail call
+    collapseArgs(firstArgItem); //... collapse arguments into the parameters' memory
+    if (prevFNum == fNum) { //If the same function, recur don't execute new
+      funcState = FuncRecur;
+      return false;
+    }
+  }
+  return true; //May execute new
 }
 
-enum SpecialFormData { UnEvaled = 0, WasTrue, WasFalse };
+enum SpecialFormData : uint8_t { UnEvaled = 0, WasTrue, WasFalse };
 
 IType nextEval; //Used within ChVM::exeForm()
 void ChVM::exeForm () {
@@ -553,7 +559,7 @@ void ChVM::exeForm () {
       Item item = Item(constByteLen(nextEval, ++f), nextEval);
       memcpy(stackItem(), f, item.len);
       stackItem(item);
-      f += constByteLen(nextEval, f);
+      f += item.len;
     } else
     //If an explicit function recursion
     if (nextEval == Op_Recur) {
@@ -566,15 +572,14 @@ void ChVM::exeForm () {
       if (firstArgItem == numItem())
         returnNil(firstArgItem);
       else returnCollapseLast(firstArgItem);
-      f = funcEnd;
       funcState = FuncReturn;
     } else
     //If a program function
     if (nextEval == Op_Func) {
-      tailCallOptim(nextEval, firstArgItem);
       funcnum fNum = readUNum(++f, sizeof(funcnum));
-      exeFunc(fNum, firstArgItem);
       f += sizeof(funcnum);
+      if (tailCallOptim(firstArgItem, fNum))
+        exeFunc(fNum, firstArgItem);
       break;
     } else
     //If a native op or function through a binding or parameter
@@ -601,8 +606,9 @@ void ChVM::exeForm () {
         else
         //If a program function
         if (type == Var_Func) {
-          tailCallOptim(type, firstArgItem);
-          exeFunc(readUNum(iBytes(it), sizeof(funcnum)), firstArgItem);
+          funcnum funcNum = readUNum(iBytes(it), sizeof(funcnum)); 
+          if (tailCallOptim(firstArgItem, funcNum))
+            exeFunc(funcNum, firstArgItem);
         } else
         //Variable wasn't of Var_Op/Var_Func type
           returnNil(firstArgItem);

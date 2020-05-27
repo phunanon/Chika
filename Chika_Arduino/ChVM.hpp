@@ -69,7 +69,7 @@ class ChVM {
   bool     findBind  (itemnum&, bindnum, bool);
 
   void     collapseArgs  (itemnum&);
-  void     tailCallOptim (IType, itemnum&);
+  bool     tailCallOptim (itemnum&, funcnum);
   //All may leave multiple items on the stack
   void     burstItem ();
   void     op_Sect   (itemnum, bool);
