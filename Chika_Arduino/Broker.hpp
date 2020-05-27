@@ -17,7 +17,6 @@ class Broker {
   strilen topicsLen = 0;
   subnum  numSub = 0;
 public:
-  Broker ();
   void publish        (const char*, Item*, uint8_t*, ChVM*);
   void subscribe      (const char*, prognum, funcnum, bool);
   void unsubscribe    (prognum, const char* = nullptr);

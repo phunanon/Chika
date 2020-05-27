@@ -1,9 +1,7 @@
-(fn ! x (if x F T))
-
 (fn inc n (+ n 1))
 (fn dec n (- n 1))
 (fn even? n (= (mod n 2) 0))
-(fn odd? n (! (even? n)))
+(fn odd? n (not (even? n)))
 (fn pos? n (<= 0 n))
 (fn neg? n (< n 0))
 (fn neg n (- 0i n))

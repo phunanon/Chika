@@ -296,7 +296,7 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
       bool isWhite = isWhitespace(s[0]);
       if (isWhite)
         inComma = s[0] == ',';
-      if (!((s[0] == ' ' || s[0] == '\n') && prevCh == ' ')) {
+      if (!(isWhitespace(s[0]) && isWhitespace(prevCh))) {
         if (s[0] == '\n') s[0] = ' ';
         prevCh = s[0];
         cleanOut.a(&s[0], 1);
@@ -513,13 +513,13 @@ void Compiler::compileFunc (funcnum fNum, Counters& c, Streamer& s, Appender& bi
     s.skip(symLen + 1);
     //If this is a blank function do not output any bytecode
     //  The VM will return nil for functions it cannot find
+    while (s[0] == ' ') s.skip();
     if (isBlank || s[0] == ')') return;
   }
   //Add params to a hash table
   auto params = Params();
   if (s[0] != '(') {
     while (true) {
-      if (s[0] == ' ') s.skip();
       if (s[0] == '(') break;
       auto symLen = firstNonSymbol(s.peek()).i;
       *s.peek(symLen) = '\0';

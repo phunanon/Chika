@@ -1,8 +1,6 @@
 #include "Broker.hpp"
 #include "ChVM.hpp"
 
-Broker::Broker () {}
-
 uint8_t indexOf (const char* str, char ch) {
   for (uint8_t i = 0; str[i]; ++i)
     if (str[i] == ch) return i;

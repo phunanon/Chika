@@ -1,6 +1,9 @@
 #include "ChVM.hpp"
 #include "Compiler.hpp"
 
+//#pragma GCC optimize ("O3")
+//#pragma GCC push_options
+
 prognum   pNum;       //
 uint8_t*  pBytes;     //
 uint8_t*  pFirstItem; //

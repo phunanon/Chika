@@ -30,7 +30,8 @@
 *.exe
 *.out
 *.app
-mOS
 bin
+
+#Misc
 *.7z
 *.zip
