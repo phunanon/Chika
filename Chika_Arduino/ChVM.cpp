@@ -263,6 +263,7 @@ enum FuncState { FuncContinue, FuncRecur, FuncReturn, Halted };
 uint8_t* f;
 uint8_t* fEnd;
 itemnum p0;
+itemnum parentP0;
 itemnum nArg;
 FuncState funcState;
 
@@ -285,6 +286,7 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
 
   //Cache previous function attributes
   uint8_t* prev_funcEnd = fEnd;
+  itemnum prev_parentP0 = parentP0;
   itemnum prev_p0 = p0;
   itemnum prev_nArg = nArg;
 
@@ -300,6 +302,7 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
     fEnd = f + fLen;
   }
 
+  parentP0 = p0;
   p0 = firstParam;
   uint8_t* fStart = f;
   nArg = numItem() - p0;
@@ -328,6 +331,7 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   //Restore previous function attributes
   f = prev_f;
   fEnd = prev_funcEnd;
+  parentP0 = prev_parentP0;
   p0 = prev_p0;
   nArg = prev_nArg;
 
@@ -522,7 +526,7 @@ void ChVM::exeForm () {
       exeForm();
     else
     //If a parameter
-    if (nextEval == Param_Val) {
+    if (nextEval == Para_Val || nextEval == XPara_Val) {
       itemnum paramNum = readUNum(++f, sizeof(argnum));
       f += sizeof(argnum);
       //If parameter is outside bounds, stack nil
@@ -530,7 +534,7 @@ void ChVM::exeForm () {
         stackNil();
         continue;
       }
-      paramNum += p0;
+      paramNum += nextEval == Para_Val ? p0 : parentP0;
       Item* iParam = i(paramNum);
       //memcpy the data onto the stack
       memcpy(stackItem(), iBytes(paramNum), iParam->len);

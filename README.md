@@ -121,8 +121,10 @@ Note: calling a function with no forms returns nil.
 Note: parameters of surrounding functions cannot be referenced within inline-functions. Consider instead using a binding.  
 Note: nested inline-functions are forbidden.
 
-`#`: first argument reference within an inline-function.  
-`#num`: positional argument reference within an inline-function, e.g. `#3`.
+`#`: first parameter reference of a function.  
+`$`: first argument reference of a function's caller function.  
+`#N` and `$N`: Nth parameter reference, e.g. `#3` or `$3` for the fourth parameter of either the function or the function's caller function.  
+Note: using `$` when there was no calling function is undefined behaviour.
 
 `//…`: a comment, which can be suitated on a new line or at the end of one.
 

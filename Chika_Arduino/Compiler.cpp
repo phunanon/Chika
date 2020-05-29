@@ -702,12 +702,12 @@ void Compiler::compileArg (Params* p, Counters& c, Streamer& s, Appender& binOut
     tOut(Val_Args, binOut);
   }
   //If a numbered parameter
-  if (!isSerialised && s[0] == '#') {
+  if (!isSerialised && (s[0] == '#' || s[0] == '$')) {
     isSerialised = true;
     argnum pN = 0;
     if (isDigit(s[1]))
       pN = chars2int((const char*)s.peek(1));
-    tOut(Param_Val, binOut);
+    tOut(s[0] == '#' ? Para_Val : XPara_Val, binOut);
     binOut.a((uint8_t*)&pN, sizeof(pN));
   }
   //If a hexademical or decimal integer
@@ -734,7 +734,7 @@ void Compiler::compileArg (Params* p, Counters& c, Streamer& s, Appender& binOut
     idx isParam = p->contains(symbol);
     if (isParam.found) {
       isSerialised = true;
-      tOut(Param_Val, binOut);
+      tOut(Para_Val, binOut);
       binOut.a((uint8_t*)&isParam.i, sizeof(argnum));
     }
   }

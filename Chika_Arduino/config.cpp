@@ -5,7 +5,7 @@ itemlen constByteLen (IType t, uint8_t* body) {
   switch (t) {
     case Val_True: case Val_False: return 0;
     case Val_Str:  return body ? strlen((const char*)body) + 1 : 0;
-    case Param_Val: return sizeof(argnum);
+    case Para_Val: case XPara_Val: return sizeof(argnum);
     case Bind_Mark: case Bind_Val:
     case XBind_Val: case RBind_Val: return sizeof(bindnum);
     case Val_U08: return 1;

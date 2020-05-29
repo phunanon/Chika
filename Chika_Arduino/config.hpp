@@ -58,13 +58,14 @@ enum IType : uint8_t {
 
   Val_True  = 0x05, Val_False = 0x06,
   Val_Str   = 0x07,
-  Param_Val = 0x08, //e.g. "(fn func a (val a))" `a` is a Param_Val
-  Bind_Mark = 0x09, //e.g. test=
-  Bind_Val  = 0x0A, //     test
-  XBind_Val = 0x0B, //     .test
-  RBind_Val = 0x0C, //     *test
-  Val_Vec   = 0x0D,
-  Val_Blob  = 0x0E,
+  Para_Val  = 0x08, //e.g. "(fn func a (val a))" `a` is a Param_Val
+  XPara_Val = 0x09,
+  Bind_Mark = 0x0A, //e.g. test=
+  Bind_Val  = 0x0B, //     test
+  XBind_Val = 0x0C, //     .test
+  RBind_Val = 0x0D, //     *test
+  Val_Vec   = 0x0E,
+  Val_Blob  = 0x0F,
   Val_U08   = 0x10, //e.g. 123
   Val_U16   = 0x11, //e.g. 1234w
   Val_I32   = 0x12, //e.g. 123456i
