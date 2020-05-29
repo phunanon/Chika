@@ -40,10 +40,11 @@ typedef uint8_t  sublen;
 
 
 #ifdef SDCARD_SS_PIN
-  #define SD_CARD_PIN SDCARD_SS_PIN
+  #define SD_CARD_PIN SDCARD_SS_PIN //MKRZero; built-in
 #endif
 #ifndef SDCARD_SS_PIN
-  #define SD_CARD_PIN 4
+  #define SD_CARD_PIN 4             //Feather M0; built-in
+  //#define SD_CARD_PIN 53          //Mega 2560; 50 MISO, 51 MOSI, 52 SCK/CLK, 53 CS
 #endif
 
 

@@ -18,14 +18,14 @@ Note: `;//…` is used to make use of Clojure syntax highlighting; comments in C
 ;//Calculates Nth term of Fibonacci Sequence
 (fn fib n
   (if (< n 3) 1i
-    (+ (fib (- n 1i)) (fib (- n 2i)))))
-(fib 35i) => 832040
+    (+ (fib (- n 1)) (fib (- n 2)))))
+(fib 35) => 9227465
 
 ;//LED blink program for Arduino
 (p-mode 32 T)
 (fn heartbeat on
   (dig-w 32 on)
-  (sleep 1000i)
+  (sleep 1000w)
   (not on))
 
 ;//Prints `15`
@@ -71,6 +71,8 @@ Suitable devices:
 - ATSAMD21
   - Arduino MKRZero
   - Adafruit Feather M0
+- AVR
+  - Arduino Mega 2560
 
 #### Chika VM target: Linux
 
