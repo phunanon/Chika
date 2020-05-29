@@ -10,7 +10,8 @@ uint8_t*  pFirstItem; //
 ProgInfo* pInfo;      //
 uint8_t* pROM;        // Current program data
 funcnum prevFNum = -1;       //
-uint8_t* prevFPtr = nullptr; // Used by ChVM::exeFunc
+uint8_t* prevF = nullptr;    //
+uint8_t* prevFEnd = nullptr; // Used by ChVM::exeFunc
 
 ChVM::ChVM (ChVM_Harness* _harness) {
   harness = _harness;
@@ -34,7 +35,8 @@ void ChVM::switchToProg (prognum n, proglen romLen, bytenum memLen) {
   pFirstItem = (pROM + progs[n].memLen) - sizeof(Item);
   pInfo = &progs[n];
   prevFNum = -1;      //
-  prevFPtr = nullptr; // Used by ChVM::exeFunc
+  prevF = nullptr;    //
+  prevFEnd = nullptr; // Used by ChVM::exeFunc
 }
 uint8_t* ChVM::getPROM () {
   return pROM;
@@ -268,38 +270,35 @@ itemnum nArg;
 FuncState funcState;
 
 bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
-  //Cache previous function attribute
-  uint8_t* prev_f = f;
-
-  if (prevFNum == fNum)
-    f = prevFPtr;
-  else {
-    uint8_t* fPtr = pFunc(fNum);
-    if (!fPtr) {
-      returnNil(firstParam);
-      return false;
-    }
-    f = fPtr;
-    prevFNum = fNum;
-    prevFPtr = f;
-  }
-
   //Cache previous function attributes
+  uint8_t* prev_f = f;
   uint8_t* prev_funcEnd = fEnd;
   itemnum prev_parentP0 = parentP0;
   itemnum prev_p0 = p0;
   itemnum prev_nArg = nArg;
 
-  //Calculate function ending
-  f += sizeof(funcnum);
-  {
+  //If this was the previous function used cached start/end, otherwise recalculate
+  if (prevFNum == fNum) {
+    f = prevF;
+    fEnd = prevFEnd;
+    f += sizeof(funclen);
+  } else {
+    uint8_t* fPtr = pFunc(fNum);
+    if (!fPtr) {
+      returnNil(firstParam);
+      return false;
+    }
+    f = fPtr + sizeof(funcnum);
+    prevFNum = fNum;
+    prevF = f;
+
     funclen fLen = readUNum(f, sizeof(funclen));
     if (!fLen) {
       f = prev_f;
       return false;
     }
     f += sizeof(funclen);
-    fEnd = f + fLen;
+    prevFEnd = fEnd = f + fLen;
   }
 
   parentP0 = p0;
