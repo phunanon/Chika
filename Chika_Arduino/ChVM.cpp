@@ -595,15 +595,16 @@ void ChVM::exeForm () {
       break;
     } else
     //If a native op or function through a binding or parameter
-    if (nextEval == Op_Bind || nextEval == Op_Param) {
+    if (nextEval >= Op_Param && nextEval <= Op_XBind) {
+      static_assert(Op_Param == Op_XPara - 1 && Op_XPara == Op_Bind - 1 && Op_Bind == Op_XBind - 1);
       itemnum it;
       bool found = true;
 
-      if (nextEval == Op_Bind) {
-        found = findBind(it, readUNum(++f, sizeof(bindnum)), false);
+      if (nextEval == Op_Bind || nextEval == Op_XBind) {
+        found = findBind(it, readUNum(++f, sizeof(bindnum)), nextEval == Op_XBind);
         f += sizeof(bindnum);
       } else {
-        it = p0 + readUNum(++f, sizeof(argnum));
+        it = (nextEval == Op_Param ? p0 : parentP0) + readUNum(++f, sizeof(argnum));
         f += sizeof(argnum);
       }
       

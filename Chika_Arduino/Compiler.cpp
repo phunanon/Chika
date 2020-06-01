@@ -131,6 +131,7 @@ struct idx {
   uint16_t i;
   uint8_t found;
   idx (uint16_t _i, uint8_t _found) : i(_i), found(_found) {}
+  idx () {}
 };
 
 idx indexOf (uint8_t* str, char ch) {
@@ -579,6 +580,10 @@ bindnum Compiler::newBind (const char* symbol) {
   return (h->fileSize("binds.hsh") / sizeof(hash32)) - 1;
 }
 
+argnum paraNum (const char* str) {
+  return isDigit(str[0]) ? chars2int(str) : 0;
+}
+
 void Compiler::compileForm (Params* p, Counters& c, Streamer& s, Appender& binOut) {
   s.skip(); //Skip '('
   s.refreshBuffer();
@@ -608,22 +613,25 @@ void Compiler::compileForm (Params* p, Counters& c, Streamer& s, Appender& binOu
     }
     //If it wasn't a native op or prog func, check if a param
     if (!opSerialised[0]) {
-      idx pNum = p->contains(symbol);
+      bool isX = symbol[0] == '$';
+      idx pNum = (symbol[0] == '#' || isX) ? idx(paraNum(symbol + 1), true) : p->contains(symbol);
       if (pNum.found) {
-        opSerialised[0] = Op_Param;
+        opSerialised[0] = isX ? Op_XPara : Op_Param;
         writeUNum(opSerialised + 1, pNum.i, sizeof(argnum));
         opSerialisedLen = 1 + sizeof(argnum);
       }
     }
     //If it wasn't a native op, prog func, or param, it must be a binding
     if (!opSerialised[0]) {
+      bool isX = symbol[0] == '.';
+      if (isX) ++symbol;
       idx bNum = findHash("binds.hsh", symbol);
       //If a binding was found, use it as the function
       //  otherwise this can only be treated as the first
       //  instance of a binding, and must be hashed
       if (!bNum.found)
         bNum.i = newBind(symbol);
-      opSerialised[0] = Op_Bind;
+      opSerialised[0] = isX ? Op_XBind : Op_Bind;
       writeUNum(opSerialised + 1, bNum.i, sizeof(bindnum));
       opSerialisedLen = 1 + sizeof(bindnum);
     }
@@ -704,14 +712,12 @@ void Compiler::compileArg (Params* p, Counters& c, Streamer& s, Appender& binOut
   //If a numbered parameter
   if (!isSerialised && (s[0] == '#' || s[0] == '$')) {
     isSerialised = true;
-    argnum pN = 0;
-    if (isDigit(s[1]))
-      pN = chars2int((const char*)s.peek(1));
+    argnum pN = paraNum((const char*)s.peek(1));
     tOut(s[0] == '#' ? Para_Val : XPara_Val, binOut);
     binOut.a((uint8_t*)&pN, sizeof(pN));
   }
   //If a hexademical or decimal integer
-  if (!isSerialised && (isDigit(s[0]) || s[0] == '-')) {
+  if (!isSerialised && (isDigit(s[0]) || (s[0] == '-' && isDigit(s[1])))) {
       isSerialised = true;
     bool isDecimal = s[1] != 'x';
     if (patternIs((uint8_t*)symbol, "0x") || isDecimal) {

@@ -116,8 +116,10 @@ enum IType : uint8_t {
   Op_Load   = 0x61,
   Op_Comp   = 0x62,
   Op_Halt   = 0x63,
-  Op_Bind   = 0x64,
-  Op_Param  = 0x65
+  Op_Param  = 0x64,
+  Op_XPara  = 0x65,
+  Op_Bind   = 0x66,
+  Op_XBind  = 0x67
 };
 
 itemlen constByteLen (IType, uint8_t* = nullptr);

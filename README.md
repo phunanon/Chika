@@ -112,7 +112,8 @@ Function names must not start with a digit.
 
 `#num`: first line of file only (or second if a shebang is present). Informs the VM how many bytes of RAM (`num` up to 64KiB) will be used by the program. Otherwise a default maximum is used.
 
-`(func[ N args])`: a form, with a function in the head position, and 0-N arguments separated by spaces. Arguments can be forms.
+`(func[ N args])`: a form, with a function in the head position, and 0-N arguments separated by spaces. Arguments can be forms.  
+Note: `func` can be a native operation, program function, inline-function, binding, extended binding, parameter, or extended parameter.
 
 `(fn func-name[ N params] [1-N forms])`: a function definition, with 0-N parameter symbols separated by spaces, and 1-N forms.  
 Note: calling a function with no forms returns nil.
@@ -121,10 +122,11 @@ Note: calling a function with no forms returns nil.
 Note: parameters of surrounding functions cannot be referenced within inline-functions. Consider instead using a binding.  
 Note: nested inline-functions are forbidden.
 
-`#`: first parameter reference of a function.  
-`$`: first argument reference of a function's caller function.  
-`#N` and `$N`: Nth parameter reference, e.g. `#3` or `$3` for the fourth parameter of either the function or the function's caller function.  
-Note: using `$` when there was no calling function is undefined behaviour.
+`#`: a parameter reference, to the first parameter of a function.  
+`$`: an extended parameter reference, to the first parameter of a function's caller function.  
+`#N` and `$N`: a parameter reference, to the Nth parameter, e.g. `#3` or `$3` for the fourth parameter of either the function or the function's caller function.  
+Note: using `$` when there was no calling function is undefined behaviour.  
+Note: the value `$` references can be erased by tail-call optimisation.
 
 `//…`: a comment, which can be suitated on a new line or at the end of one.
 
@@ -135,8 +137,10 @@ Note: using `$` when there was no calling function is undefined behaviour.
 `,`: a comma, treated as whitespace, and whitespace after it is erased.
 
 `…=`: binding, whereby `…` is a label.  
+`…`: binding reference, whereby `…` is its label.  
+`.…`: an extended binding reference, whereby `…` is its label. It references the previous instance of a binding on the stack.  
 Note: parameters take precedent over bindings.  
-Note: when *redefining* bindings, one must write the binding as `.label`, informing the VM to skip a previous instance of a bind. Consider: `a= (+ 1 .a)`, so that `a` does not refer to the next item on the stack at that moment - `1`.
+Note: when *redefining* bindings, one must use an extended binding, so the VM skips the previous instance. Consider: `a= (+ 1 .a)`, so that `a` does not refer to the next item on the stack at that moment - `1`.
 
 The functions `if`, `and`, `or`, and `case` cannot be represented in a binding or parameter.
 
