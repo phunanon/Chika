@@ -99,7 +99,7 @@ Each program loaded into the VM has a lifetime of:
 - halt
 
 All of these are optional, but at least a heartbeat or entry must be specified in a program.  
-Entry is code executed at the program's start, before any heartbeats or messages, and is not contained within any functions. It can call functions *even before* their declaration in the source file.  
+Entry is code executed at the program's start, before any heartbeats or messages, and is not contained within any functions. It can call functions *even before* their declaration in the source file. The last entry returned item seeds the program state. Entry code is unloaded after use, so may not be called thereafter.  
 Heartbeats are required to stop a program immediately terminating after entry, by including a function called `heartbeat`. This is executed flat-out per program heartbeat function, round-robin style. The `heartbeat` function is passed the program's persisted state as a parameter, and the return is persisted as the new state.  
 Messages are broadcast throughout the VM and execute any callback functions, also passed the program's state and returning the new state.
 

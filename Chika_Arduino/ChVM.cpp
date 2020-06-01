@@ -204,6 +204,12 @@ void ChVM::purgeProg (prognum n) {
 
 void ChVM::entry () {
   exeFunc(0x0000, 0);
+  //Unload entry function from memory
+  uint8_t* entryFunc = pFunc(0x0000);
+  if (!entryFunc) return;
+  funclen fLen = readUNum(entryFunc + sizeof(funcnum), sizeof(funclen));
+  progs[pNum].romLen -= fLen;
+  memcpy(entryFunc, entryFunc + sizeof(funcnum) + sizeof(funclen) + fLen, progs[pNum].romLen + numByte());
 }
 
 bool ChVM::heartbeat (prognum pNum) {
@@ -849,7 +855,7 @@ void ChVM::op_Write (itemnum p0) {
   uint32_t offset = 0;
   argnum nArg = numItem() - p0;
   if (nArg > 1) offset = iInt(p0 + 2);
-  //Ensure item is etiher a blob or converted to string
+  //Ensure item is either a blob or converted to string
   IType type = i(p0 + 1)->type;
   if (type != Val_Blob) {
     if (type != Val_Str) op_Str(p0 + 1);
@@ -860,7 +866,7 @@ void ChVM::op_Write (itemnum p0) {
 }
 
 void ChVM::op_Append (itemnum p0) {
-  //Ensure item is etiher a blob or converted to string
+  //Ensure item is either a blob or converted to string
   IType type = i(p0 + 1)->type;
   if (type != Val_Blob) {
     op_Str(p0 + 1);
@@ -952,15 +958,10 @@ void ChVM::op_Vec (itemnum p0) {
 }
 
 void ChVM::op_Nth (itemnum p0) {
-  int32_t nth = iInt(p0);
+  vectlen nth = iInt(p0);
   Item* it = i(p0 + 1);
   uint8_t* vBytes = iBytes(p0 + 1);
-  //Return nil on negative nth or non-str/vec
   IType type = it->type;
-  if (nth < 0 || (type != Val_Vec && type != Val_Str)) {
-    returnNil(p0);
-    return;
-  }
   //Different behaviour for if a string or vector
   if (type == Val_Str) {
     if (it->len < 2 || nth > it->len - 2) {
@@ -969,21 +970,22 @@ void ChVM::op_Nth (itemnum p0) {
     }
     *iBytes(p0) = vBytes[nth];
     returnItem(p0, Item(1, Val_Char));
-    return;
-  }
-  //Collate vector info
-  uint8_t* vEnd = (vBytes + it->len) - sizeof(vectlen);
-  itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
-  Item* vItems = &((Item*)vEnd)[-vNumItem];
-  //Find item descriptor at nth
-  Item* nthItem = &((Item*)vEnd)[-(nth + 1)];
-  //Copy bytes into return position
-  uint8_t* itemBytes = vBytes;
-  for (itemnum vi = 0; vi < nth; ++vi)
-    itemBytes += vItems[(vNumItem - 1) - vi].len;
-  memcpy(iBytes(p0), itemBytes, nthItem->len);
-  //Return nth item descriptor
-  returnItem(p0, nthItem);
+  } else if (type == Val_Vec) {
+    //Collate vector info
+    uint8_t* vEnd = (vBytes + it->len) - sizeof(vectlen);
+    itemnum vNumItem = readNum(vEnd, sizeof(vectlen));
+    Item* vItems = &((Item*)vEnd)[-vNumItem];
+    //Find item descriptor at nth
+    Item* nthItem = &((Item*)vEnd)[-(nth + 1)];
+    //Copy bytes into return position
+    uint8_t* itemBytes = vBytes;
+    for (itemnum vi = 0; vi < nth; ++vi)
+      itemBytes += vItems[(vNumItem - 1) - vi].len;
+    memcpy(iBytes(p0), itemBytes, nthItem->len);
+    //Return nth item descriptor
+    returnItem(p0, nthItem);
+  } else
+    returnNil(p0);
 }
 
 void ChVM::op_Len (itemnum p0) {
