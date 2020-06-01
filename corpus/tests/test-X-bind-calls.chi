@@ -1,0 +1,12 @@
+
+//Should print 15 9 15 15
+
+(fn test-op (# 12 3))
+(fn test-op2 (do ({$ 12 3})))
+(do
+  op= -
+  op= +
+  (print (op 12 3) \nl)
+  (print (.op 12 3) \nl)
+  (print (test-op +) \nl)
+  (print (test-op2 +) \nl))
