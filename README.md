@@ -26,7 +26,7 @@ Note: `;//…` is used to make use of Clojure syntax highlighting; comments in C
 (fn heartbeat on
   (dig-w 32 on)
   (sleep 1000w)
-  (not on))
+  (! on))
 
 ;//Prints `15`
 (print
@@ -172,7 +172,7 @@ Note: `[square brackets]` indicate optional arguments.
 
 **Mathematical**
 
-`+` / `-` / `*` / `/` / `mod` / `pow` /  
+`+` / `-` / `*` / `/` / `%` / `**` /  
 `&` / `|` / `^` / `<<` / `>>` N arg:  
 returns sum / subtraction / multiplication / division / modulus / raise-to-the-power /  
 AND / OR / XOR / left shift / right shift of N integers.  
@@ -187,11 +187,11 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
 `case match … N pairs … [default]`: evaluates `match` then compares against the 1st of each pair of arguments, returning the 2nd if the 1st matches; if no matches are made `default` or nil is returned.
 
-`not i`: logically negates item `i`.
+`! i`: logically negates item `i`.
 
 `or` N arg: returns first truthy arg.
 
-`and` N arg: returns true if all args truthy.
+`&&` N arg: returns true if all args truthy.
 
 `=` N arg: equality, true if all args are of the same type, length, and byte equality. Compares ints by value.  
 `!=` N arg: negative equality.

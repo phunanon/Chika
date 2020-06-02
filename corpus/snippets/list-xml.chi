@@ -1,6 +1,6 @@
 
 (fn list->xml m
-  (if (not (type m []))
+  (if (! (type m []))
     (return m))
   (do tag= (nth 0 m)
     (str \< tag \>

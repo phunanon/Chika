@@ -7,10 +7,10 @@ const char* const ops[] PROGMEM = {
 #else
 const char* const ops[] = {
 #endif
-  "if", "case", "or", "and", "not",             //23-27
+  "if", "case", "or", "&&", "!",                //23-27
   "return", "recur",                            //28-29
   "=", "==", "!=", "!==", "<", "<=", ">",       //2A-30
-  ">=", "+", "-", "*", "/", "mod", "pow",       //31-37
+  ">=", "+", "-", "*", "/", "%", "**",          //31-37
   "~", "&", "|", "^", "<<", ">>",               //38-3D
   "p-mode", "dig-r", "dig-w", "ana-r", "ana-w", //3E-42
   "file-r", "file-w", "file-a", "file-d",       //43-46
@@ -29,4 +29,4 @@ const char* const fCodes[] PROGMEM = {
 #else
 const char* const fCodes[] = {
 #endif
-"if", "or", "and", "case", 0};
+"if", "or", "&&", "case", 0};

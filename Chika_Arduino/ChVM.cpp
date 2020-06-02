@@ -461,7 +461,7 @@ void ChVM::exeForm () {
         case Form_And: {
           bool evaled = firstArgItem != numItem();
           if (evaled) {
-            //Exhaust current stack of arguments - in the case of (and (burst [1 2 3]) 1)
+            //Exhaust current stack of arguments - in the case of (&& (burst [1 2 3]) 1)
             bool isTruthy = true;
             do {
               isTruthy = iBool(firstArgItem);

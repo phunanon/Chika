@@ -3,4 +3,4 @@
 (fn heartbeat on
   (dig-w 32 on)
   (sleep 1000i)
-  (not on))
+  (! on))

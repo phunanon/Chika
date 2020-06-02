@@ -1,5 +1,0 @@
-
-(fn fizz-buzz n
-  (str (.. (map {if (% .n #) %1 ""} [3 5] ["Fizz" "Buzz"])))
-
-(loop 100 {print (fizz-buzz %)})
