@@ -201,6 +201,19 @@ void Compiler::cleanUp () {
   h->fileDelete("binds.hsh");
 }
 
+char getLiteral (uint8_t* chars, uint8_t& length) {
+  if (chars[1] == 'n' && chars[2] == 'l') {
+    length = 3;
+    return '\n';
+  } else if (chars[1] == 's' && chars[2] == 'p') {
+    length = 3;
+    return ' ';
+  } else {
+    length = 2;
+    return (char)chars[1];
+  }
+}
+
 void Compiler::compile (const char* pathIn, const char* pathOut) {
   h->fileDelete(pathOut);
   cleanUp();
@@ -223,7 +236,7 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
       }
     }
   }
-  
+
   
   auto litTransparency = [] (Streamer &s, Appender &a, bool &inString) {
     //Check if we're within/exiting a string
@@ -236,9 +249,10 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
     if (s[0] == '"')
       inString = true;
     if (s[0] == '\\') {
-      uint8_t chLen = s[2] == ' ' ? 3 : 2;
-      a.a(s.peek(), chLen);
-      s.skip(chLen);
+      uint8_t litLen;
+      getLiteral(s.peek(), litLen);
+      a.a(s.peek(), litLen);
+      s.skip(litLen);
     }
     return false;
   };
@@ -387,9 +401,9 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
         inlinesOut.a((uint8_t*)fHead1, 2);
         while (true) {
           if (s.next()) break;
-          if (s[0] == '}') break;
           //String and character transparency
           if (litTransparency(s, inlinesOut, inString)) continue;
+          if (s[0] == '}') break;
           inlinesOut.a(&s[0], 1);
         }
         inlinesOut.a((uint8_t*)fTail, 2);
@@ -428,21 +442,13 @@ void Compiler::compile (const char* pathIn, const char* pathOut) {
         }
       }
       if (!inString && s[0] == '\\') {
-        uint8_t literal;
-        if (s[1] == 'n' && s[2] == 'l') {
-          literal = '\n';
-          s.skip(3);
-        } else if (s[1] == 's' && s[2] == 'p') {
-          literal = ' ';
-          s.skip(3);
-        } else {
-          literal = s[1];
-          s.skip(2);
-        }
+        uint8_t litLen;
+        uint8_t literal = getLiteral(s.peek(), litLen);
+        s.skip(litLen - 1);
         charsOut.a(&literal, 1);
         strippedOut.a((uint8_t*)"\\ ", 2);
-      }
-      (inString ? stringsOut : strippedOut).a(&s[0], 1);
+      } else
+        (inString ? stringsOut : strippedOut).a(&s[0], 1);
     }
     h->fileDelete("sexpr.chc");
   }
