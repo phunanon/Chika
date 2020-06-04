@@ -137,12 +137,12 @@ Note: the value `$` references can be erased by tail-call optimisation.
 `,`: a comma, treated as whitespace, and whitespace after it is erased.
 
 `…=`: binding, whereby `…` is a label.  
-`…`: binding reference, whereby `…` is its label.  
+`…`: binding reference or parameter reference depending on context, whereby `…` is its label.  
 `.…`: an extended binding reference, whereby `…` is its label. It references the previous instance of a binding on the stack.  
-Note: parameters take precedent over bindings.  
+Note: parameters take precedent over bindings per function.  
 Note: when *redefining* bindings, one must use an extended binding, so the VM skips the previous instance. Consider: `a= (+ 1 .a)`, so that `a` does not refer to the next item on the stack at that moment - `1`.
 
-The functions `if`, `and`, `or`, and `case` cannot be represented in a binding or parameter.
+The functions `if`, `&&`, `or`, and `case` cannot be represented in a binding or parameter.
 
 As functions must only contain forms ensure returns use `val`. 
 

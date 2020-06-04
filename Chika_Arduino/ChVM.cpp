@@ -272,7 +272,8 @@ uint8_t* f;
 uint8_t* fEnd;
 itemnum p0;
 itemnum parentP0;
-itemnum nArg;
+argnum nArg;
+argnum parentNArg;
 FuncState funcState;
 
 bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
@@ -281,7 +282,8 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   uint8_t* prev_funcEnd = fEnd;
   itemnum prev_parentP0 = parentP0;
   itemnum prev_p0 = p0;
-  itemnum prev_nArg = nArg;
+  argnum prev_nArg = nArg;
+  argnum prev_parentNArg = parentNArg;
 
   //If this was the previous function used cached start/end, otherwise recalculate
   if (prevFNum == fNum) {
@@ -308,6 +310,7 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   }
 
   parentP0 = p0;
+  parentNArg = nArg;
   p0 = firstParam;
   uint8_t* fStart = f;
   nArg = numItem() - p0;
@@ -337,6 +340,7 @@ bool ChVM::exeFunc (funcnum fNum, itemnum firstParam) {
   f = prev_f;
   fEnd = prev_funcEnd;
   parentP0 = prev_parentP0;
+  parentNArg = prev_parentNArg;
   p0 = prev_p0;
   nArg = prev_nArg;
 
@@ -535,7 +539,7 @@ void ChVM::exeForm () {
       itemnum paramNum = readUNum(++f, sizeof(argnum));
       f += sizeof(argnum);
       //If parameter is outside bounds, stack nil
-      if (paramNum >= nArg) {
+      if (paramNum >= (nextEval == Para_Val ? nArg : parentNArg)) {   
         stackNil();
         continue;
       }
