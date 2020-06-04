@@ -18,15 +18,16 @@
 (fn ex-last i (sect i 0 (dec (len i))))
 (fn empty? i (= (len i) 0))
 (fn !empty? i (!= (len i) 0))
-// (in? [1 2 3 4 5 6] 3) => T
-// (in? [1 2 3 4 5] 6) => N
+
+//e. (in? [1 2 3 4 5 6] 3) => T
+//e. (in? [1 2 3 4 5] 6) => N
 (fn in? v i
-  (if (!empty? v))
+  (if (!empty? v)
     (if (= (st v) i)
       T
       (recur (sect v) i))))
 
-// e.g. [1 2 3 3 3 [0 1] [0 1]]  => [1 2 3 [0 1]]
+//e. [1 2 3 3 3 [0 1] [0 1]] => [1 2 3 [0 1]]
 (fn distinct v ;; out
   (if (empty? v)
     out
@@ -56,7 +57,7 @@
           out)))))
 
 //Scans for first index of item or char `sub` within vec/str `v`, else nil
-//e.g. (index "hello" \l) => 2
+//e. (index "hello" \l) => 2
 (fn index
   v i ;; x
   (if (empty? v) (return N))
@@ -64,22 +65,22 @@
     x (recur (sect v) i (+ 1i x))))
 
 //Scans for first index of item `sub` within vector/string `v`, else nil
-//e.g. (str-index "hello" "ll") => 2
+//e. (str-index "hello" "ll") => 2
 (fn str-index
   v sub ;; i
   (if (!empty? v)
     (if (= (str sub) (sect v 0 (len sub)))
       i (recur (sect v) sub (inc (or i 0i))))))
 
-//e.g. (zip-select [F T F] [\a \b \c]) => \b
+//e. (zip-select [F T F] [\a \b \c]) => \b
 (fn zip-select select from
   (if (!empty? select)
     (if (st select)
       (st from)
       (recur (sect select) (sect from)))))
 
-//e.g. (range 0 10 2) => [0 2 4 6 8]
-//e.g. (range 10 0 -2i) => [10 8 6 4 2]
+//e. (range 0 10 2) => [0 2 4 6 8]
+//e. (range 10 0 -2i) => [10 8 6 4 2]
 (fn range from to step ;; v
   (if (= from to)
     v (recur (+ from step) to step
@@ -91,21 +92,36 @@
   (if (= (st v) k) (return (nd v)))
   (recur (sect v 2) k))
 
-//e.g. (str->int "123") => 123i
+//e. (str->int "123") => 123i
 (fn n*10^p-1 n p
   (if (== p 1) n
     (* n (** 10i (- p 1)))))
+
 (fn str->int s
   (reduce +
     (map n*10^p-1
       (map {cast (- # 48) 18} [(.. s)])
       (range (len s) 0 -1i))))
-//e.g. 1 -> "01", 10 -> "10"
+
+//e. 1 -> "01", 10 -> "10"
 (fn zpad n (str (if (< n 10) \0 "") n))
-//e.g. (vec->str [1 2 3 [4 5]]) => "[1 2 3 [2]]"
+
+//e. (vec->str [1 2 3 [4 5]]) => "[1 2 3 [2]]"
 (fn vec->str v (str "[" (reduce {str # \sp #1} v) "]"))
 
-//e.g. (-> 2 {+ 65 #} {cast # 0x13}) => \C
+(fn tree-print i ;; n
+  (if (type i [])
+    (map {tree-print # (if $1 (+ $1 1) 1)} i)
+    (print (loop "" 0 n {str # \.}) i \nl)))
+
+//e. (destruct [1 2 [3 4]] [a= b= [c= d=]]) => [a= 1 b= 2 c= 3 d= 4]
+(fn destruct data struct
+  (if (type struct [])
+    (reduce {vec (.. #) (.. #1)} []
+      (map destruct data struct))
+    [struct data]))
+
+//e. (-> 2 {+ 65 #} {cast # 0x13}) => \C
 (fn -> seed ; //N args
   (do-> seed (sect args)))
 (fn do-> acc funcs
