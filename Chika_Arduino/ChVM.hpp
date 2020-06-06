@@ -109,6 +109,7 @@ class ChVM {
   void     op_MsNow  (itemnum);
   void     op_Sleep  (itemnum);
   void     op_Print  (itemnum);
+  void     op_Rand   (itemnum);
   void     op_Debug  (itemnum);
   void     op_Load   (itemnum);
   void     op_Comp   (itemnum);

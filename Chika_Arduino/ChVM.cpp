@@ -685,6 +685,7 @@ void ChVM::nativeOp (IType op, itemnum p0) {
     case Op_MsNow:  op_MsNow (p0); break;
     case Op_Sleep:  op_Sleep (p0); break;
     case Op_Print:  op_Print (p0); break;
+    case Op_Rand:   op_Rand  (p0); break;
     case Op_Debug:  op_Debug (p0); break;
     case Op_Load:   op_Load  (p0); break;
     case Op_Comp:   op_Comp  (p0); break;
@@ -1039,7 +1040,7 @@ void ChVM::op_Sect (itemnum p0, bool isBurst) {
     //Copy subsection of memory to start of the string, add terminator
     memcpy(iBytes(p0), iBytes(p0) + skip, take);
     iBytes(p0)[take] = 0;
-    //Either return burst characters (b-sect) or a string (sect)
+    //Either return burst characters (..sect) or a string (sect)
     returnItem(p0, Item(take + 1, Val_Str));
     if (isBurst) burstItem();
     return;
@@ -1049,7 +1050,7 @@ void ChVM::op_Sect (itemnum p0, bool isBurst) {
   burstItem();
   //Truncate to skip+take
   trunStack(p0 + skip + take);
-  //Either return burst items (b-sect) or a vector (sect)
+  //Either return burst items (..sect) or a vector (sect)
   if (isBurst) {
     collapseItems(p0, take);
   } else {
@@ -1322,6 +1323,26 @@ void ChVM::op_Print (itemnum p0) {
   op_Str(p0);
   harness->print(iStr(p0));
   returnNil(p0);
+}
+
+void ChVM::op_Rand (itemnum p0) {
+  argnum nArg = numItem() - p0;
+  if (!nArg)
+    returnBool(p0, _rand() & 8);
+  else {
+    uint32_t r = _rand();
+    uint32_t a = iInt(p0);
+    if (a < 1) a = 1;
+    if (nArg == 1)
+      r %= a;
+    else {
+      uint32_t b = iInt(p0 + 1) - a;
+      if (b < 1) b = 1;
+      r %= b;
+      r += a;
+    }
+    returnInt(p0, r, sizeof(r));
+  }
 }
 
 void ChVM::op_Debug (itemnum p0) {

@@ -112,14 +112,15 @@ enum IType : uint8_t {
   Op_MsNow  = 0x5D,
   Op_Sleep  = 0x5E,
   Op_Print  = 0x5F,
-  Op_Debug  = 0x60,
-  Op_Load   = 0x61,
-  Op_Comp   = 0x62,
-  Op_Halt   = 0x63,
-  Op_Param  = 0x64,
-  Op_XPara  = 0x65,
-  Op_Bind   = 0x66,
-  Op_XBind  = 0x67
+  Op_Rand   = 0x60,
+  Op_Debug  = 0x61,
+  Op_Load   = 0x62,
+  Op_Comp   = 0x63,
+  Op_Halt   = 0x64,
+  Op_Param  = 0x65,
+  Op_XPara  = 0x66,
+  Op_Bind   = 0x67,
+  Op_XBind  = 0x68
 };
 
 itemlen constByteLen (IType, uint8_t* = nullptr);

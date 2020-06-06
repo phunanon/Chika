@@ -47,6 +47,14 @@ int32_t _pow (int32_t n, uint8_t p) {
   return sum;
 }
 
+uint32_t rn = 1;
+uint32_t _rand () {
+	rn ^= rn << 13;
+	rn ^= rn >> 17;
+	rn ^= rn << 5;
+	return rn;
+}
+
 bool isDigit (char ch) {
   return ch >= '0' && ch <= '9';
 }

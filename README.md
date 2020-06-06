@@ -180,6 +180,11 @@ Zero args returns nil. Will cast all parameters as the type of the first argumen
 `~ n`: returns bitwise NOT of `n`.  
 Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 
+`rand`: returns a pseudo-random boolean.  
+`rand b`: returns a pseudo-random integer from 0 to `b` exclusive.  
+`rand a b`: returns a pseudo-random integer from `a` inclusive to `b` exclusive.  
+Note: negative `a` or `b` cause them to be understood as 1.
+
 **Conditional**
 
 `if cond if-true`: evaluates and returns `if-true` if `cond` is truthy, else nil.  
@@ -226,7 +231,7 @@ Examples: `(+ 1 1) => 2`, `(+ 155 200) => 100`, `(+ 155w 200) => 355w`
 `sect v`: returns `v` with first item (if vector) or character (if string) omitted;  
 `sect v skip`: returns `v` with first `skip` items/characters omitted;  
 `sect v skip take`: returns `v` with `take` length and first `skip` items/characters omitted;  
-`b-sect`: the same as `sect` but returns items/characters burst.
+`..sect`: the same as `sect` but returns items/characters burst.
 
 `blob l s`: returns a blob of length `l` with all bytes set to `s`.
 

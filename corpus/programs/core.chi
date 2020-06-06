@@ -128,3 +128,9 @@
   (if (empty? funcs) (return acc))
   (do f= (st funcs)
     (recur (f acc) (sect funcs))))
+
+(fn xorshift32 state
+  (do x= state
+      x= (^ .x (<< .x 13))
+      x= (^ .x (>> .x 17))
+      (^ x (<< x 5))))

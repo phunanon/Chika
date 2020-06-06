@@ -8,7 +8,7 @@
     v= (ana-r 21)
     k= (/ (+ v 8) 64)
     (..
-      (if (and prev (< (+ ms 50) (ms-now)))
+      (if (&& prev (< (+ ms 50) (ms-now)))
         [press= prev
          prev=  N
          ms=    N]

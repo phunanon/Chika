@@ -14,14 +14,14 @@ const char* const ops[] = {
   "~", "&", "|", "^", "<<", ">>",               //38-3D
   "p-mode", "dig-r", "dig-w", "ana-r", "ana-w", //3E-42
   "file-r", "file-w", "file-a", "file-d",       //43-46
-  "str", "vec", "nth", "len", "sect", "b-sect", //47-4C
+  "str", "vec", "nth", "len", "sect", "..sect", //47-4C
   "blob", "get", "set",                         //4D-4F
   "..", "reduce", "map", "for", "loop",         //50-54
   "binds", "val", "do",                         //55-57
   "pub", "sub", "unsub",                        //58-5A
   "type", "cast",                               //5B-5C
-  "ms-now", "sleep",                            //5D-5E
-  "print", "debug", "load", "comp", "halt", 0   //5F-63
+  "ms-now", "sleep", "print", "rand",           //5D-60
+  "debug", "load", "comp", "halt", 0            //61-64
 };
 
 #ifdef ARDUINO

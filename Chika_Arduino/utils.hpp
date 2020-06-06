@@ -13,6 +13,7 @@ uint8_t* skipArg (uint8_t* f);
 
 uint8_t _log10 (uint32_t);
 int32_t _pow   (int32_t n, uint8_t p);
+uint32_t _rand ();
 bool isDigit (char);
 
 //Provide at least 11 bytes; returns length

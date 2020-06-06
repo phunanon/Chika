@@ -1,7 +1,7 @@
 (fn swap-at v n
   (do half= (sect v n)
     (vec
-      (b-sect v 0 n)
+      (..sect v 0 n)
       (nd half)
       (st half)
-      (b-sect half 2))))
+      (..sect half 2))))
